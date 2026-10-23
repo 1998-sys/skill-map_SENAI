@@ -2,8 +2,12 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { CapacidadesEditor } from "./capacidades-editor";
+
+function formatarData(d: Date) {
+  return new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC" }).format(d);
+}
 
 export default async function TurmaDetalhePage({
   params,
@@ -56,13 +60,47 @@ export default async function TurmaDetalhePage({
               ({turma.registros.length})
             </span>
           </h2>
-          <Button disabled title="Disponível na Etapa 2">
+          <Link
+            href={`/turmas/${turma.id}/registros/novo`}
+            className={buttonVariants()}
+          >
             Novo registro
-          </Button>
+          </Link>
         </div>
-        <p className="mt-2 text-sm text-muted-foreground">
-          O registro diário das aulas chega na próxima etapa.
-        </p>
+
+        {turma.registros.length === 0 ? (
+          <p className="mt-3 text-sm text-muted-foreground">
+            Nenhum registro ainda. Registre a próxima aula para começar a memória
+            pedagógica da turma.
+          </p>
+        ) : (
+          <ul className="mt-4 space-y-2">
+            {turma.registros.map((r) => (
+              <li key={r.id}>
+                <Link
+                  href={`/turmas/${turma.id}/registros/${r.id}`}
+                  className="flex items-center justify-between gap-4 rounded-lg border p-3 transition hover:bg-accent"
+                >
+                  <div>
+                    <p className="text-sm font-medium">{formatarData(r.data)}</p>
+                    {r.tema && (
+                      <p className="text-xs text-muted-foreground">{r.tema}</p>
+                    )}
+                  </div>
+                  <span
+                    className={
+                      r.status === "RASCUNHO"
+                        ? "shrink-0 rounded-full bg-muted px-2.5 py-0.5 text-xs text-muted-foreground"
+                        : "shrink-0 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs text-emerald-700"
+                    }
+                  >
+                    {r.status === "RASCUNHO" ? "Rascunho" : "Enviado"}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </main>
   );

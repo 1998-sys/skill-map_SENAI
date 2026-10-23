@@ -34,7 +34,7 @@
 |---|---|---|---|
 | 0 | Fundação (setup, deploy, auth) | ✅ Concluída | [etapa-0-fundacao.md](etapa-0-fundacao.md) |
 | 1 | Turma / Curso + Capacidades | ✅ Concluída | [etapa-1-turma-capacidades.md](etapa-1-turma-capacidades.md) |
-| 2 | Registro Diário da Turma | ⬜ Pendente | [etapa-2-registro-diario.md](etapa-2-registro-diario.md) |
+| 2 | Registro Diário da Turma | ✅ Concluída | [etapa-2-registro-diario.md](etapa-2-registro-diario.md) |
 | 3 | Análise Pedagógica com IA | ⬜ Pendente | [etapa-3-analise-ia.md](etapa-3-analise-ia.md) |
 | 4 | Envio à Coordenação + rastreabilidade | ⬜ Pendente | [etapa-4-envio-coordenacao.md](etapa-4-envio-coordenacao.md) |
 | 5 | Histórico da Turma | ⬜ Pendente | [etapa-5-historico-turma.md](etapa-5-historico-turma.md) |
