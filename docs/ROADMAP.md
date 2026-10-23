@@ -10,6 +10,8 @@
 
 Última atualização: 2026-10-23
 
+**Produção:** https://skill-map-senai.vercel.app · **Repositório:** https://github.com/1998-sys/skill-map_SENAI
+
 ---
 
 ## Stack do projeto
@@ -30,7 +32,7 @@
 
 | # | Etapa | Status | Arquivo |
 |---|---|---|---|
-| 0 | Fundação (setup, deploy, auth) | 🟡 Em andamento | [etapa-0-fundacao.md](etapa-0-fundacao.md) |
+| 0 | Fundação (setup, deploy, auth) | ✅ Concluída | [etapa-0-fundacao.md](etapa-0-fundacao.md) |
 | 1 | Turma / Curso + Capacidades | ⬜ Pendente | [etapa-1-turma-capacidades.md](etapa-1-turma-capacidades.md) |
 | 2 | Registro Diário da Turma | ⬜ Pendente | [etapa-2-registro-diario.md](etapa-2-registro-diario.md) |
 | 3 | Análise Pedagógica com IA | ⬜ Pendente | [etapa-3-analise-ia.md](etapa-3-analise-ia.md) |

@@ -1,7 +1,8 @@
 # Etapa 0 — Fundação
 
-> **Status:** 🟡 Em andamento
+> **Status:** ✅ Concluída
 > **Depende de:** nada (ponto de partida)
+> **Produção:** https://skill-map-senai.vercel.app · **Repo:** https://github.com/1998-sys/skill-map_SENAI
 
 ## 🎯 Objetivo
 Montar o "encanamento" do projeto: aplicação criada, banco conectado, autenticação
@@ -29,7 +30,7 @@ infraestrutura mais tarde.
 - [x] Layout base da aplicação (login + dashboard)
 - [x] `.env.example` documentando todas as variáveis necessárias
 - [x] Criar usuário de teste no Supabase e validar login de ponta a ponta _(login → dashboard com papel → logout, todos OK)_
-- [ ] Primeiro deploy na Vercel (repositório GitHub + variáveis de ambiente)
+- [x] Primeiro deploy na Vercel (repositório GitHub + variáveis de ambiente) _(produção validada: login → dashboard com papel, consultando o banco)_
 
 ## 📦 Entregável (critério de conclusão)
 App publicado na Vercel, com login funcionando, papéis distintos e banco conectado
