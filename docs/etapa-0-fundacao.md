@@ -16,18 +16,20 @@ infraestrutura mais tarde.
 - Vercel (deploy contínuo)
 
 ## ✅ Tarefas
-- [ ] Criar app Next.js (TS, Tailwind, App Router, `src/`, alias `@/*`)
-- [ ] Inicializar Git e `.gitignore` (incluir `.env*`)
-- [ ] Mover as telas de referência (`.png`) e o PDF para `docs/referencia/`
-- [ ] Instalar e configurar shadcn/ui (tema base, componentes iniciais)
-- [ ] Criar projeto no Supabase e obter chaves (URL, anon key, service role)
-- [ ] Configurar Prisma apontando para o Postgres do Supabase
-- [ ] Criar clients do Supabase (browser e server) para Next.js
-- [ ] Implementar Auth: login/logout e os papéis **Professor** e **Coordenação**
-- [ ] Middleware de proteção de rotas por papel
-- [ ] Layout base da aplicação (navegação, cabeçalho, container)
-- [ ] `.env.example` documentando todas as variáveis necessárias
-- [ ] Primeiro deploy na Vercel (variáveis de ambiente configuradas)
+- [x] Criar app Next.js (TS, Tailwind v4, App Router, `src/`, alias `@/*`)
+- [x] Inicializar Git e `.gitignore` (já cobre `.env*`)
+- [x] Mover as telas de referência (`.png`) e o PDF para `docs/referencia/`
+- [x] Instalar e configurar shadcn/ui _(componentes adicionados conforme as telas)_
+- [x] Criar projeto no Supabase e obter chaves _(URL + Publishable prontas; `SUPABASE_SERVICE_ROLE_KEY`/Secret opcional, usada só no servidor mais tarde)_
+- [x] Configurar Prisma apontando para o Postgres do Supabase _(Prisma 6; `.env` só com as URLs do banco)_
+- [x] **Migration inicial aplicada** + trigger de criação automática de `profile` (`prisma/sql/profile_trigger.sql`)
+- [x] Criar clients do Supabase (browser e server) para Next.js
+- [x] Implementar Auth: login/logout e os papéis **Professor** e **Coordenação**
+- [x] Middleware de proteção de rotas
+- [x] Layout base da aplicação (login + dashboard)
+- [x] `.env.example` documentando todas as variáveis necessárias
+- [x] Criar usuário de teste no Supabase e validar login de ponta a ponta _(login → dashboard com papel → logout, todos OK)_
+- [ ] Primeiro deploy na Vercel (repositório GitHub + variáveis de ambiente)
 
 ## 📦 Entregável (critério de conclusão)
 App publicado na Vercel, com login funcionando, papéis distintos e banco conectado

@@ -1,9 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  cacheComponents: true,
-  partialPrefetching: true,
+  // "Cache Components" desligado: o app é quase todo autenticado/por-requisição
+  // (sessão + banco), então páginas dinâmicas são o padrão esperado aqui.
   turbopack: {
     rules: {
       "*.css": {

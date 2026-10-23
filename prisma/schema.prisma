@@ -1,0 +1,142 @@
+// SENAI SkillMap — modelo de dados do MVP
+// Banco: PostgreSQL (Supabase). ORM: Prisma.
+//
+// Observações de design:
+// - `Profile` espelha o usuário do Supabase Auth (mesmo id de auth.users).
+// - Cada capacidade é um item individual com ID interno (regra da spec).
+// - A IA só referencia capacidades por ID (join AnaliseCapacidade).
+// - Registros enviados nunca são apagados: correções geram nova `Analise`
+//   (versão) preservando a rastreabilidade.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")   // pooled (pgbouncer) — runtime
+  directUrl = env("DIRECT_URL")     // direta (porta 5432) — migrations
+}
+
+enum Role {
+  PROFESSOR
+  COORDENACAO
+}
+
+enum RegistroStatus {
+  RASCUNHO // salvo, ainda não enviado à Coordenação
+  ENVIADO // validado pelo professor e enviado à Coordenação
+}
+
+enum AnaliseTipo {
+  IA_ORIGINAL // saída crua da IA, preservada
+  VALIDADA // versão editada/confirmada pelo professor
+}
+
+model Profile {
+  id        String   @id @db.Uuid // = auth.users.id (Supabase)
+  email     String   @unique
+  nome      String
+  role      Role     @default(PROFESSOR)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  turmas    Turma[]    @relation("ProfessorTurmas")
+  registros Registro[]
+
+  @@map("profiles")
+}
+
+model Curso {
+  id        String   @id @default(uuid()) @db.Uuid
+  nome      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  turmas Turma[]
+
+  @@map("cursos")
+}
+
+model Turma {
+  id           String   @id @default(uuid()) @db.Uuid
+  nome         String
+  periodo      String? // ex.: 2026/1
+  cargaHoraria Int?     @map("carga_horaria")
+  cursoId      String   @map("curso_id") @db.Uuid
+  professorId  String   @map("professor_id") @db.Uuid
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  curso       Curso        @relation(fields: [cursoId], references: [id])
+  professor   Profile      @relation("ProfessorTurmas", fields: [professorId], references: [id])
+  capacidades Capacidade[]
+  registros   Registro[]
+
+  @@map("turmas")
+}
+
+model Capacidade {
+  id        String   @id @default(uuid()) @db.Uuid
+  turmaId   String   @map("turma_id") @db.Uuid
+  texto     String
+  ordem     Int // ordem em que foi colada/cadastrada
+  createdAt DateTime @default(now()) @map("created_at")
+
+  turma     Turma               @relation(fields: [turmaId], references: [id], onDelete: Cascade)
+  analises  AnaliseCapacidade[]
+
+  @@map("capacidades")
+}
+
+model Registro {
+  id               String         @id @default(uuid()) @db.Uuid
+  turmaId          String         @map("turma_id") @db.Uuid
+  professorId      String         @map("professor_id") @db.Uuid
+  data             DateTime       @db.Date
+  tema             String? // opcional: tema/aula do dia
+  textoTrabalhado  String         @map("texto_trabalhado") // relato original — nunca alterado pela IA
+  textoDesempenho  String         @map("texto_desempenho")
+  textoObservacoes String?        @map("texto_observacoes")
+  status           RegistroStatus @default(RASCUNHO)
+  enviadoEm        DateTime?      @map("enviado_em")
+  createdAt        DateTime       @default(now()) @map("created_at")
+  updatedAt        DateTime       @updatedAt @map("updated_at")
+
+  turma     Turma     @relation(fields: [turmaId], references: [id])
+  professor Profile   @relation(fields: [professorId], references: [id])
+  analises  Analise[]
+
+  @@index([turmaId, data])
+  @@map("registros")
+}
+
+model Analise {
+  id                    String      @id @default(uuid()) @db.Uuid
+  registroId            String      @map("registro_id") @db.Uuid
+  tipo                  AnaliseTipo
+  versao                Int         @default(1)
+  pontosPositivos       String[]    @map("pontos_positivos")
+  pontosAtencao         String[]    @map("pontos_atencao")
+  sugestoes             String[]
+  observacoesAdicionais String?     @map("observacoes_adicionais")
+  createdAt             DateTime    @default(now()) @map("created_at")
+
+  registro             Registro            @relation(fields: [registroId], references: [id], onDelete: Cascade)
+  capacidadesIdentificadas AnaliseCapacidade[]
+
+  @@index([registroId])
+  @@map("analises")
+}
+
+// Liga uma análise às capacidades identificadas (sempre por ID da lista cadastrada)
+model AnaliseCapacidade {
+  analiseId    String @map("analise_id") @db.Uuid
+  capacidadeId String @map("capacidade_id") @db.Uuid
+
+  analise    Analise    @relation(fields: [analiseId], references: [id], onDelete: Cascade)
+  capacidade Capacidade @relation(fields: [capacidadeId], references: [id], onDelete: Cascade)
+
+  @@id([analiseId, capacidadeId])
+  @@map("analise_capacidades")
+}
