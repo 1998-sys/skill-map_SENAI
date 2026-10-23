@@ -1,6 +1,7 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser, getCurrentProfile } from "@/lib/auth";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 
 const ROLE_LABEL: Record<string, string> = {
   PROFESSOR: "Professor",
@@ -32,12 +33,14 @@ export default async function DashboardPage() {
       </header>
 
       <section className="rounded-xl border bg-card p-6">
-        <h2 className="text-lg font-medium">Fundação concluída 🎉</h2>
+        <h2 className="text-lg font-medium">Minhas turmas</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          Autenticação, banco e deploy estão no lugar. As telas do produto
-          (Turma/Capacidades, Registro Diário, Análise com IA, Histórico e
-          Painel da Coordenação) chegam nas próximas etapas.
+          Configure a turma e cadastre as capacidades do curso. Depois, registre
+          as aulas e deixe a IA relacionar aos objetivos de aprendizagem.
         </p>
+        <Link href="/turmas" className={buttonVariants({ className: "mt-4" })}>
+          Acessar turmas
+        </Link>
       </section>
     </main>
   );
