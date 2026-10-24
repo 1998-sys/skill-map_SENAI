@@ -26,7 +26,7 @@
 |---|---|---|---|
 | D0 | Fundação | Tokens de cor no tema, fonte Inter, variantes de botão | ✅ Concluída |
 | D1 | App shell | Sidebar navy + topbar; navegação ativa por rota; Coordenação por papel; responsivo (drawer no mobile) | ✅ Concluída |
-| D2 | Componentes base | Cards, inputs, badges de status, tabela | ⬜ |
+| D2 | Componentes base | StatusBadge, StatCard, SectionCard (inputs já ok via shadcn) | ✅ Concluída |
 | D3 | Telas do professor | Turma/Capacidades, Registro, Análise (seções numeradas), Histórico | ⬜ |
 | D4 | Painel da Coordenação | Stat cards + consolidação | ⬜ |
 | D5 | Responsividade + QA | Auditoria mobile, consistência, ajustes finais | ⬜ |
