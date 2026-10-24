@@ -84,7 +84,7 @@ export default async function TurmaDetalhePage({
         ) : (
           <div className="overflow-hidden rounded-lg border">
             <table className="w-full text-sm">
-              <thead className="bg-muted text-left text-foreground">
+              <thead className="bg-surface-strong text-left text-title">
                 <tr>
                   <th className="px-4 py-2.5 font-semibold">Data</th>
                   <th className="hidden px-4 py-2.5 font-semibold sm:table-cell">

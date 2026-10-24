@@ -67,13 +67,13 @@ export default async function CoordenacaoRegistroPage({
           ← {registro.turma.nome}
         </Link>
         <div className="mt-2 flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-bold tracking-tight">
+          <h1 className="text-2xl font-extrabold tracking-tight">
             Registro de {formatarData(registro.data)}
           </h1>
           <StatusBadge status={registro.status} />
         </div>
         {registro.enviadoEm && (
-          <p className="mt-1 text-sm text-primary">
+          <p className="mt-1 text-sm font-medium text-primary-active">
             Enviado à Coordenação em {formatarDataHora(registro.enviadoEm)}
           </p>
         )}

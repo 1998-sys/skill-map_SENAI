@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { TitleAccent } from "@/components/ui/section-card";
 
 type Cap = { id: string; texto: string };
 
@@ -48,13 +49,14 @@ export function CapacidadesEditor({
     <div className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold tracking-tight sm:text-2xl">
+          <h2 className="text-xl font-extrabold tracking-tight sm:text-2xl">
             Capacidades do Curso{" "}
             <span className="text-base font-normal text-muted-foreground">
               ({capacidades.length})
             </span>
           </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <TitleAccent />
+          <p className="mt-2.5 text-sm text-muted-foreground">
             Capacidades previstas no Plano de Curso. Cole a lista em bloco ou
             adicione uma a uma.
           </p>

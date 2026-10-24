@@ -155,7 +155,7 @@ export function RegistroForm({
               <p className="mr-auto text-sm text-destructive">{state.error}</p>
             )}
             {state.ok && (
-              <p className="mr-auto text-sm text-[#2e9e54]">Alterações salvas.</p>
+              <p className="mr-auto text-sm text-success">Alterações salvas.</p>
             )}
             {!readOnly && <SubmitButton label={submitLabel} />}
           </div>

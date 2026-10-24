@@ -131,7 +131,7 @@ export default async function HistoricoPage({
             {/* Desktop: tabela */}
             <div className="mt-3 hidden overflow-hidden rounded-lg border lg:block">
               <table className="w-full text-sm">
-                <thead className="bg-muted text-left text-foreground">
+                <thead className="bg-surface-strong text-left text-title">
                   <tr>
                     <th className="px-4 py-3 font-semibold">Data</th>
                     <th className="w-[16%] px-4 py-3 font-semibold">Aula / Tema</th>

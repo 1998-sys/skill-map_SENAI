@@ -21,7 +21,7 @@ export default async function DashboardPage() {
   return (
     <main className="mx-auto w-full max-w-5xl space-y-5 p-4 sm:p-6">
       <header>
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Olá, {nome}</h1>
+        <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">Olá, {nome}</h1>
         <p className="mt-1 text-sm text-muted-foreground">{ROLE_LABEL[role] ?? role}</p>
       </header>
 
@@ -68,10 +68,10 @@ function AtalhoCard({
   return (
     <section className="flex flex-col rounded-xl border bg-card p-4 sm:p-6">
       <div className="flex items-center gap-3">
-        <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[#e8f0fd] text-primary">
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-brand-soft text-primary-hover">
           {icon}
         </span>
-        <h2 className="text-xl font-bold tracking-tight">{titulo}</h2>
+        <h2 className="text-xl font-extrabold tracking-tight">{titulo}</h2>
       </div>
       <p className="mt-3 flex-1 text-sm text-muted-foreground">{texto}</p>
       <Link

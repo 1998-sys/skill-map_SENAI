@@ -14,11 +14,11 @@ export function Secao({
 }) {
   return (
     <div className="flex gap-3 py-4 first:pt-0 sm:gap-4">
-      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#e4edfb] text-base font-semibold text-primary">
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-soft text-base font-extrabold text-primary-hover">
         {n}
       </span>
       <div className="min-w-0 flex-1 space-y-2.5 pt-1">
-        <h3 className="text-lg font-bold tracking-tight">{titulo}</h3>
+        <h3 className="text-lg font-extrabold tracking-tight">{titulo}</h3>
         {children}
       </div>
     </div>

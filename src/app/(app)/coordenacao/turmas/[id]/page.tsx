@@ -10,7 +10,7 @@ import {
   TriangleAlert,
 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
-import { SectionCard } from "@/components/ui/section-card";
+import { SectionCard, TitleAccent } from "@/components/ui/section-card";
 import { StatCard } from "@/components/ui/stat-card";
 import { InfoField, PageNote } from "@/components/ui/info-field";
 import { ResumoIA } from "./resumo-ia";
@@ -109,18 +109,19 @@ export default async function CoordenacaoTurmaPage({
             icon={<CalendarDays className="size-5" />}
             label="Último envio"
             value={ultimoEnvio ? formatarDiaDoInstante(ultimoEnvio) : "—"}
+            color="neutral"
           />
           <StatCard
             icon={<TriangleAlert className="size-5" />}
             label="Pontos de atenção"
             value={atencaoAgrupada.length}
-            color="orange"
+            color="warning"
           />
           <StatCard
             icon={<Lightbulb className="size-5" />}
             label="Intervenções sugeridas"
             value={sugestoesAgrupadas.length}
-            color="green"
+            color="success"
           />
         </div>
         <div className="mt-4 grid gap-4 sm:grid-cols-3">
@@ -137,7 +138,7 @@ export default async function CoordenacaoTurmaPage({
           <ol className="divide-y rounded-lg border">
             {atencaoAgrupada.map((p, i) => (
               <li key={i} className="flex items-center gap-3 px-3 py-2.5 sm:px-4">
-                <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#e4edfb] text-sm font-semibold text-primary">
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand-soft text-sm font-extrabold text-primary-hover">
                   {i + 1}
                 </span>
                 <span className="flex-1 text-[15px]">{p.texto}</span>
@@ -164,9 +165,10 @@ export default async function CoordenacaoTurmaPage({
           </ul>
         )}
 
-        <h2 className="mt-6 mb-4 text-xl font-bold tracking-tight sm:text-2xl">
+        <h2 className="mt-7 text-xl font-extrabold tracking-tight sm:text-2xl">
           Intervenções sugeridas
         </h2>
+        <TitleAccent className="mb-5" />
         {sugestoesAgrupadas.length === 0 ? (
           <Vazio>Nenhuma intervenção sugerida.</Vazio>
         ) : (
@@ -194,7 +196,7 @@ export default async function CoordenacaoTurmaPage({
         ) : (
           <div className="overflow-hidden rounded-lg border">
             <table className="w-full text-sm">
-              <thead className="bg-muted text-left text-foreground">
+              <thead className="bg-surface-strong text-left text-title">
                 <tr>
                   <th className="px-4 py-2.5 font-semibold">Data</th>
                   <th className="hidden px-4 py-2.5 font-semibold sm:table-cell">

@@ -42,7 +42,7 @@ export function Filtros({ status, q }: { status: string; q: string }) {
           value={status}
           disabled={pending}
           onChange={(e) => aplicar({ status: e.target.value })}
-          className="h-10 rounded-lg border border-input bg-card px-3 text-sm outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+          className="h-10 rounded-lg border border-input bg-card px-3 text-sm outline-none focus-visible:ring-[3px] focus-visible:ring-ring/25"
         >
           {STATUS_OPCOES.map((o) => (
             <option key={o.value} value={o.value}>

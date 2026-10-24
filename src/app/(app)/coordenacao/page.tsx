@@ -74,6 +74,7 @@ export default async function CoordenacaoPage() {
             icon={<CalendarDays className="size-5" />}
             label="Último envio"
             value={ultimoGeral ? formatarDiaDoInstante(ultimoGeral) : "—"}
+            color="neutral"
           />
         </div>
       </SectionCard>
@@ -86,7 +87,7 @@ export default async function CoordenacaoPage() {
         ) : (
           <div className="overflow-hidden rounded-lg border">
             <table className="w-full text-sm">
-              <thead className="bg-muted text-left text-foreground">
+              <thead className="bg-surface-strong text-left text-title">
                 <tr>
                   <th className="px-4 py-2.5 font-semibold">Turma</th>
                   <th className="hidden px-4 py-2.5 font-semibold md:table-cell">
