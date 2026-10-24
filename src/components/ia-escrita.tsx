@@ -1,43 +1,41 @@
 "use client";
 
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Sparkles } from "lucide-react";
 
-// Escrita fluida para textos gerados por IA: o texto aparece aos poucos, como
-// nos assistentes de IA, deixando claro que é uma resposta gerada. Respeita
-// "reduzir movimento" do sistema (mostra tudo de uma vez).
+// Escrita fluida para textos gerados por IA: o texto aparece aos poucos, em
+// ritmo natural (palavra a palavra, com pausas curtas na pontuação), como nos
+// assistentes de IA — deixa claro que é uma resposta gerada. Não é animação de
+// movimento, então vale mesmo com "reduzir movimento" do sistema.
 
-const QUERY = "(prefers-reduced-motion: reduce)";
-
-function useReduzirMovimento() {
-  return useSyncExternalStore(
-    (avisar) => {
-      const m = window.matchMedia(QUERY);
-      m.addEventListener("change", avisar);
-      return () => m.removeEventListener("change", avisar);
-    },
-    () => window.matchMedia(QUERY).matches,
-    () => false,
-  );
-}
+/** Ritmo base, em caracteres por segundo. */
+const CPS = 100;
+/** Texto completo longo acelera para não passar disso (segundos). */
+const DURACAO_MAX = 9;
+/** Em streaming, o texto acumulado é alcançado em até ~N segundos. */
+const ALCANCE_STREAM = 4;
+/** Pausas (ms) depois de pontuação e quebras de linha. */
+const PAUSA: Record<string, number> = {
+  ".": 200, "!": 200, "?": 200, ":": 140, ";": 140, ",": 70, "\n": 260,
+};
+/** Até este tamanho as pausas são integrais; acima, encolhem proporcionalmente. */
+const PAUSA_REF = 600;
 
 /**
- * Revela `total` caracteres progressivamente.
- * - `ativo`: liga a animação (desligada → mostra tudo).
- * - `completo`: o texto já chegou inteiro (false durante streaming: o cursor
+ * Revela `texto` progressivamente e devolve quantos caracteres mostrar.
+ * - `ativo`: liga a escrita (desligada → mostra tudo).
+ * - `completo`: o texto já chegou inteiro (false durante streaming: a escrita
  *   alcança o que chegou e espera o resto).
  * - `chave`: mude para reiniciar do zero (nova geração).
  */
 export function useEscritaFluida(
-  total: number,
+  texto: string,
   {
     ativo,
     completo = true,
     chave = 0,
-    velocidade = 3,
-  }: { ativo: boolean; completo?: boolean; chave?: number; velocidade?: number },
+  }: { ativo: boolean; completo?: boolean; chave?: number },
 ) {
-  const reduzir = useReduzirMovimento();
   const [n, setN] = useState(0);
   const [terminou, setTerminou] = useState(false);
   const [chaveAtual, setChaveAtual] = useState(chave);
@@ -48,40 +46,71 @@ export function useEscritaFluida(
   }
 
   const nRef = useRef(0);
-  const alvo = useRef({ total, completo });
+  const alvo = useRef({ texto, completo });
   useEffect(() => {
-    alvo.current = { total, completo };
-  }, [total, completo]);
+    alvo.current = { texto, completo };
+  }, [texto, completo]);
   useEffect(() => {
     nRef.current = 0;
   }, [chave]);
 
-  const animando = ativo && !reduzir && !terminou;
+  const animando = ativo && !terminou;
 
   useEffect(() => {
     if (!animando) return;
     let raf = 0;
-    const tick = () => {
-      const { total, completo } = alvo.current;
-      const atual = nRef.current;
+    let ultimo = performance.now();
+    let credito = 0; // caracteres "a pagar" acumulados pelo tempo
+    let esperaAte = 0; // pausa de pontuação em andamento
+
+    const tick = (agora: number) => {
+      const { texto, completo } = alvo.current;
+      const total = texto.length;
+      const dt = Math.min(agora - ultimo, 100);
+      ultimo = agora;
+      let atual = nRef.current;
+
       if (atual >= total) {
         if (completo) {
           setTerminou(true);
           return;
         }
-      } else {
-        // Passo mínimo constante; acelera quando há muito texto acumulado.
-        const prox = Math.min(total, atual + Math.max(velocidade, Math.ceil((total - atual) / 24)));
-        nRef.current = prox;
-        setN(prox);
+      } else if (agora >= esperaAte) {
+        const cps = completo
+          ? Math.max(CPS, total / DURACAO_MAX)
+          : Math.max(CPS, (total - atual) / ALCANCE_STREAM);
+        credito += (dt * cps) / 1000;
+
+        // Revela palavra a palavra (a palavra + o espaço/quebra seguinte).
+        while (atual < total) {
+          let fim = atual;
+          while (fim < total && !/\s/.test(texto[fim])) fim++;
+          if (fim < total) fim++;
+          if (credito < fim - atual) break;
+          credito -= fim - atual;
+          atual = fim;
+          const sep = texto[fim - 1];
+          const marca = sep === "\n" ? "\n" : /\s/.test(sep) ? texto[fim - 2] : sep;
+          // Textos longos encurtam as pausas, para a escrita não se arrastar.
+          const pausa = (PAUSA[marca] ?? 0) * Math.min(1, PAUSA_REF / total);
+          if (pausa) {
+            esperaAte = agora + pausa;
+            credito = 0;
+            break;
+          }
+        }
+        if (atual !== nRef.current) {
+          nRef.current = atual;
+          setN(atual);
+        }
       }
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [animando, velocidade]);
+  }, [animando]);
 
-  const visivel = animando ? Math.min(n, total) : total;
+  const visivel = animando ? Math.min(n, texto.length) : texto.length;
   return { visivel, escrevendo: animando };
 }
 
@@ -100,7 +129,7 @@ export function SpinnerIA({ className = "size-9" }: { className?: string }) {
   return (
     <span
       aria-hidden="true"
-      className={`inline-block shrink-0 animate-spin rounded-full border-4 border-brand-soft border-t-primary ${className}`}
+      className={`motion-essencial inline-block shrink-0 animate-spin rounded-full border-4 border-brand-soft border-t-primary ${className}`}
     />
   );
 }

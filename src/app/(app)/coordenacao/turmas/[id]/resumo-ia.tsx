@@ -19,7 +19,7 @@ export function ResumoIA({ conteudo }: { conteudo: ConteudoConsolidado }) {
 
   useEffect(() => () => abortar.current?.abort(), []);
 
-  const { visivel, escrevendo } = useEscritaFluida(texto.length, {
+  const { visivel, escrevendo } = useEscritaFluida(texto, {
     ativo: fase === "escrevendo" || fase === "pronto",
     completo: fase === "pronto",
     chave: geracao,

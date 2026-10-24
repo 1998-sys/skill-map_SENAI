@@ -48,8 +48,14 @@ const recemGeradas = new Set<string>();
 type ListaChave = "caps" | "pos" | "at" | "sug" | "obs";
 const ORDEM: ListaChave[] = ["caps", "pos", "at", "sug", "obs"];
 
-// Corta as listas para mostrar só os `visivel` primeiros caracteres, em ordem,
-// e indica em qual lista está o cursor.
+// Texto corrido da análise (itens separados por quebra de linha), usado para
+// dar ritmo à escrita: pausa no fim de cada item.
+function textoCorrido(listas: Record<ListaChave, string[]>) {
+  return ORDEM.flatMap((k) => listas[k]).join("\n");
+}
+
+// Corta as listas para mostrar só os `visivel` primeiros caracteres do texto
+// corrido (cada item conta seu texto + 1 da quebra) e indica onde está o cursor.
 function revelar(listas: Record<ListaChave, string[]>, visivel: number) {
   let resto = visivel;
   let cursor: ListaChave | null = null;
@@ -59,7 +65,7 @@ function revelar(listas: Record<ListaChave, string[]>, visivel: number) {
     for (const t of listas[k]) {
       if (resto <= 0) break;
       cortadas[k].push(t.slice(0, resto));
-      resto -= t.length;
+      resto -= t.length + 1;
       if (resto <= 0) cursor = k;
     }
   }
@@ -172,11 +178,7 @@ export function AnalisePanel({
     sug: linhasParaArray(sugestoes),
     obs: observacoes.trim() ? [observacoes.trim()] : [],
   };
-  const total = ORDEM.reduce(
-    (s, k) => s + listas[k].reduce((a, t) => a + t.length, 0),
-    0,
-  );
-  const { visivel, escrevendo } = useEscritaFluida(total, {
+  const { visivel, escrevendo } = useEscritaFluida(textoCorrido(listas), {
     ativo: animar && !emEdicao,
   });
   const { cortadas, cursor } = revelar(listas, visivel);

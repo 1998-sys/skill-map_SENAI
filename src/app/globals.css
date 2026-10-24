@@ -160,6 +160,11 @@
       transition-duration: 0.01ms !important;
       scroll-behavior: auto !important;
     }
+    /* Exceção: indicador de carregamento é feedback essencial e continua girando. */
+    .motion-essencial {
+      animation-duration: 1s !important;
+      animation-iteration-count: infinite !important;
+    }
   }
   /* Títulos no padrão SENAI: Montserrat 800, cor de título. */
   h1,
