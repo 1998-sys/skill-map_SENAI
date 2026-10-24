@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser, getCurrentProfile } from "@/lib/auth";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 
 const ROLE_LABEL: Record<string, string> = {
   PROFESSOR: "Professor",
@@ -18,18 +18,9 @@ export default async function DashboardPage() {
 
   return (
     <main className="mx-auto w-full max-w-3xl p-6">
-      <header className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">SENAI SkillMap</h1>
-          <p className="text-sm text-muted-foreground">
-            Olá, {nome} · {ROLE_LABEL[role] ?? role}
-          </p>
-        </div>
-        <form action="/auth/signout" method="post">
-          <Button type="submit" variant="outline">
-            Sair
-          </Button>
-        </form>
+      <header className="mb-6">
+        <h1 className="text-2xl font-semibold">Olá, {nome}</h1>
+        <p className="text-sm text-muted-foreground">{ROLE_LABEL[role] ?? role}</p>
       </header>
 
       <section className="rounded-xl border bg-card p-6">
