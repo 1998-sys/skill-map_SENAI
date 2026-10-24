@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Montserrat } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
-const inter = Inter({
+// Fonte oficial do SENAI-SP (variável: cobre os pesos 400–800).
+const montserrat = Montserrat({
   variable: "--font-sans",
   subsets: ["latin"],
 });
@@ -18,7 +19,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="pt-BR"
-      className={`${inter.variable} h-full antialiased`}
+      className={`${montserrat.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         {children}
