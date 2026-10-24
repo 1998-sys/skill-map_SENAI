@@ -167,7 +167,9 @@ export function AnalisePanel({
   useEffect(() => {
     if (!gerarAoAbrir || disparou.current) return;
     disparou.current = true;
-    router.replace(pathname, { scroll: false });
+    // Só troca a URL no histórico (sem navegar): uma navegação aqui recarregaria
+    // a página no servidor enquanto a IA ainda está gerando.
+    window.history.replaceState(null, "", pathname);
     if (gerarAgora) chamarIA("Análise gerada.");
     // eslint-disable-next-line react-hooks/exhaustive-deps -- só ao montar
   }, []);
@@ -203,39 +205,10 @@ export function AnalisePanel({
   const vazio = (k: ListaChave, texto: string) =>
     !escrevendo || visivel > inicio[k] + tamanho[k] ? texto : null;
 
-  // Sem análise: botão para gerar (indisponível se já enviado).
-  if (!analise) {
-    return (
-      <SectionCard
-        title="Análise Pedagógica da Turma"
-        description="A IA vai relacionar este relato às capacidades da turma e sugerir pontos de atenção e ações para a próxima aula."
-      >
-        {analisando ? (
-          <PensandoIA>
-            A IA está lendo o relato e relacionando às capacidades do curso
-          </PensandoIA>
-        ) : (
-          <div className="flex justify-end">
-            <Button
-              size="lg"
-              className="px-4"
-              disabled={pending || readOnly}
-              onClick={() => analisar("Análise gerada.")}
-            >
-              <Sparkles />
-              Analisar com IA
-            </Button>
-          </div>
-        )}
-      </SectionCard>
-    );
-  }
-
-  const podeEnviar = !readOnly && analise.tipo === "VALIDADA";
-
-  // Gerando novas sugestões: a análise anterior sai da tela (fica em branco)
-  // até a nova chegar. Ela continua salva no banco (histórico de versões) e
-  // volta a aparecer se a geração falhar.
+  // A IA está gerando (primeira análise, vinda do Registro Diário, ou novas
+  // sugestões): mesmo cartão em branco com o círculo vermelho girando. Uma
+  // análise anterior não aparece — ela continua salva no histórico de versões
+  // e volta se a geração falhar.
   if (analisando) {
     return (
       <SectionCard
@@ -243,14 +216,42 @@ export function AnalisePanel({
         description={
           <span className="flex flex-wrap items-center gap-2">
             <SeloIA />
-            <span>Gerando uma nova análise…</span>
+            <span>{analise ? "Gerando uma nova análise…" : "Gerando a análise…"}</span>
           </span>
         }
       >
-        <PensandoIA>A IA está lendo o relato e escrevendo novas sugestões</PensandoIA>
+        <PensandoIA>
+          {analise
+            ? "A IA está lendo o relato e escrevendo novas sugestões"
+            : "A IA está lendo o relato e relacionando às capacidades do curso"}
+        </PensandoIA>
       </SectionCard>
     );
   }
+
+  // Sem análise: botão para gerar (indisponível se já enviado).
+  if (!analise) {
+    return (
+      <SectionCard
+        title="Análise Pedagógica da Turma"
+        description="A IA vai relacionar este relato às capacidades da turma e sugerir pontos de atenção e ações para a próxima aula."
+      >
+        <div className="flex justify-end">
+          <Button
+            size="lg"
+            className="px-4"
+            disabled={pending || readOnly}
+            onClick={() => analisar("Análise gerada.")}
+          >
+            <Sparkles />
+            Analisar com IA
+          </Button>
+        </div>
+      </SectionCard>
+    );
+  }
+
+  const podeEnviar = !readOnly && analise.tipo === "VALIDADA";
 
   return (
     <SectionCard
