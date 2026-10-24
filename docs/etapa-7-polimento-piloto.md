@@ -3,8 +3,9 @@
 > **Status:** 🟡 Em andamento
 > **Depende de:** Etapas 1 a 6
 
-**Feito até aqui:** `README.md` do projeto (stack, setup, deploy, estrutura) e
-`.env.example` versionado documentando as variáveis.
+**Feito até aqui:** `README.md` do projeto (stack, setup, deploy, estrutura),
+`.env.example` versionado, ajuste fino dos prompts de IA e auditoria mobile das telas
+principais (ver [mobile-responsividade.md](mobile-responsividade.md)).
 **Pendente:** polimento visual mais profundo (responsividade/acessibilidade),
 ajuste fino do prompt da IA, `OPENAI_API_KEY` na Vercel + deploy de produção, e o
 **piloto real** com uma turma — estes dois últimos são com o docente.
