@@ -39,7 +39,7 @@
 | 4 | Envio à Coordenação + rastreabilidade | ✅ Concluída | [etapa-4-envio-coordenacao.md](etapa-4-envio-coordenacao.md) |
 | 5 | Histórico da Turma | ✅ Concluída | [etapa-5-historico-turma.md](etapa-5-historico-turma.md) |
 | 6 | Painel da Coordenação | ✅ Concluída | [etapa-6-painel-coordenacao.md](etapa-6-painel-coordenacao.md) |
-| 7 | Polimento + Piloto | ⬜ Pendente | [etapa-7-polimento-piloto.md](etapa-7-polimento-piloto.md) |
+| 7 | Polimento + Piloto | 🟡 Em andamento | [etapa-7-polimento-piloto.md](etapa-7-polimento-piloto.md) |
 
 **Legenda de status:** ⬜ Pendente · 🟡 Em andamento · ✅ Concluída
 
