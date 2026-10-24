@@ -1,0 +1,341 @@
+<title>SkillMap SENAI — Visão geral</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Layout: documento de coluna única, cabeçalho institucional SENAI, sumário em fichas,
+   seções com título 800 + sublinhado vermelho (padrão do próprio app). */
+:root {
+  --bg: #e6e6e6;
+  --surface: #ffffff;
+  --ink: #1a1a1a;
+  --text: #333333;
+  --muted: #5c5c5c;
+  --line: #dcdcdc;
+  --soft: #f2f2f2;
+  --brand: #e30613;
+  --brand-ink: #aa0614;
+  --brand-soft: #fde7e8;
+  --ok: #1e7b3f;
+  --ok-soft: #e7f6ec;
+  --warn: #8a5300;
+  --warn-soft: #fff1db;
+  --font-display: "Montserrat", "Segoe UI", Arial, sans-serif;
+  --font-body: "Montserrat", "Segoe UI", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Code", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141414; --surface: #1f1f1f; --ink: #f4f4f4; --text: #d9d9d9; --muted: #a8a8a8;
+    --line: #333333; --soft: #262626; --brand: #ff3b47; --brand-ink: #ff7a82; --brand-soft: #3a1416;
+    --ok: #5fd18a; --ok-soft: #13301f; --warn: #f0b45a; --warn-soft: #33260f; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #141414; --surface: #1f1f1f; --ink: #f4f4f4; --text: #d9d9d9; --muted: #a8a8a8;
+  --line: #333333; --soft: #262626; --brand: #ff3b47; --brand-ink: #ff7a82; --brand-soft: #3a1416;
+  --ok: #5fd18a; --ok-soft: #13301f; --warn: #f0b45a; --warn-soft: #33260f; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: var(--font-body); font-size: 15px; line-height: 1.65;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 48px;
+}
+.wrap { max-width: 920px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+
+header.topo {
+  margin-inline: calc(-1 * max(16px, env(safe-area-inset-left, 0px)));
+  background: var(--surface); border-bottom: 4px solid var(--brand);
+}
+header.topo .in {
+  max-width: 920px; margin: 0 auto; padding-block: 28px 26px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 10px;
+}
+.marca { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.selo-senai {
+  background: #e30613; color: #fff; font-family: var(--font-display); font-weight: 800; font-style: italic;
+  font-size: 18px; letter-spacing: .04em; padding: 2px 10px; line-height: 1.4;
+}
+.marca b { font-family: var(--font-display); font-size: 22px; font-weight: 800; color: var(--ink); }
+.eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--brand-ink); }
+h1 {
+  font-family: var(--font-display); font-weight: 800; color: var(--ink);
+  font-size: clamp(26px, 4.4vw, 38px); line-height: 1.15; margin: 4px 0 0; text-wrap: balance;
+}
+.lead { max-width: 68ch; margin: 0; color: var(--text); font-size: 16px; }
+.meta { font-size: 13px; color: var(--muted); }
+
+nav.sumario { display: flex; flex-wrap: wrap; gap: 8px; }
+nav.sumario a {
+  font-size: 13px; font-weight: 600; color: var(--text); text-decoration: none;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px;
+}
+nav.sumario a:hover { border-color: var(--brand); color: var(--brand-ink); }
+nav.sumario a:focus-visible, a:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+section {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 6px;
+  padding: clamp(18px, 3vw, 28px); display: flex; flex-direction: column; gap: 14px; min-width: 0;
+}
+h2 {
+  font-family: var(--font-display); font-weight: 800; color: var(--ink); font-size: 22px;
+  line-height: 1.25; margin: 0; text-wrap: balance;
+}
+h2::after { content: ""; display: block; width: 44px; height: 3px; background: var(--brand); margin-top: 8px; }
+h3 { font-family: var(--font-display); font-weight: 700; color: var(--ink); font-size: 16px; margin: 6px 0 0; }
+p { margin: 0; max-width: 72ch; }
+ul, ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; max-width: 74ch; }
+li::marker { color: var(--brand); }
+strong { color: var(--ink); }
+code, .mono { font-family: var(--font-mono); font-size: 13px; background: var(--soft); padding: 1px 6px; border-radius: 4px; color: var(--ink); }
+
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.bloco { background: var(--soft); border-radius: 6px; padding: 16px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.bloco h3 { margin: 0; }
+
+.fluxo { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; max-width: none; }
+.fluxo li { background: var(--soft); border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 4px; }
+.fluxo .n {
+  width: 28px; height: 28px; border-radius: 50%; background: var(--brand-soft); color: var(--brand-ink);
+  font-weight: 800; display: grid; place-items: center; font-size: 14px;
+}
+.fluxo b { font-family: var(--font-display); color: var(--ink); font-size: 14px; }
+.fluxo span.d { font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+.tabela { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; }
+table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: 14px; }
+th { background: var(--soft); text-align: left; font-weight: 700; color: var(--ink); padding: 10px 12px; }
+td { padding: 10px 12px; border-top: 1px solid var(--line); vertical-align: top; }
+td:first-child { font-weight: 600; color: var(--ink); white-space: nowrap; }
+
+.pill { display: inline-block; border-radius: 999px; padding: 1px 9px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.p-ia { background: var(--warn-soft); color: var(--warn); }
+.p-val { background: var(--ok-soft); color: var(--ok); }
+.p-env { background: var(--brand-soft); color: var(--brand-ink); }
+
+.nota { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 12px; }
+pre.mermaid { background: var(--soft); border-radius: 6px; padding: 14px; overflow-x: auto; margin: 0; font-size: 13px; }
+
+.melhoria { border: 1px solid var(--line); border-radius: 6px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.melhoria .cab { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.melhoria .cab b { font-family: var(--font-display); font-weight: 800; color: var(--ink); font-size: 17px; }
+.tag { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--brand-ink); background: var(--brand-soft); border-radius: 4px; padding: 2px 7px; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
+.kpi { background: var(--soft); border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.kpi b { font-size: 13px; color: var(--ink); }
+.kpi span { font-size: 13px; color: var(--muted); line-height: 1.5; }
+.formula { font-family: var(--font-mono); font-size: 13px; color: var(--ink); background: var(--soft); border-radius: 6px; padding: 10px 12px; overflow-x: auto; }
+
+footer { font-size: 13px; color: var(--muted); text-align: center; }
+</style>
+
+<header class="topo">
+  <div class="in">
+    <div class="marca"><span class="selo-senai">SENAI</span><b>SkillMap</b></div>
+    <span class="eyebrow">Documentação do sistema · MVP</span>
+    <h1>Memória pedagógica contínua da turma</h1>
+    <p class="lead">O professor registra as aulas em linguagem natural; a IA relaciona cada relato às capacidades do curso e sugere pontos de atenção e ações. O docente valida e envia à Coordenação, que acompanha a evolução da turma com histórico rastreável.</p>
+    <span class="meta">Atualizado em 24/10/2026 · Produção: skill-map-senai.vercel.app</span>
+  </div>
+</header>
+
+<div class="wrap" style="margin-top: 20px;">
+
+  <nav class="sumario" aria-label="Sumário">
+    <a href="#principio">Princípio</a>
+    <a href="#fluxo">Fluxo</a>
+    <a href="#professor">Visão do professor</a>
+    <a href="#coordenacao">Visão da Coordenação</a>
+    <a href="#modelo">Modelo de IA</a>
+    <a href="#memoria">Memória para a Coordenação</a>
+    <a href="#melhorias">Melhorias a implementar</a>
+    <a href="#tecnica">Ficha técnica</a>
+  </nav>
+
+  <section id="principio">
+    <h2>Princípio</h2>
+    <p>O SkillMap <strong>não substitui</strong> Plano de Ensino, diário, avaliação, nota ou frequência. É uma camada de acompanhamento pedagógico: transforma as observações do professor em registro estruturado, relaciona essas observações às capacidades do curso (MSEP) e sugere intervenções para a próxima aula.</p>
+    <ul>
+      <li><strong>A IA apoia, não decide.</strong> Só a versão validada pelo professor vira registro pedagógico e pode ser enviada.</li>
+      <li><strong>A IA só usa capacidades cadastradas.</strong> Não cria, renomeia nem combina capacidades; não atribui nota, nível ou conceito.</li>
+      <li><strong>Nada enviado é apagado.</strong> Correções criam nova versão; o histórico fica preservado.</li>
+    </ul>
+  </section>
+
+  <section id="fluxo">
+    <h2>Fluxo do sistema</h2>
+    <p>Cada análise corresponde a um dia de aula e é enviada à Coordenação individualmente, quando o professor considerar pronta.</p>
+    <ol class="fluxo">
+      <li><span class="n">1</span><b>Turma / Curso</b><span class="d">Dados da turma e capacidades coladas do Plano de Curso, uma única vez.</span></li>
+      <li><span class="n">2</span><b>Registro Diário</b><span class="d">O que foi trabalhado, desempenho da turma e outras observações.</span></li>
+      <li><span class="n">3</span><b>Análise da IA</b><span class="d">Capacidades identificadas, pontos positivos, de atenção e sugestões.</span></li>
+      <li><span class="n">4</span><b>Validação</b><span class="d">O professor edita, aceita ou pede novas sugestões.</span></li>
+      <li><span class="n">5</span><b>Envio</b><span class="d">Registra data e hora; o registro passa a "Enviado à Coordenação".</span></li>
+      <li><span class="n">6</span><b>Acompanhamento</b><span class="d">Histórico da turma e painel consolidado da Coordenação.</span></li>
+    </ol>
+  </section>
+
+  <section id="professor">
+    <h2>Visão do professor</h2>
+    <p>O professor acessa só as próprias turmas. Dentro de uma turma, o menu lateral mostra o submenu <em>Turma / Curso · Registro Diário · Análise da IA · Histórico da Turma</em>.</p>
+    <div class="tabela">
+      <table>
+        <thead><tr><th>Tela</th><th>O que faz</th></tr></thead>
+        <tbody>
+          <tr><td>Minhas turmas</td><td>Lista as turmas do professor com nº de capacidades e de registros; cria nova turma.</td></tr>
+          <tr><td>Turma / Curso</td><td>Dados da turma; capacidades do curso (colar em bloco, adicionar, editar, remover); tabela de registros com status.</td></tr>
+          <tr><td>Registro Diário</td><td>Relato da aula em três campos. Botões <strong>Salvar rascunho</strong> e <strong>Analisar com IA</strong>, que salva e abre a Análise já gerando. O texto original nunca é alterado pela IA.</td></tr>
+          <tr><td>Análise da IA</td><td>Seções numeradas: 1 Capacidades identificadas, 2 Pontos positivos, 3 Pontos que merecem atenção, 4 Sugestões para a próxima aula, 5 Observações. Ações: Editar, Gerar novas sugestões, Salvar análise validada, Enviar à Coordenação, Reabrir para correção.</td></tr>
+          <tr><td>Análises da Turma</td><td>Todas as análises, com filtro por situação: <span class="pill p-ia">Gerada pela IA</span> <span class="pill p-val">Validada pelo professor</span> <span class="pill p-env">Enviada à Coordenação</span>.</td></tr>
+          <tr><td>Histórico da Turma</td><td>Ordem cronológica com data, tema, capacidades, síntese e status; filtro por status e busca no tema, relato, capacidades e análise.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="nota">Enquanto a IA trabalha, a tela mostra um círculo vermelho girando e o cartão em branco; depois a análise é escrita palavra por palavra, com o selo "Gerado por IA".</p>
+  </section>
+
+  <section id="coordenacao">
+    <h2>Visão da Coordenação</h2>
+    <p>Tudo é calculado <strong>somente sobre registros enviados</strong>. Registros apenas salvos pelo professor não aparecem como recebidos. Não há ranking de professores ou turmas.</p>
+    <div class="grid2">
+      <div class="bloco">
+        <h3>Painel de Acompanhamento</h3>
+        <p>Turmas acompanhadas, registros recebidos e último envio; tabela de turmas com professor e data do último envio.</p>
+      </div>
+      <div class="bloco">
+        <h3>Painel da turma</h3>
+        <p>Registros recebidos, último envio, pontos de atenção e intervenções; principais pontos de atenção com contagem ("4 registros"), pontos positivos e intervenções sugeridas.</p>
+      </div>
+      <div class="bloco">
+        <h3>Registro somente leitura</h3>
+        <p>Dados da turma, relato do professor e a análise validada. Correções são feitas pelo professor, que reabre o registro.</p>
+      </div>
+      <div class="bloco">
+        <h3>Resumo da turma com IA</h3>
+        <p>Resumo executivo em streaming, escrito na tela enquanto a IA gera, com evolução da turma citando datas.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="modelo">
+    <h2>Modelo de IA</h2>
+    <p>O SkillMap usa a API da <strong>OpenAI</strong>, modelo <code>gpt-5-nano</code> (padrão, escolhido por custo), configurável pela variável <code>OPENAI_MODEL</code> sem mudar código. As chamadas acontecem só no servidor, com esforço de raciocínio baixo (<code>reasoning_effort: low</code>).</p>
+    <div class="grid2">
+      <div class="bloco">
+        <h3>Análise pedagógica (professor)</h3>
+        <ul>
+          <li>Entrada: lista completa de capacidades da turma + relato do dia.</li>
+          <li>Saída em <strong>JSON Schema strict</strong> (Structured Outputs): capacidades, pontos positivos, de atenção, sugestões e observações.</li>
+          <li>As capacidades vão como códigos (<code>C1</code>, <code>C2</code>…) e voltam convertidas em IDs reais; código inventado é descartado.</li>
+          <li>Leva alguns segundos (cerca de 4 a 12 s); a versão é salva como <span class="pill p-ia">IA original</span>.</li>
+        </ul>
+      </div>
+      <div class="bloco">
+        <h3>Resumo da turma (Coordenação)</h3>
+        <ul>
+          <li>Rota <code>POST /api/coordenacao/resumo</code>, exclusiva da Coordenação.</li>
+          <li>Texto livre em <strong>streaming</strong>: chega aos pedaços e aparece na tela enquanto é gerado.</li>
+          <li>Pede visão geral, evolução com datas, capacidades mais e menos frequentes e recomendações.</li>
+          <li>Não é salvo: é gerado a cada pedido, sempre a partir dos dados atuais.</li>
+        </ul>
+      </div>
+    </div>
+    <h3>Regra fundamental do prompt</h3>
+    <p>"Use exclusivamente as capacidades fornecidas. Não crie, renomeie ou combine capacidades. Se uma observação não estiver claramente relacionada a nenhuma capacidade cadastrada, registre-a em observações adicionais."</p>
+    <p class="nota">A precisão da IA não é absoluta; por isso a validação humana é obrigatória e faz parte do desenho do sistema.</p>
+  </section>
+
+  <section id="memoria">
+    <h2>Memória pedagógica para a Coordenação</h2>
+    <p>A memória da turma se forma registro a registro. Cada camada guarda uma coisa diferente e nada enviado é sobrescrito:</p>
+    <ol>
+      <li><strong>Relato original</strong> do professor, salvo sem alterações.</li>
+      <li><strong>Versões da análise</strong>: cada geração da IA e cada validação do professor viram uma nova versão (v1, v2, v3…). A anterior continua no banco.</li>
+      <li><strong>Envio</strong>: muda o status para "Enviado à Coordenação" e grava data e hora. Só registros com análise validada podem ser enviados.</li>
+      <li><strong>Reabertura</strong>: o professor pode reabrir para correção; o histórico é preservado e uma nova validação gera nova versão.</li>
+      <li><strong>Consolidação</strong>: o painel usa a última versão validada de cada registro enviado e agrupa pontos de atenção iguais com contagem.</li>
+      <li><strong>Resumo com evolução</strong>: a IA recebe a linha do tempo dos registros enviados, em ordem cronológica, com data, tema, capacidades, pontos, intervenções e observações.</li>
+    </ol>
+<pre class="mermaid">
+flowchart LR
+  R["Registro Diário<br/>relato original"] --> A1["Análise v1<br/>gerada pela IA"]
+  A1 --> A2["Análise v2<br/>validada pelo professor"]
+  A2 --> E["Enviado à Coordenação<br/>data e hora"]
+  E --> P["Painel da turma<br/>pontos agrupados"]
+  E --> L["Linha do tempo<br/>registros por data"]
+  L --> S["Resumo com IA<br/>evolução citando datas"]
+  E -. "reabrir para correção" .-> A3["Análise v3<br/>nova validação"]
+</pre>
+    <p class="nota">Exemplo de leitura que a memória permite: uma dificuldade com o circuito de selo aparece em 18/09 e 22/09, recebe uma intervenção sugerida e deixa de ser citada a partir de 24/09.</p>
+  </section>
+
+  <section id="melhorias">
+    <h2>Melhorias a implementar</h2>
+    <p>Duas evoluções propostas para a próxima fase, depois do piloto.</p>
+
+    <div class="melhoria">
+      <div class="cab"><span class="tag">Melhoria 1</span><b>Dashboard de acompanhamento</b></div>
+      <p>Mostrar, por turma, se o SkillMap está sendo alimentado: quantas aulas já aconteceram, quantas têm registro e em que etapa cada registro está. Serve à Coordenação (visão de todas as turmas) e ao professor (a própria turma).</p>
+      <div class="kpis">
+        <div class="kpi"><b>Aulas previstas</b><span>Carga horária da turma dividida pela duração de uma aula.</span></div>
+        <div class="kpi"><b>Aulas registradas</b><span>Registros diários feitos, por semana e no total.</span></div>
+        <div class="kpi"><b>Taxa de preenchimento</b><span>Aulas registradas ÷ aulas já ocorridas até hoje.</span></div>
+        <div class="kpi"><b>Funil da análise</b><span>Sem análise → gerada pela IA → validada → enviada.</span></div>
+        <div class="kpi"><b>Dias sem registro</b><span>Alerta quando a turma passa N dias letivos sem registro.</span></div>
+        <div class="kpi"><b>Tempo até o envio</b><span>Dias entre a aula e o envio à Coordenação.</span></div>
+      </div>
+      <div class="formula">preenchimento = aulas_registradas ÷ aulas_ocorridas<br>aulas_previstas = carga_horaria ÷ horas_por_aula</div>
+      <h3>O que precisa ser feito</h3>
+      <ul>
+        <li>Novos dados da turma: data de início e fim, dias da semana com aula e duração da aula (hoje só existe a carga horária).</li>
+        <li>Calcular as aulas já ocorridas a partir desse calendário e comparar com os registros.</li>
+        <li>Tela de dashboard com os indicadores acima e um gráfico de registros por semana.</li>
+        <li>Manter a regra do MVP: indicadores de acompanhamento, sem ranking de professores.</li>
+      </ul>
+    </div>
+
+    <div class="melhoria">
+      <div class="cab"><span class="tag">Melhoria 2</span><b>Cadastro de cursos por PDF do Plano de Curso</b></div>
+      <p>Hoje as capacidades são coladas manualmente. A proposta é anexar o PDF do Plano de Curso e deixar a IA identificar as capacidades, que o professor revisa antes de salvar.</p>
+      <ol>
+        <li>O professor anexa o PDF ao criar ou editar a turma.</li>
+        <li>O servidor extrai o texto do PDF.</li>
+        <li>A IA identifica as capacidades com saída estruturada (JSON Schema), podendo classificar em técnicas e socioemocionais, como a especificação já admite.</li>
+        <li>O professor revisa a lista sugerida: edita, remove ou adiciona.</li>
+        <li>Só depois da confirmação as capacidades são salvas como itens individuais.</li>
+      </ol>
+      <h3>O que precisa ser feito</h3>
+      <ul>
+        <li>Armazenar o PDF (por exemplo, Supabase Storage) para manter a referência da origem das capacidades.</li>
+        <li>Extração de texto no servidor; PDFs escaneados vão precisar de OCR.</li>
+        <li>Limite de tamanho e tratamento de erro claro ("não foi possível ler o PDF").</li>
+        <li>Mesma regra da análise: a IA sugere, o professor decide.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="tecnica">
+    <h2>Ficha técnica</h2>
+    <div class="tabela">
+      <table>
+        <thead><tr><th>Camada</th><th>Tecnologia</th></tr></thead>
+        <tbody>
+          <tr><td>Aplicação</td><td>Next.js 16 (App Router) + TypeScript, deploy na Vercel</td></tr>
+          <tr><td>Interface</td><td>Tailwind CSS v4 + shadcn/ui, design system oficial SENAI-SP (vermelho #E30613, Montserrat)</td></tr>
+          <tr><td>Dados e login</td><td>Supabase (Postgres + Auth) com Prisma 6; papéis Professor e Coordenação</td></tr>
+          <tr><td>IA</td><td>OpenAI <code>gpt-5-nano</code> (configurável), Structured Outputs e streaming</td></tr>
+          <tr><td>Situação</td><td>Etapas 0 a 6 do MVP concluídas; Etapa 7 (piloto real) em andamento</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>SENAI SkillMap · documentação gerada a partir do código e das especificações do projeto</footer>
+</div>
