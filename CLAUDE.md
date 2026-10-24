@@ -42,7 +42,7 @@ Supabase (Auth + Postgres) · Prisma 6 · OpenAI (`gpt-5-nano`) · deploy Vercel
   `OPENAI_MODEL` padrão `gpt-5-nano`). Resumo da Coordenação em `src/lib/actions/coordenacao.ts`.
 - **Design tokens** em `src/app/globals.css` (`:root`, paleta **oficial SENAI-SP**: vermelho
   `#E30613`, fundo `#E6E6E6`, títulos `#1A1A1A`). Fonte **Montserrat** no layout raiz.
-  Plano em andamento: `docs/design-system-senai.md` (S0–S3 ✅, próximo S4). Use tokens
+  Plano em andamento: `docs/design-system-senai.md` (S0–S4 ✅, próximo S5). Use tokens
   (`text-title`, `bg-brand-soft`, `text-success`…), nunca hex solto.
 - Toda UI em **pt-BR**. Server actions em `src/lib/actions/*.ts` (`"use server"`, checam o dono).
 

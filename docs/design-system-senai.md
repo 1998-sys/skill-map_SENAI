@@ -3,7 +3,12 @@
 > Troca a "pele" do SkillMap pelo **design system oficial do SENAI-SP** (pasta
 > `senai-design-system/`), **mantendo intactos layout, fluxos e funcionalidades** das
 > etapas 0–6 e do redesign D0–D5.
-> Última atualização: 2026-10-24 · Status: 🟡 em andamento (S0–S3 ✅)
+> Última atualização: 2026-10-24 · Status: 🟡 em andamento (S0–S4 ✅)
+
+> **S4:** telas do professor revisadas com sessão de Professor (1280px e 375px): Turma,
+> Registro (rascunho, enviado e modo edição da análise), Novo registro, Histórico. Único
+> ajuste: a topbar estourava no celular em subtítulos longos (Montserrat é mais larga
+> que a Inter) — agora o subtítulo trunca (`min-w-0`) e "Sair" não encolhe.
 
 > **Após a S3:** nenhum hex fixo resta nos `.tsx` — tudo via tokens. Novos:
 > `TitleAccent` (sublinhado vermelho, em `section-card.tsx`); `StatCard` com cores
@@ -119,7 +124,7 @@ navegador (1280px e 375px, Professor e Coordenação) → commit.**
 | S1 | Tokens de cor e tipografia | `globals.css` (`:root` com a paleta SENAI, raio, foco); Montserrat via `next/font` no lugar da Inter; tokens semânticos para status e destaques (`--brand-soft`, `--success`, `--warning`) | ✅ Concluída |
 | S2 | App shell | Sidebar no padrão escolhido, logo oficial, item ativo em vermelho; topbar com barra vermelha de 3px; drawer mobile no mesmo padrão; login com a marca | ✅ Concluída |
 | S3 | Componentes base | `Button` (variantes `default` e `outline-primary` em vermelho, hover/active SENAI); `SectionCard` (título 800 + filete/sublinhado vermelho); `StatCard`; `StatusBadge`; `InfoField`; `PageNote`; inputs/selects/textarea (borda e foco); cabeçalho de tabela; `analise-secoes` (círculo numerado) | ✅ Concluída |
-| S4 | Telas do professor | Revisão tela a tela (Início, Minhas turmas, Nova turma, Turma, Registro/Análise, Histórico); remover hex soltos restantes; nenhum bloco muda de lugar | ⬜ |
+| S4 | Telas do professor | Revisão tela a tela (Início, Minhas turmas, Nova turma, Turma, Registro/Análise, Histórico); remover hex soltos restantes; nenhum bloco muda de lugar | ✅ Concluída |
 | S5 | Telas da Coordenação | Lista, painel da turma (StatCards, pontos de atenção numerados), registro somente leitura, resumo IA | ⬜ |
 | S6 | QA visual + acessibilidade | Contraste AA em todos os pares; foco visível; estados hover/disabled; 375px sem overflow; comparação lado a lado com o design system; atualizar docs (`CLAUDE.md`, `redesign-design-system.md`) | ⬜ |
 

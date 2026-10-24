@@ -114,8 +114,8 @@ export function AppShell({
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-16 shrink-0 items-center justify-between border-b-[3px] border-primary bg-card px-4 sm:px-6">
-          <div className="flex items-center gap-3">
+        <header className="flex h-16 shrink-0 items-center justify-between gap-3 border-b-[3px] border-primary bg-card px-4 sm:px-6">
+          <div className="flex min-w-0 flex-1 items-center gap-3">
             <button
               aria-label="Abrir menu"
               onClick={() => setOpen(true)}
@@ -123,13 +123,13 @@ export function AppShell({
             >
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
             </button>
-            <div className="flex items-center gap-2.5 text-[15px] sm:text-[17px]">
+            <div className="flex min-w-0 items-center gap-2.5 text-[15px] sm:text-[17px]">
               <span className="font-extrabold whitespace-nowrap text-title">SENAI SkillMap</span>
               <span className="text-border">|</span>
               <span className="truncate font-medium text-muted-foreground">{subtitulo}</span>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex shrink-0 items-center gap-3">
             <span className="hidden text-sm text-muted-foreground sm:inline">
               {nome} · {ROLE_LABEL[role]}
             </span>
