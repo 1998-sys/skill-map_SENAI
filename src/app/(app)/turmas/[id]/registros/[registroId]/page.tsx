@@ -6,6 +6,7 @@ import { updateRegistro } from "@/lib/actions/registros";
 import { RegistroForm } from "../registro-form";
 import { AnalisePanel } from "./analise-panel";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { PageNote } from "@/components/ui/info-field";
 
 // A análise chama a API da IA, que pode levar alguns segundos.
 export const maxDuration = 60;
@@ -38,6 +39,8 @@ export default async function RegistroPage({
           id: true,
           nome: true,
           professorId: true,
+          curso: { select: { nome: true } },
+          professor: { select: { nome: true } },
           capacidades: {
             orderBy: { ordem: "asc" },
             select: { id: true, texto: true },
@@ -80,25 +83,22 @@ export default async function RegistroPage({
     : null;
 
   return (
-    <main className="mx-auto w-full max-w-2xl p-6">
-      <div className="mb-6">
+    <main className="mx-auto w-full max-w-5xl space-y-5 p-4 sm:p-6">
+      <div>
         <Link
           href={`/turmas/${registro.turma.id}`}
           className="text-sm text-muted-foreground hover:underline"
         >
           ← {registro.turma.nome}
         </Link>
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-          <h1 className="text-2xl font-semibold">
+        <div className="mt-2 flex flex-wrap items-center gap-3">
+          <h1 className="text-2xl font-bold tracking-tight">
             Registro de {formatarData(registro.data)}
           </h1>
           <StatusBadge status={registro.status} />
         </div>
-        {registro.tema && (
-          <p className="text-sm text-muted-foreground">Tema: {registro.tema}</p>
-        )}
         {!isRascunho && registro.enviadoEm && (
-          <p className="mt-1 text-xs text-emerald-700">
+          <p className="mt-1 text-sm text-primary">
             Enviado à Coordenação em {formatarDataHora(registro.enviadoEm)}
           </p>
         )}
@@ -107,6 +107,11 @@ export default async function RegistroPage({
       <RegistroForm
         action={updateRegistro}
         hidden={{ registroId: registro.id }}
+        contexto={{
+          curso: registro.turma.curso.nome,
+          turma: registro.turma.nome,
+          professor: registro.turma.professor.nome,
+        }}
         defaults={{
           data: registro.data.toISOString().slice(0, 10),
           tema: registro.tema ?? "",
@@ -125,6 +130,11 @@ export default async function RegistroPage({
         analise={analise}
         status={registro.status}
       />
+
+      <PageNote>
+        A IA organiza as observações do professor e sugere ações pedagógicas; a
+        decisão final permanece com o docente.
+      </PageNote>
     </main>
   );
 }

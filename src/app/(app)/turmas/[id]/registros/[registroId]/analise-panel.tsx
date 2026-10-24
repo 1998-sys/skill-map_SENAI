@@ -11,8 +11,18 @@ import {
   enviarParaCoordenacao,
   reabrirRegistro,
 } from "@/lib/actions/envio";
+import {
+  Check,
+  Pencil,
+  RefreshCw,
+  RotateCcw,
+  Save,
+  Send,
+  Sparkles,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { SectionCard } from "@/components/ui/section-card";
 
 type Capacidade = { id: string; texto: string };
 export type AnaliseData = {
@@ -42,6 +52,8 @@ export function AnalisePanel({
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const readOnly = status === "ENVIADO";
+  // Leitura por padrão (como na referência); "Editar" abre os campos.
+  const [editando, setEditando] = useState(false);
 
   const [selecionadas, setSelecionadas] = useState<Set<string>>(
     () => new Set(analise?.capacidadeIds ?? []),
@@ -84,142 +96,172 @@ export function AnalisePanel({
   // Sem análise: botão para gerar (indisponível se já enviado).
   if (!analise) {
     return (
-      <section className="mt-8 rounded-xl border bg-card p-5">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <h2 className="text-lg font-medium">Análise pedagógica com IA</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              A IA vai relacionar este relato às capacidades da turma e sugerir
-              pontos de atenção e ações para a próxima aula.
-            </p>
-          </div>
+      <SectionCard
+        title="Análise Pedagógica da Turma"
+        description="A IA vai relacionar este relato às capacidades da turma e sugerir pontos de atenção e ações para a próxima aula."
+      >
+        <div className="flex justify-end">
           <Button
+            size="lg"
+            className="px-4"
             disabled={pending || readOnly}
             onClick={() =>
               run(() => analisarRegistro(registroId), "Análise gerada.")
             }
           >
+            <Sparkles />
             {pending ? "Analisando..." : "Analisar com IA"}
           </Button>
         </div>
-      </section>
+      </SectionCard>
     );
   }
 
   const podeEnviar = !readOnly && analise.tipo === "VALIDADA";
+  const emEdicao = editando && !readOnly;
+  const capsSelecionadas = capacidades.filter((c) => selecionadas.has(c.id));
 
   return (
-    <section className="mt-8 space-y-5 rounded-xl border bg-card p-5">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h2 className="text-lg font-medium">Análise pedagógica com IA</h2>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {analise.tipo === "VALIDADA"
-              ? "Versão validada pelo professor"
-              : "Versão gerada pela IA (revise e valide)"}{" "}
-            · v{analise.versao}
-          </p>
-        </div>
-        {!readOnly && (
-          <Button
-            variant="outline"
-            disabled={pending}
-            onClick={() =>
-              run(() => analisarRegistro(registroId), "Nova análise gerada.")
-            }
-          >
-            {pending ? "..." : "Analisar novamente"}
-          </Button>
+    <SectionCard
+      title="Análise Pedagógica da Turma"
+      description={
+        <>
+          {analise.tipo === "VALIDADA"
+            ? "Versão validada pelo professor"
+            : "Versão gerada pela IA — revise e valide antes de enviar"}{" "}
+          · v{analise.versao}
+        </>
+      }
+    >
+      <div className="divide-y">
+        <Secao n={1} titulo="Capacidades identificadas">
+          {emEdicao ? (
+            <ul className="space-y-2">
+              {capacidades.map((c) => (
+                <li key={c.id} className="flex items-start gap-2.5 text-[15px]">
+                  <input
+                    type="checkbox"
+                    className="mt-1 size-4 accent-primary"
+                    checked={selecionadas.has(c.id)}
+                    onChange={() => toggleCap(c.id)}
+                    id={`cap-${c.id}`}
+                  />
+                  <label htmlFor={`cap-${c.id}`}>{c.texto}</label>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <Bullets
+              itens={capsSelecionadas.map((c) => c.texto)}
+              vazio="Nenhuma capacidade identificada."
+            />
+          )}
+        </Secao>
+
+        <Secao n={2} titulo="Pontos positivos">
+          {emEdicao ? (
+            <Textarea
+              rows={4}
+              value={positivos}
+              onChange={(e) => setPositivos(e.target.value)}
+              placeholder="Um por linha"
+              className="text-[15px]"
+            />
+          ) : (
+            <Bullets itens={linhasParaArray(positivos)} />
+          )}
+        </Secao>
+
+        <Secao n={3} titulo="Pontos que merecem atenção">
+          {emEdicao ? (
+            <Textarea
+              rows={4}
+              value={atencao}
+              onChange={(e) => setAtencao(e.target.value)}
+              placeholder="Um por linha"
+              className="text-[15px]"
+            />
+          ) : (
+            <Bullets itens={linhasParaArray(atencao)} />
+          )}
+        </Secao>
+
+        <Secao n={4} titulo="Sugestões para a próxima aula">
+          {emEdicao ? (
+            <Textarea
+              rows={4}
+              value={sugestoes}
+              onChange={(e) => setSugestoes(e.target.value)}
+              placeholder="Uma por linha"
+              className="text-[15px]"
+            />
+          ) : (
+            <Bullets itens={linhasParaArray(sugestoes)} numerada />
+          )}
+        </Secao>
+
+        {(emEdicao || observacoes.trim()) && (
+          <Secao n={5} titulo="Observações adicionais">
+            {emEdicao ? (
+              <Textarea
+                rows={3}
+                value={observacoes}
+                onChange={(e) => setObservacoes(e.target.value)}
+                className="text-[15px]"
+              />
+            ) : (
+              <p className="text-[15px] whitespace-pre-line">{observacoes}</p>
+            )}
+          </Secao>
         )}
       </div>
 
-      <div>
-        <h3 className="mb-2 text-sm font-medium">Capacidades identificadas</h3>
-        <ul className="space-y-1.5">
-          {capacidades.map((c) => (
-            <li key={c.id} className="flex items-start gap-2 text-sm">
-              <input
-                type="checkbox"
-                className="mt-1"
-                checked={selecionadas.has(c.id)}
-                onChange={() => toggleCap(c.id)}
-                disabled={readOnly}
-                id={`cap-${c.id}`}
-              />
-              <label htmlFor={`cap-${c.id}`}>{c.texto}</label>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-1.5">
-          <h3 className="text-sm font-medium">Pontos positivos</h3>
-          <Textarea
-            rows={5}
-            value={positivos}
-            onChange={(e) => setPositivos(e.target.value)}
-            placeholder="Um por linha"
-            disabled={readOnly}
-          />
-        </div>
-        <div className="space-y-1.5">
-          <h3 className="text-sm font-medium">Pontos de atenção</h3>
-          <Textarea
-            rows={5}
-            value={atencao}
-            onChange={(e) => setAtencao(e.target.value)}
-            placeholder="Um por linha"
-            disabled={readOnly}
-          />
-        </div>
-      </div>
-
-      <div className="space-y-1.5">
-        <h3 className="text-sm font-medium">Sugestões para a próxima aula</h3>
-        <Textarea
-          rows={5}
-          value={sugestoes}
-          onChange={(e) => setSugestoes(e.target.value)}
-          placeholder="Uma por linha"
-          disabled={readOnly}
-        />
-      </div>
-
-      <div className="space-y-1.5">
-        <h3 className="text-sm font-medium">Observações adicionais</h3>
-        <Textarea
-          rows={3}
-          value={observacoes}
-          onChange={(e) => setObservacoes(e.target.value)}
-          disabled={readOnly}
-        />
-      </div>
-
       {readOnly ? (
-        <div className="flex items-center justify-between gap-4 border-t pt-4">
+        <div className="mt-2 flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-muted-foreground">
             Esta análise foi enviada à Coordenação. Para corrigir, reabra o
             registro — o histórico é preservado.
           </p>
           <Button
-            variant="outline"
+            variant="outline-primary"
+            size="lg"
             disabled={pending}
             onClick={() =>
               run(() => reabrirRegistro(registroId), "Registro reaberto.")
             }
           >
-            Reabrir para correção
+            <RotateCcw /> Reabrir para correção
           </Button>
         </div>
       ) : (
-        <>
+        <div className="mt-2 space-y-3 border-t pt-4">
           <p className="text-xs text-muted-foreground">
             A decisão pedagógica é sua: edite o que for necessário, valide e só
             então envie. A IA não atribui nota nem aprova/reprova.
+            {analise.tipo === "IA_ORIGINAL" &&
+              " Salve a análise validada para liberar o envio à Coordenação."}
           </p>
           <div className="flex flex-wrap gap-2">
             <Button
+              variant="outline-primary"
+              size="lg"
+              onClick={() => setEditando((v) => !v)}
+            >
+              {emEdicao ? <Check /> : <Pencil />}
+              {emEdicao ? "Concluir edição" : "Editar"}
+            </Button>
+            <Button
+              variant="outline-primary"
+              size="lg"
+              disabled={pending}
+              onClick={() =>
+                run(() => analisarRegistro(registroId), "Nova análise gerada.")
+              }
+            >
+              <RefreshCw /> Gerar novas sugestões
+            </Button>
+            <Button
+              size="lg"
               disabled={pending}
               onClick={() =>
                 run(
@@ -236,11 +278,12 @@ export function AnalisePanel({
                 )
               }
             >
-              {pending ? "Salvando..." : "Salvar análise validada"}
+              <Save /> {pending ? "Salvando..." : "Salvar análise validada"}
             </Button>
             {podeEnviar && (
               <Button
-                variant="secondary"
+                size="lg"
+                className="sm:ml-auto"
                 disabled={pending}
                 onClick={() =>
                   run(
@@ -249,17 +292,63 @@ export function AnalisePanel({
                   )
                 }
               >
-                Enviar à Coordenação
+                <Send /> Enviar análise para Coordenação
               </Button>
             )}
           </div>
-          {analise.tipo === "IA_ORIGINAL" && (
-            <p className="text-xs text-muted-foreground">
-              Salve a análise validada para liberar o envio à Coordenação.
-            </p>
-          )}
-        </>
+        </div>
       )}
-    </section>
+    </SectionCard>
+  );
+}
+
+// Seção numerada da análise (círculo azul + título + conteúdo).
+function Secao({
+  n,
+  titulo,
+  children,
+}: {
+  n: number;
+  titulo: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex gap-3 py-4 first:pt-0 sm:gap-4">
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#e4edfb] text-base font-semibold text-primary">
+        {n}
+      </span>
+      <div className="min-w-0 flex-1 space-y-2.5 pt-1">
+        <h3 className="text-lg font-bold tracking-tight">{titulo}</h3>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function Bullets({
+  itens,
+  numerada = false,
+  vazio = "Nenhum item.",
+}: {
+  itens: string[];
+  numerada?: boolean;
+  vazio?: string;
+}) {
+  if (itens.length === 0) {
+    return <p className="text-sm text-muted-foreground">{vazio}</p>;
+  }
+  return (
+    <ul className="space-y-1.5 text-[15px]">
+      {itens.map((t, i) => (
+        <li key={i} className="flex gap-3">
+          {numerada ? (
+            <span className="w-5 shrink-0 text-right tabular-nums">{i + 1}.</span>
+          ) : (
+            <span className="mt-[9px] size-1.5 shrink-0 rounded-full bg-primary" />
+          )}
+          <span>{t}</span>
+        </li>
+      ))}
+    </ul>
   );
 }

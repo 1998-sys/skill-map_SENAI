@@ -2,7 +2,11 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { FolderOpen, Plus } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { SectionCard } from "@/components/ui/section-card";
+import { PageNote } from "@/components/ui/info-field";
 import { Filtros } from "./filtros";
 
 function formatarData(d: Date) {
@@ -95,91 +99,139 @@ export default async function HistoricoPage({
     ? itens.filter((it) => it.haystack.includes(q.toLowerCase()))
     : itens;
 
+  const abrir = (registroId: string) => `/turmas/${turma.id}/registros/${registroId}`;
+
   return (
-    <main className="mx-auto w-full max-w-3xl p-6">
-      <div className="mb-6">
-        <Link
-          href={`/turmas/${turma.id}`}
-          className="text-sm text-muted-foreground hover:underline"
-        >
-          ← {turma.nome}
-        </Link>
-        <h1 className="mt-2 text-2xl font-semibold">Histórico da turma</h1>
-        <p className="text-sm text-muted-foreground">
-          {turma.curso.nome} — memória pedagógica em ordem cronológica
+    <main className="mx-auto w-full max-w-6xl space-y-5 p-4 sm:p-6">
+      <Link
+        href={`/turmas/${turma.id}`}
+        className="text-sm text-muted-foreground hover:underline"
+      >
+        ← {turma.nome}
+      </Link>
+
+      <SectionCard
+        title="Histórico de Registros"
+        description={`${turma.nome} · ${turma.curso.nome} — memória pedagógica em ordem cronológica`}
+        action={
+          <Link
+            href={`/turmas/${turma.id}/registros/novo`}
+            className={buttonVariants({ size: "lg" })}
+          >
+            <Plus /> Novo registro
+          </Link>
+        }
+      >
+        <Filtros status={status ?? ""} q={q} />
+
+        <p className="mt-4 text-xs text-muted-foreground">
+          {filtrados.length}{" "}
+          {filtrados.length === 1 ? "registro" : "registros"}
+          {(q || status) && " (filtrado)"}
         </p>
-      </div>
 
-      <Filtros status={status ?? ""} q={q} />
-
-      <p className="mt-4 text-xs text-muted-foreground">
-        {filtrados.length}{" "}
-        {filtrados.length === 1 ? "registro" : "registros"}
-        {(q || status) && " (filtrado)"}
-      </p>
-
-      {filtrados.length === 0 ? (
-        <p className="mt-4 rounded-xl border bg-card p-5 text-sm text-muted-foreground">
-          {registros.length === 0
-            ? "Nenhum registro ainda. Registre a próxima aula para começar a memória pedagógica da turma."
-            : "Nenhum registro corresponde aos filtros aplicados."}
-        </p>
-      ) : (
-        <ul className="mt-4 space-y-3">
-          {filtrados.map(({ r, capacidades, sintese }) => {
-            const isRascunho = r.status === "RASCUNHO";
-            return (
-              <li key={r.id}>
-                <Link
-                  href={`/turmas/${turma.id}/registros/${r.id}`}
-                  className="block rounded-xl border bg-card p-4 transition hover:bg-accent"
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <p className="text-sm font-medium">{formatarData(r.data)}</p>
-                      {r.tema && (
-                        <p className="text-xs text-muted-foreground">{r.tema}</p>
-                      )}
-                    </div>
-                    <span
-                      className={
-                        isRascunho
-                          ? "shrink-0 rounded-full bg-muted px-2.5 py-0.5 text-xs text-muted-foreground"
-                          : "shrink-0 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs text-emerald-700"
-                      }
-                    >
-                      {isRascunho ? "Rascunho" : "Enviado"}
-                    </span>
-                  </div>
-
-                  {!isRascunho && r.enviadoEm && (
-                    <p className="mt-1 text-xs text-emerald-700">
-                      Enviado em {formatarDataHora(r.enviadoEm)}
-                    </p>
-                  )}
-
-                  {capacidades.length > 0 && (
-                    <div className="mt-3 flex flex-wrap gap-1.5">
-                      {capacidades.map((texto, i) => (
-                        <span
-                          key={i}
-                          className="rounded-full border bg-background px-2 py-0.5 text-xs text-muted-foreground"
-                        >
-                          {texto}
+        {filtrados.length === 0 ? (
+          <p className="mt-3 rounded-lg border bg-muted/50 p-5 text-sm text-muted-foreground">
+            {registros.length === 0
+              ? "Nenhum registro ainda. Registre a próxima aula para começar a memória pedagógica da turma."
+              : "Nenhum registro corresponde aos filtros aplicados."}
+          </p>
+        ) : (
+          <>
+            {/* Desktop: tabela */}
+            <div className="mt-3 hidden overflow-hidden rounded-lg border lg:block">
+              <table className="w-full text-sm">
+                <thead className="bg-muted text-left text-foreground">
+                  <tr>
+                    <th className="px-4 py-3 font-semibold">Data</th>
+                    <th className="w-[16%] px-4 py-3 font-semibold">Aula / Tema</th>
+                    <th className="w-[28%] px-4 py-3 font-semibold">Capacidades identificadas</th>
+                    <th className="w-[28%] px-4 py-3 font-semibold">Síntese</th>
+                    <th className="px-4 py-3 font-semibold">Status</th>
+                    <th className="w-px px-4 py-3 font-semibold">Ação</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {filtrados.map(({ r, capacidades, sintese }) => (
+                    <tr key={r.id} className="align-top">
+                      <td className="px-4 py-3.5 tabular-nums whitespace-nowrap">
+                        {formatarData(r.data)}
+                      </td>
+                      <td className="px-4 py-3.5">{r.tema || "—"}</td>
+                      <td className="px-4 py-3.5">
+                        {capacidades.length > 0 ? (
+                          <span className="line-clamp-3" title={capacidades.join(", ")}>
+                            {capacidades.join(", ")}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3.5 text-muted-foreground">
+                        <span className="line-clamp-3" title={sintese}>
+                          {sintese}
                         </span>
-                      ))}
-                    </div>
-                  )}
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <StatusBadge status={r.status} short />
+                        {r.status === "ENVIADO" && r.enviadoEm && (
+                          <p className="mt-1 text-xs whitespace-nowrap text-muted-foreground">
+                            {formatarDataHora(r.enviadoEm)}
+                          </p>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        <Link
+                          href={abrir(r.id)}
+                          className={buttonVariants({ variant: "outline-primary" })}
+                        >
+                          <FolderOpen /> Abrir
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
-                  {sintese && (
-                    <p className="mt-3 text-sm text-muted-foreground">{sintese}</p>
-                  )}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      )}
+            {/* Mobile: cartões */}
+            <ul className="mt-3 space-y-3 lg:hidden">
+              {filtrados.map(({ r, capacidades, sintese }) => (
+                <li key={r.id}>
+                  <Link
+                    href={abrir(r.id)}
+                    className="block rounded-lg border p-4 transition hover:bg-accent"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold tabular-nums">
+                          {formatarData(r.data)}
+                        </p>
+                        {r.tema && <p className="text-sm">{r.tema}</p>}
+                      </div>
+                      <StatusBadge status={r.status} short />
+                    </div>
+                    {capacidades.length > 0 && (
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        <span className="font-medium text-foreground">Capacidades: </span>
+                        {capacidades.join(", ")}
+                      </p>
+                    )}
+                    {sintese && (
+                      <p className="mt-2 text-sm text-muted-foreground">{sintese}</p>
+                    )}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+      </SectionCard>
+
+      <PageNote>
+        O histórico consolida os registros pedagógicos realizados pelo professor e
+        enviados à Coordenação.
+      </PageNote>
     </main>
   );
 }

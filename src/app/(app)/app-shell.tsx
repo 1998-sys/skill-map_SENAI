@@ -40,6 +40,16 @@ const NAV: { href: string; label: string; Icon: () => React.ReactElement; role?:
   { href: "/coordenacao", label: "Coordenação", Icon: IconClipboard, role: "COORDENACAO" },
 ];
 
+// Subtítulo da topbar para as telas internas da turma (padrão das referências).
+function subtituloDaRota(pathname: string): string | null {
+  if (pathname === "/turmas/nova") return "Nova turma";
+  if (/^\/turmas\/[^/]+\/historico/.test(pathname)) return "Histórico da Turma";
+  if (/^\/turmas\/[^/]+\/registros\/novo/.test(pathname)) return "Registro Diário";
+  if (/^\/turmas\/[^/]+\/registros\/[^/]+/.test(pathname)) return "Registro e Análise da IA";
+  if (/^\/turmas\/[^/]+$/.test(pathname)) return "Turma / Curso";
+  return null;
+}
+
 export function AppShell({
   role,
   nome,
@@ -55,6 +65,7 @@ export function AppShell({
   const isActive = (href: string) =>
     pathname === href || pathname.startsWith(href + "/");
   const atual = items.find((i) => isActive(i.href));
+  const subtitulo = subtituloDaRota(pathname) ?? atual?.label ?? "SkillMap";
 
   return (
     <div className="flex min-h-screen">
@@ -109,7 +120,7 @@ export function AppShell({
             <div className="flex items-center gap-2.5 text-[15px] sm:text-[17px]">
               <span className="font-semibold text-foreground">SENAI SkillMap</span>
               <span className="text-border">|</span>
-              <span className="text-muted-foreground">{atual?.label ?? "SkillMap"}</span>
+              <span className="truncate text-muted-foreground">{subtitulo}</span>
             </div>
           </div>
           <div className="flex items-center gap-3">

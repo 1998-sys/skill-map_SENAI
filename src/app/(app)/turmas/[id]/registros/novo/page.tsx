@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createRegistro } from "@/lib/actions/registros";
+import { PageNote } from "@/components/ui/info-field";
 import { RegistroForm } from "../registro-form";
 
 export default async function NovoRegistroPage({
@@ -16,34 +17,43 @@ export default async function NovoRegistroPage({
 
   const turma = await prisma.turma.findUnique({
     where: { id },
-    select: { id: true, nome: true, professorId: true },
+    select: {
+      id: true,
+      nome: true,
+      professorId: true,
+      curso: { select: { nome: true } },
+      professor: { select: { nome: true } },
+    },
   });
   if (!turma || turma.professorId !== profile.id) notFound();
 
   const hoje = new Date().toISOString().slice(0, 10);
 
   return (
-    <main className="mx-auto w-full max-w-2xl p-6">
-      <div className="mb-6">
-        <Link
-          href={`/turmas/${turma.id}`}
-          className="text-sm text-muted-foreground hover:underline"
-        >
-          ← {turma.nome}
-        </Link>
-        <h1 className="mt-2 text-2xl font-semibold">Novo registro</h1>
-        <p className="text-sm text-muted-foreground">
-          Ao final da aula, relate em linguagem natural o que foi trabalhado e o
-          que você observou.
-        </p>
-      </div>
+    <main className="mx-auto w-full max-w-5xl space-y-5 p-4 sm:p-6">
+      <Link
+        href={`/turmas/${turma.id}`}
+        className="text-sm text-muted-foreground hover:underline"
+      >
+        ← {turma.nome}
+      </Link>
 
       <RegistroForm
         action={createRegistro}
         hidden={{ turmaId: turma.id }}
+        contexto={{
+          curso: turma.curso.nome,
+          turma: turma.nome,
+          professor: turma.professor.nome,
+        }}
         defaults={{ data: hoje }}
         submitLabel="Salvar registro"
       />
+
+      <PageNote>
+        O professor registra apenas o que observou na aula; depois de salvar, a
+        IA cruza essas informações com as capacidades do curso.
+      </PageNote>
     </main>
   );
 }

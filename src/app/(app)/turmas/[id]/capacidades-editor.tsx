@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { ClipboardPaste, Pencil, Plus, Save, Trash2 } from "lucide-react";
 import {
   addCapacidade,
   addCapacidadesEmBloco,
@@ -45,32 +46,42 @@ export function CapacidadesEditor({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-medium">
-          Capacidades{" "}
-          <span className="text-sm font-normal text-muted-foreground">
-            ({capacidades.length})
-          </span>
-        </h2>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="text-xl font-bold tracking-tight sm:text-2xl">
+            Capacidades do Curso{" "}
+            <span className="text-base font-normal text-muted-foreground">
+              ({capacidades.length})
+            </span>
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Capacidades previstas no Plano de Curso. Cole a lista em bloco ou
+            adicione uma a uma.
+          </p>
+        </div>
         <Button
-          variant="ghost"
-          size="sm"
+          variant="outline-primary"
+          size="lg"
           onClick={() => setMostrarBloco((v) => !v)}
         >
+          <ClipboardPaste />
           {mostrarBloco ? "Fechar colar em bloco" : "Colar em bloco"}
         </Button>
       </div>
 
       {mostrarBloco && (
-        <div className="space-y-2 rounded-lg border bg-muted/30 p-3">
+        <div className="space-y-3 rounded-lg border bg-muted/50 p-3">
           <Textarea
-            rows={6}
-            placeholder={"Cole várias capacidades (uma por linha)."}
+            rows={7}
+            placeholder={
+              "Cole várias capacidades (uma por linha).\n1. Interpretar diagramas elétricos\n2. Identificar componentes"
+            }
             value={bloco}
             onChange={(e) => setBloco(e.target.value)}
+            className="bg-card"
           />
           <Button
-            size="sm"
+            size="lg"
             disabled={pending || bloco.trim().length === 0}
             onClick={() =>
               run(async () => {
@@ -80,7 +91,7 @@ export function CapacidadesEditor({
               }, "Capacidades adicionadas.")
             }
           >
-            Adicionar lista
+            <Save /> Salvar lista
           </Button>
         </div>
       )}
@@ -90,13 +101,13 @@ export function CapacidadesEditor({
           Nenhuma capacidade cadastrada ainda.
         </p>
       ) : (
-        <ol className="space-y-2">
+        <ol className="divide-y rounded-lg border">
           {capacidades.map((cap, i) => (
             <li
               key={cap.id}
-              className="flex items-start gap-3 rounded-lg border p-3"
+              className="flex items-start gap-3 px-3 py-2.5 sm:px-4"
             >
-              <span className="mt-1 text-xs text-muted-foreground tabular-nums">
+              <span className="mt-0.5 w-6 shrink-0 text-right text-[15px] text-muted-foreground tabular-nums">
                 {i + 1}.
               </span>
               {editId === cap.id ? (
@@ -130,32 +141,37 @@ export function CapacidadesEditor({
                 </div>
               ) : (
                 <>
-                  <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                    <p className="text-sm">{cap.texto}</p>
-                    <div className="flex shrink-0 gap-1">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => {
-                        setEditId(cap.id);
-                        setEditTexto(cap.texto);
-                      }}
-                    >
-                      Editar
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      disabled={pending}
-                      onClick={() =>
-                        run(
-                          () => deleteCapacidade(cap.id, turmaId),
-                          "Capacidade removida.",
-                        )
-                      }
-                    >
-                      Remover
-                    </Button>
+                  <div className="flex flex-1 items-start justify-between gap-2">
+                    <p className="pt-0.5 text-[15px]">{cap.texto}</p>
+                    <div className="flex shrink-0 gap-0.5">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        aria-label="Editar capacidade"
+                        title="Editar"
+                        onClick={() => {
+                          setEditId(cap.id);
+                          setEditTexto(cap.texto);
+                        }}
+                      >
+                        <Pencil />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        aria-label="Remover capacidade"
+                        title="Remover"
+                        className="hover:text-destructive"
+                        disabled={pending}
+                        onClick={() =>
+                          run(
+                            () => deleteCapacidade(cap.id, turmaId),
+                            "Capacidade removida.",
+                          )
+                        }
+                      >
+                        <Trash2 />
+                      </Button>
                     </div>
                   </div>
                 </>
@@ -165,9 +181,10 @@ export function CapacidadesEditor({
         </ol>
       )}
 
-      <div className="flex gap-2 pt-2">
+      <div className="flex flex-col gap-2 pt-1 sm:flex-row">
         <Input
-          placeholder="Adicionar uma capacidade..."
+          className="h-9"
+          placeholder="Nova capacidade (ex.: Diagnosticar falhas)"
           value={nova}
           onChange={(e) => setNova(e.target.value)}
           onKeyDown={(e) => {
@@ -181,6 +198,8 @@ export function CapacidadesEditor({
           }}
         />
         <Button
+          variant="outline-primary"
+          size="lg"
           disabled={pending || nova.trim().length === 0}
           onClick={() =>
             run(async () => {
@@ -189,7 +208,7 @@ export function CapacidadesEditor({
             }, "Capacidade adicionada.")
           }
         >
-          Adicionar
+          <Plus /> Adicionar capacidade
         </Button>
       </div>
     </div>

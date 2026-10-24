@@ -11,8 +11,8 @@ histórico rastreável. A IA **não** substitui avaliação, nota ou frequência
 ## Onde estamos (leia os docs antes de agir)
 
 - `docs/ROADMAP.md` — etapas 0–7. **0–6 concluídas**, 7 (polimento/piloto) parcial.
-- `docs/redesign-design-system.md` — redesign visual SENAI. **D0, D1, D2 concluídas**;
-  **próximo = D3** (telas do professor), depois D4 (painel) e D5 (responsividade/QA).
+- `docs/redesign-design-system.md` — redesign visual SENAI. **D0–D3 concluídas**;
+  **próximo = D4** (painel da Coordenação), depois D5 (responsividade/QA).
 - `docs/etapa-*.md` — spec por etapa. `docs/mobile-responsividade.md` — auditoria mobile.
 - `docs/referencia/` — as 5 telas de referência (PNG) + PDF da especificação.
 

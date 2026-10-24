@@ -19,7 +19,7 @@ export function StatusBadge({
 
   return (
     <span
-      className={`inline-flex shrink-0 items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+      className={`inline-flex shrink-0 items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium ${
         enviado
           ? "bg-[#e4edfb] text-[#2563eb]"
           : "bg-[#e7f6ec] text-[#2e9e54]"

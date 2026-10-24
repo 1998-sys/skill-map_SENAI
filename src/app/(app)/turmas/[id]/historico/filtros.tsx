@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -31,9 +32,9 @@ export function Filtros({ status, q }: { status: string; q: string }) {
   const temFiltro = Boolean(status || q);
 
   return (
-    <div className="flex flex-wrap items-end gap-3 rounded-xl border bg-card p-4">
-      <div className="flex flex-col gap-1">
-        <label htmlFor="status" className="text-xs text-muted-foreground">
+    <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+      <div className="flex flex-col gap-1.5 sm:w-48">
+        <label htmlFor="status" className="text-sm text-muted-foreground">
           Status
         </label>
         <select
@@ -41,7 +42,7 @@ export function Filtros({ status, q }: { status: string; q: string }) {
           value={status}
           disabled={pending}
           onChange={(e) => aplicar({ status: e.target.value })}
-          className="h-9 rounded-md border border-input bg-transparent px-3 text-sm shadow-xs outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+          className="h-10 rounded-lg border border-input bg-card px-3 text-sm outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
         >
           {STATUS_OPCOES.map((o) => (
             <option key={o.value} value={o.value}>
@@ -58,18 +59,30 @@ export function Filtros({ status, q }: { status: string; q: string }) {
           aplicar({ q: busca.trim() });
         }}
       >
-        <div className="flex flex-1 flex-col gap-1">
-          <label htmlFor="q" className="text-xs text-muted-foreground">
+        <div className="flex flex-1 flex-col gap-1.5">
+          <label htmlFor="q" className="text-sm text-muted-foreground">
             Busca
           </label>
-          <Input
-            id="q"
-            placeholder="Tema, relato, capacidades, análise..."
-            value={busca}
-            onChange={(e) => setBusca(e.target.value)}
-          />
+          <div className="relative">
+            <Search
+              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+              aria-hidden="true"
+            />
+            <Input
+              id="q"
+              placeholder="Buscar por aula, tema ou palavra-chave..."
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+              className="h-10 pl-9"
+            />
+          </div>
         </div>
-        <Button type="submit" variant="outline" disabled={pending}>
+        <Button
+          type="submit"
+          variant="outline-primary"
+          className="h-10 px-4"
+          disabled={pending}
+        >
           Buscar
         </Button>
       </form>
@@ -78,6 +91,7 @@ export function Filtros({ status, q }: { status: string; q: string }) {
         <Button
           type="button"
           variant="ghost"
+          className="h-10"
           disabled={pending}
           onClick={() => {
             setBusca("");
