@@ -11,7 +11,7 @@ Dar à Coordenação uma visão **simples e consolidada** do acompanhamento peda
 ## 🧰 Tecnologias
 - Next.js (rota protegida para papel Coordenação)
 - Prisma (agregações sobre registros enviados)
-- API Claude (resumo consolidado da turma)
+- API OpenAI (`gpt-5-nano`) para o resumo consolidado da turma
 
 ## ✅ Tarefas
 - [x] Rota/visão exclusiva do papel **Coordenação**
