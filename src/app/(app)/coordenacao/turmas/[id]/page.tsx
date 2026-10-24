@@ -14,7 +14,7 @@ import { SectionCard, TitleAccent } from "@/components/ui/section-card";
 import { StatCard } from "@/components/ui/stat-card";
 import { InfoField, PageNote } from "@/components/ui/info-field";
 import { ResumoIA } from "./resumo-ia";
-import type { ConteudoConsolidado } from "@/lib/actions/coordenacao";
+import type { ConteudoConsolidado } from "@/lib/ia/resumo";
 import {
   formatarData,
   formatarDataHora,

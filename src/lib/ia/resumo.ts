@@ -1,12 +1,6 @@
-"use server";
-
-import { redirect } from "next/navigation";
-import { getCurrentProfile } from "@/lib/auth";
 import { getOpenAI, OPENAI_MODEL } from "@/lib/openai";
 
 const MODEL = OPENAI_MODEL || "gpt-5-nano";
-
-export type ResumoState = { error?: string; resumo?: string };
 
 // Conteúdo consolidado da turma (já calculado a partir dos registros ENVIADOS)
 // que será resumido pela IA. Texto puro basta para a Coordenação.
@@ -29,31 +23,11 @@ Regras:
 - Organize em: uma visão geral breve, as recorrências a acompanhar e as recomendações à Coordenação.
 - Baseie-se SOMENTE nas observações fornecidas; não invente dados nem generalize além delas.`;
 
-// Gera um resumo da turma em texto puro, a partir do conteúdo consolidado dos
-// registros ENVIADOS. Exclusivo para a Coordenação.
-export async function gerarResumoTurma(
-  conteudo: ConteudoConsolidado,
-): Promise<ResumoState> {
-  const profile = await getCurrentProfile();
-  if (!profile) redirect("/login");
-  if (profile.role !== "COORDENACAO") {
-    return { error: "Acesso restrito à Coordenação." };
-  }
-
-  if (!process.env.OPENAI_API_KEY) {
-    return {
-      error: "A chave da API da OpenAI não está configurada (OPENAI_API_KEY).",
-    };
-  }
-
-  if (conteudo.totalEnviados === 0) {
-    return { error: "Esta turma ainda não tem registros enviados." };
-  }
-
+function montarMensagem(conteudo: ConteudoConsolidado) {
   const lista = (itens: string[]) =>
     itens.length ? itens.map((i) => `- ${i}`).join("\n") : "(nenhum)";
 
-  const userMsg = `TURMA: ${conteudo.turmaNome} — Curso: ${conteudo.cursoNome}
+  return `TURMA: ${conteudo.turmaNome} — Curso: ${conteudo.cursoNome}
 Registros enviados à Coordenação: ${conteudo.totalEnviados}
 
 PONTOS POSITIVOS CONSOLIDADOS:
@@ -64,30 +38,60 @@ ${lista(conteudo.pontosAtencao)}
 
 INTERVENÇÕES SUGERIDAS:
 ${lista(conteudo.sugestoes)}`;
+}
 
-  let completion;
-  try {
-    completion = await getOpenAI().chat.completions.create({
+/** Valida o corpo recebido do cliente (formato do ConteudoConsolidado). */
+export function lerConteudo(v: unknown): ConteudoConsolidado | null {
+  if (!v || typeof v !== "object") return null;
+  const o = v as Record<string, unknown>;
+  const textos = (x: unknown) =>
+    Array.isArray(x) && x.every((i) => typeof i === "string") ? (x as string[]) : null;
+  const pos = textos(o.pontosPositivos);
+  const at = textos(o.pontosAtencao);
+  const sug = textos(o.sugestoes);
+  if (
+    typeof o.turmaNome !== "string" ||
+    typeof o.cursoNome !== "string" ||
+    typeof o.totalEnviados !== "number" ||
+    !pos || !at || !sug
+  ) {
+    return null;
+  }
+  return {
+    turmaNome: o.turmaNome,
+    cursoNome: o.cursoNome,
+    totalEnviados: o.totalEnviados,
+    pontosPositivos: pos,
+    pontosAtencao: at,
+    sugestoes: sug,
+  };
+}
+
+/** Gera o resumo em streaming: devolve os pedaços de texto conforme a IA escreve. */
+export async function* gerarResumoStream(
+  conteudo: ConteudoConsolidado,
+  signal?: AbortSignal,
+): AsyncGenerator<string> {
+  const stream = await getOpenAI().chat.completions.create(
+    {
       model: MODEL,
       reasoning_effort: "low",
       max_completion_tokens: 8000,
+      stream: true,
       messages: [
         { role: "system", content: SYSTEM },
-        { role: "user", content: userMsg },
+        { role: "user", content: montarMensagem(conteudo) },
       ],
-    });
-  } catch (e) {
-    return { error: e instanceof Error ? e.message : "Falha ao chamar a IA." };
-  }
+    },
+    { signal },
+  );
 
-  const choice = completion.choices[0];
-  if (choice?.finish_reason === "length") {
-    return { error: "A resposta da IA foi cortada. Tente novamente." };
+  for await (const chunk of stream) {
+    const choice = chunk.choices[0];
+    const texto = choice?.delta?.content;
+    if (texto) yield texto;
+    if (choice?.finish_reason === "length") {
+      yield "\n\n[O resumo foi interrompido por limite de tamanho. Gere novamente.]";
+    }
   }
-  const resumo = choice?.message?.content?.trim();
-  if (!resumo) {
-    return { error: "Resposta vazia da IA." };
-  }
-
-  return { resumo };
 }

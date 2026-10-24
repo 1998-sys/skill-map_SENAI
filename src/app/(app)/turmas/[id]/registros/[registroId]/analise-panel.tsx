@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { SectionCard } from "@/components/ui/section-card";
 import { Bullets, Secao } from "@/components/analise-secoes";
+import { CursorIA, PensandoIA, SeloIA, useEscritaFluida } from "@/components/ia-escrita";
 
 type Capacidade = { id: string; texto: string };
 export type AnaliseData = {
@@ -38,6 +39,32 @@ export type AnaliseData = {
 
 const linhasParaArray = (s: string) =>
   s.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+
+// Registros cuja análise acabou de ser gerada pela IA nesta aba: o painel que
+// monta depois do refresh escreve o resultado de forma fluida. Fica em memória
+// (some ao recarregar a página), então uma visita normal mostra tudo direto.
+const recemGeradas = new Set<string>();
+
+type ListaChave = "caps" | "pos" | "at" | "sug" | "obs";
+const ORDEM: ListaChave[] = ["caps", "pos", "at", "sug", "obs"];
+
+// Corta as listas para mostrar só os `visivel` primeiros caracteres, em ordem,
+// e indica em qual lista está o cursor.
+function revelar(listas: Record<ListaChave, string[]>, visivel: number) {
+  let resto = visivel;
+  let cursor: ListaChave | null = null;
+  const cortadas = {} as Record<ListaChave, string[]>;
+  for (const k of ORDEM) {
+    cortadas[k] = [];
+    for (const t of listas[k]) {
+      if (resto <= 0) break;
+      cortadas[k].push(t.slice(0, resto));
+      resto -= t.length;
+      if (resto <= 0) cursor = k;
+    }
+  }
+  return { cortadas, cursor };
+}
 
 export function AnalisePanel({
   registroId,
@@ -94,6 +121,48 @@ export function AnalisePanel({
     });
   }
 
+  // Chama a IA; ao voltar, marca o registro para a escrita fluida do resultado.
+  const [analisando, setAnalisando] = useState(false);
+  function analisar(ok: string) {
+    setAnalisando(true);
+    startTransition(async () => {
+      const res = await analisarRegistro(registroId);
+      setAnalisando(false);
+      if (res.error) {
+        toast.error(res.error);
+        return;
+      }
+      recemGeradas.add(registroId);
+      router.refresh();
+      toast.success(ok);
+    });
+  }
+
+  const [animar] = useState(() => recemGeradas.has(registroId));
+  useEffect(() => {
+    recemGeradas.delete(registroId);
+  }, [registroId]);
+
+  const emEdicao = editando && !readOnly;
+  const capsSelecionadas = capacidades.filter((c) => selecionadas.has(c.id));
+  const listas: Record<ListaChave, string[]> = {
+    caps: capsSelecionadas.map((c) => c.texto),
+    pos: linhasParaArray(positivos),
+    at: linhasParaArray(atencao),
+    sug: linhasParaArray(sugestoes),
+    obs: observacoes.trim() ? [observacoes.trim()] : [],
+  };
+  const total = ORDEM.reduce(
+    (s, k) => s + listas[k].reduce((a, t) => a + t.length, 0),
+    0,
+  );
+  const { visivel, escrevendo } = useEscritaFluida(total, {
+    ativo: animar && !emEdicao,
+  });
+  const { cortadas, cursor } = revelar(listas, visivel);
+  const fim = (k: ListaChave) => (escrevendo && cursor === k ? <CursorIA /> : null);
+  const vazio = (texto: string) => (escrevendo ? null : texto);
+
   // Sem análise: botão para gerar (indisponível se já enviado).
   if (!analise) {
     return (
@@ -101,40 +170,60 @@ export function AnalisePanel({
         title="Análise Pedagógica da Turma"
         description="A IA vai relacionar este relato às capacidades da turma e sugerir pontos de atenção e ações para a próxima aula."
       >
-        <div className="flex justify-end">
-          <Button
-            size="lg"
-            className="px-4"
-            disabled={pending || readOnly}
-            onClick={() =>
-              run(() => analisarRegistro(registroId), "Análise gerada.")
-            }
-          >
-            <Sparkles />
-            {pending ? "Analisando..." : "Analisar com IA"}
-          </Button>
-        </div>
+        {analisando ? (
+          <PensandoIA>
+            A IA está lendo o relato e relacionando às capacidades do curso
+          </PensandoIA>
+        ) : (
+          <div className="flex justify-end">
+            <Button
+              size="lg"
+              className="px-4"
+              disabled={pending || readOnly}
+              onClick={() => analisar("Análise gerada.")}
+            >
+              <Sparkles />
+              Analisar com IA
+            </Button>
+          </div>
+        )}
       </SectionCard>
     );
   }
 
   const podeEnviar = !readOnly && analise.tipo === "VALIDADA";
-  const emEdicao = editando && !readOnly;
-  const capsSelecionadas = capacidades.filter((c) => selecionadas.has(c.id));
 
   return (
     <SectionCard
       title="Análise Pedagógica da Turma"
       description={
-        <>
-          {analise.tipo === "VALIDADA"
-            ? "Versão validada pelo professor"
-            : "Versão gerada pela IA — revise e valide antes de enviar"}{" "}
-          · v{analise.versao}
-        </>
+        <span className="flex flex-wrap items-center gap-2">
+          {analise.tipo === "VALIDADA" ? (
+            <span>Versão validada pelo professor · v{analise.versao}</span>
+          ) : (
+            <>
+              <SeloIA />
+              <span>
+                {escrevendo
+                  ? "A IA está escrevendo a análise…"
+                  : "Revise e valide antes de enviar"}{" "}
+                · v{analise.versao}
+              </span>
+            </>
+          )}
+        </span>
       }
     >
-      <div className="divide-y">
+      {analisando && (
+        <div className="mb-4">
+          <PensandoIA>A IA está gerando uma nova análise para este relato</PensandoIA>
+        </div>
+      )}
+      <div
+        className="divide-y"
+        aria-live="polite"
+        aria-busy={escrevendo || analisando}
+      >
         <Secao n={1} titulo="Capacidades identificadas">
           {emEdicao ? (
             <ul className="space-y-2">
@@ -153,8 +242,9 @@ export function AnalisePanel({
             </ul>
           ) : (
             <Bullets
-              itens={capsSelecionadas.map((c) => c.texto)}
-              vazio="Nenhuma capacidade identificada."
+              itens={cortadas.caps}
+              vazio={vazio("Nenhuma capacidade identificada.")}
+              fim={fim("caps")}
             />
           )}
         </Secao>
@@ -169,7 +259,7 @@ export function AnalisePanel({
               className="text-[15px]"
             />
           ) : (
-            <Bullets itens={linhasParaArray(positivos)} />
+            <Bullets itens={cortadas.pos} vazio={vazio("Nenhum item.")} fim={fim("pos")} />
           )}
         </Secao>
 
@@ -183,7 +273,7 @@ export function AnalisePanel({
               className="text-[15px]"
             />
           ) : (
-            <Bullets itens={linhasParaArray(atencao)} />
+            <Bullets itens={cortadas.at} vazio={vazio("Nenhum item.")} fim={fim("at")} />
           )}
         </Secao>
 
@@ -197,11 +287,16 @@ export function AnalisePanel({
               className="text-[15px]"
             />
           ) : (
-            <Bullets itens={linhasParaArray(sugestoes)} numerada />
+            <Bullets
+              itens={cortadas.sug}
+              numerada
+              vazio={vazio("Nenhum item.")}
+              fim={fim("sug")}
+            />
           )}
         </Secao>
 
-        {(emEdicao || observacoes.trim()) && (
+        {(emEdicao || cortadas.obs.length > 0) && (
           <Secao n={5} titulo="Observações adicionais">
             {emEdicao ? (
               <Textarea
@@ -211,7 +306,10 @@ export function AnalisePanel({
                 className="text-[15px]"
               />
             ) : (
-              <p className="text-[15px] whitespace-pre-line">{observacoes}</p>
+              <p className="text-[15px] whitespace-pre-line">
+                {cortadas.obs[0]}
+                {fim("obs")}
+              </p>
             )}
           </Secao>
         )}
@@ -255,9 +353,7 @@ export function AnalisePanel({
               variant="outline-primary"
               size="lg"
               disabled={pending}
-              onClick={() =>
-                run(() => analisarRegistro(registroId), "Nova análise gerada.")
-              }
+              onClick={() => analisar("Nova análise gerada.")}
             >
               <RefreshCw /> Gerar novas sugestões
             </Button>

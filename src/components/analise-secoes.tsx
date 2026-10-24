@@ -29,13 +29,17 @@ export function Bullets({
   itens,
   numerada = false,
   vazio = "Nenhum item.",
+  fim,
 }: {
   itens: string[];
   numerada?: boolean;
-  vazio?: string;
+  /** Texto quando não há itens; `null` não mostra nada (ex.: IA ainda escrevendo). */
+  vazio?: string | null;
+  /** Conteúdo após o último item (ex.: cursor da escrita da IA). */
+  fim?: ReactNode;
 }) {
   if (itens.length === 0) {
-    return <p className="text-sm text-muted-foreground">{vazio}</p>;
+    return vazio ? <p className="text-sm text-muted-foreground">{vazio}</p> : null;
   }
   return (
     <ul className="space-y-1.5 text-[15px]">
@@ -46,7 +50,10 @@ export function Bullets({
           ) : (
             <span className="mt-[9px] size-1.5 shrink-0 rounded-full bg-primary" />
           )}
-          <span>{t}</span>
+          <span>
+            {t}
+            {i === itens.length - 1 && fim}
+          </span>
         </li>
       ))}
     </ul>
