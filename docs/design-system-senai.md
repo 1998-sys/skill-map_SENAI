@@ -3,11 +3,11 @@
 > Troca a "pele" do SkillMap pelo **design system oficial do SENAI-SP** (pasta
 > `senai-design-system/`), **mantendo intactos layout, fluxos e funcionalidades** das
 > etapas 0–6 e do redesign D0–D5.
-> Última atualização: 2026-10-24 · Status: 🟡 em andamento (S0, S1 ✅)
+> Última atualização: 2026-10-24 · Status: 🟡 em andamento (S0, S1, S2 ✅)
 
-> **Estado intermediário após a S1:** tokens já são SENAI (fundo, vermelho, Montserrat,
-> raio), mas a sidebar navy e alguns ícones/pílulas azuis continuam porque são **hex
-> fixos** no código — saem na S2 (shell) e S3 (componentes).
+> **Estado intermediário após a S2:** tokens e shell (sidebar branca, logo, topbar,
+> login) já são SENAI; alguns ícones/pílulas azuis continuam porque são **hex fixos**
+> nos componentes — saem na S3.
 
 ---
 
@@ -114,7 +114,7 @@ navegador (1280px e 375px, Professor e Coordenação) → commit.**
 |---|---|---|---|
 | S0 | Decisões e base | Fechar as decisões da §5; copiar o logo para `public/brand/`; decidir o que fazer com a pasta `senai-design-system/` no git | ✅ Concluída |
 | S1 | Tokens de cor e tipografia | `globals.css` (`:root` com a paleta SENAI, raio, foco); Montserrat via `next/font` no lugar da Inter; tokens semânticos para status e destaques (`--brand-soft`, `--success`, `--warning`) | ✅ Concluída |
-| S2 | App shell | Sidebar no padrão escolhido, logo oficial, item ativo em vermelho; topbar com barra vermelha de 3px; drawer mobile no mesmo padrão; login com a marca | ⬜ |
+| S2 | App shell | Sidebar no padrão escolhido, logo oficial, item ativo em vermelho; topbar com barra vermelha de 3px; drawer mobile no mesmo padrão; login com a marca | ✅ Concluída |
 | S3 | Componentes base | `Button` (variantes `default` e `outline-primary` em vermelho, hover/active SENAI); `SectionCard` (título 800 + filete/sublinhado vermelho); `StatCard`; `StatusBadge`; `InfoField`; `PageNote`; inputs/selects/textarea (borda e foco); cabeçalho de tabela; `analise-secoes` (círculo numerado) | ⬜ |
 | S4 | Telas do professor | Revisão tela a tela (Início, Minhas turmas, Nova turma, Turma, Registro/Análise, Histórico); remover hex soltos restantes; nenhum bloco muda de lugar | ⬜ |
 | S5 | Telas da Coordenação | Lista, painel da turma (StatCards, pontos de atenção numerados), registro somente leitura, resumo IA | ⬜ |

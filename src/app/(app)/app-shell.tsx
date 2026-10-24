@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { buttonVariants } from "@/components/ui/button";
@@ -78,14 +79,18 @@ export function AppShell({
       )}
 
       <aside
-        className={`${open ? "translate-x-0" : "-translate-x-full"} fixed inset-y-0 left-0 z-40 flex w-60 shrink-0 transform flex-col gap-8 p-4 transition-transform md:static md:translate-x-0`}
-        style={{ background: "linear-gradient(180deg,#153763,#0b1d3a)" }}
+        className={`${open ? "translate-x-0" : "-translate-x-full"} fixed inset-y-0 left-0 z-40 flex w-60 shrink-0 transform flex-col gap-8 border-r border-sidebar-border bg-sidebar px-3.5 py-5 transition-transform md:static md:translate-x-0`}
       >
-        <div className="px-2 pt-1 leading-none">
-          <div className="text-[26px] font-extrabold italic tracking-wide text-white">SENAI</div>
-          <div className="text-[22px] font-bold text-[#5aa6ef]">SkillMap</div>
-        </div>
-        <nav className="flex flex-col gap-1.5 text-sm">
+        <Link
+          href="/dashboard"
+          onClick={() => setOpen(false)}
+          className="flex items-center gap-2.5 px-1.5"
+          aria-label="SENAI SkillMap — Início"
+        >
+          <Image src="/brand/senai.svg" alt="SENAI" width={96} height={32} priority />
+          <span className="text-[19px] font-extrabold text-title">SkillMap</span>
+        </Link>
+        <nav aria-label="Menu principal" className="flex flex-col gap-1 text-sm">
           {items.map(({ href, label, Icon }) => {
             const active = isActive(href);
             return (
@@ -93,10 +98,11 @@ export function AppShell({
                 key={href}
                 href={href}
                 onClick={() => setOpen(false)}
-                className={`flex items-center gap-3 rounded-lg px-3.5 py-2.5 font-medium transition-colors ${
+                aria-current={active ? "page" : undefined}
+                className={`flex items-center gap-3 rounded-md border-l-4 px-3.5 py-2.5 font-semibold transition-colors ${
                   active
-                    ? "bg-primary text-primary-foreground"
-                    : "text-[#cdd8ea] hover:bg-white/10"
+                    ? "border-primary bg-sidebar-accent text-sidebar-accent-foreground"
+                    : "border-transparent text-sidebar-foreground hover:bg-muted hover:text-title"
                 }`}
               >
                 <Icon />
@@ -108,7 +114,7 @@ export function AppShell({
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-16 shrink-0 items-center justify-between border-b border-border bg-card px-4 sm:px-6">
+        <header className="flex h-16 shrink-0 items-center justify-between border-b-[3px] border-primary bg-card px-4 sm:px-6">
           <div className="flex items-center gap-3">
             <button
               aria-label="Abrir menu"
@@ -118,9 +124,9 @@ export function AppShell({
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
             </button>
             <div className="flex items-center gap-2.5 text-[15px] sm:text-[17px]">
-              <span className="font-semibold text-foreground">SENAI SkillMap</span>
+              <span className="font-extrabold whitespace-nowrap text-title">SENAI SkillMap</span>
               <span className="text-border">|</span>
-              <span className="truncate text-muted-foreground">{subtitulo}</span>
+              <span className="truncate font-medium text-muted-foreground">{subtitulo}</span>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -128,7 +134,7 @@ export function AppShell({
               {nome} · {ROLE_LABEL[role]}
             </span>
             <form action="/auth/signout" method="post">
-              <button type="submit" className={buttonVariants({ variant: "outline", size: "sm" })}>
+              <button type="submit" className={buttonVariants({ variant: "outline-primary", size: "sm" })}>
                 Sair
               </button>
             </form>
