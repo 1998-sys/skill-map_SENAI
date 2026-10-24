@@ -120,11 +120,13 @@ export function AppShell({
         <Link
           href="/dashboard"
           onClick={() => setOpen(false)}
-          className="flex items-center gap-2.5 px-1.5"
+          className="flex flex-col items-start gap-2 border-b border-sidebar-border px-1.5 pb-5"
           aria-label="SENAI SkillMap — Início"
         >
-          <Image src="/brand/senai.svg" alt="SENAI" width={96} height={32} priority />
-          <span className="text-[19px] font-extrabold text-title">SkillMap</span>
+          <Image src="/brand/senai.svg" alt="SENAI" width={150} height={50} priority />
+          <span className="text-[28px] leading-none font-extrabold tracking-tight text-title">
+            SkillMap
+          </span>
         </Link>
         <nav aria-label="Menu principal" className="flex flex-col gap-1 text-sm">
           {items.map(({ href, label, Icon }) => {
