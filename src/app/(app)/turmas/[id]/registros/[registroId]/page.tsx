@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { updateRegistro } from "@/lib/actions/registros";
 import { RegistroForm } from "../registro-form";
 import { AnalisePanel } from "./analise-panel";
+import { StatusBadge } from "@/components/ui/status-badge";
 
 // A análise chama a API da IA, que pode levar alguns segundos.
 export const maxDuration = 60;
@@ -91,15 +92,7 @@ export default async function RegistroPage({
           <h1 className="text-2xl font-semibold">
             Registro de {formatarData(registro.data)}
           </h1>
-          <span
-            className={
-              isRascunho
-                ? "rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground"
-                : "rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700"
-            }
-          >
-            {isRascunho ? "Rascunho" : "Enviado à Coordenação"}
-          </span>
+          <StatusBadge status={registro.status} />
         </div>
         {registro.tema && (
           <p className="text-sm text-muted-foreground">Tema: {registro.tema}</p>

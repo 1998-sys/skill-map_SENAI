@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { buttonVariants } from "@/components/ui/button";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { CapacidadesEditor } from "./capacidades-editor";
 
 function formatarData(d: Date) {
@@ -95,15 +96,7 @@ export default async function TurmaDetalhePage({
                       <p className="text-xs text-muted-foreground">{r.tema}</p>
                     )}
                   </div>
-                  <span
-                    className={
-                      r.status === "RASCUNHO"
-                        ? "shrink-0 rounded-full bg-muted px-2.5 py-0.5 text-xs text-muted-foreground"
-                        : "shrink-0 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs text-emerald-700"
-                    }
-                  >
-                    {r.status === "RASCUNHO" ? "Rascunho" : "Enviado"}
-                  </span>
+                  <StatusBadge status={r.status} short />
                 </Link>
               </li>
             ))}
