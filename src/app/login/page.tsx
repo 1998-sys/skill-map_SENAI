@@ -39,18 +39,11 @@ export default function LoginPage() {
         <div className="h-1 bg-primary" aria-hidden="true" />
         <div className="p-6 sm:p-8">
           <div className="mb-6 flex flex-col items-center text-center">
-            <h1 className="text-4xl font-extrabold tracking-tight sm:text-[42px]">
+            <Image src="/brand/senai.svg" alt="SENAI" width={210} height={70} priority />
+            <h1 className="mt-5 text-4xl font-extrabold tracking-tight sm:text-[42px]">
               SkillMap
             </h1>
-            <Image
-              src="/brand/senai.svg"
-              alt="SENAI"
-              width={210}
-              height={70}
-              priority
-              className="mt-4"
-            />
-            <div className="mt-4 h-1 w-14 bg-primary" aria-hidden="true" />
+            <div className="mt-3 h-1 w-14 bg-primary" aria-hidden="true" />
             <p className="mt-3 text-sm text-muted-foreground">
               Entre para acessar o acompanhamento pedagógico.
             </p>
