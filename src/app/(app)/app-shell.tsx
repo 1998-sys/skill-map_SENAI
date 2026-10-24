@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ChartColumn, FileText, History, Users } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 
 type Role = "PROFESSOR" | "COORDENACAO";
@@ -45,10 +46,43 @@ const NAV: { href: string; label: string; Icon: () => React.ReactElement; role?:
 function subtituloDaRota(pathname: string): string | null {
   if (pathname === "/turmas/nova") return "Nova turma";
   if (/^\/turmas\/[^/]+\/historico/.test(pathname)) return "Histórico da Turma";
-  if (/^\/turmas\/[^/]+\/registros\/novo/.test(pathname)) return "Registro Diário";
-  if (/^\/turmas\/[^/]+\/registros\/[^/]+/.test(pathname)) return "Registro e Análise da IA";
+  if (/^\/turmas\/[^/]+\/registros\/[^/]+\/analise/.test(pathname)) return "Análise da IA";
+  if (/^\/turmas\/[^/]+\/registros\/[^/]+/.test(pathname)) return "Registro Diário";
   if (/^\/turmas\/[^/]+$/.test(pathname)) return "Turma / Curso";
   return null;
+}
+
+type SubItem = { href: string; label: string; Icon: typeof FileText; ativo: boolean };
+
+// Submenu da turma aberta (spec: Turma / Curso, Registro Diário, Análise da IA,
+// Histórico da Turma). Dentro de um registro, os atalhos apontam para ele.
+function submenuDaTurma(pathname: string): SubItem[] | null {
+  const m = pathname.match(/^\/turmas\/([^/]+)(?:\/registros\/([^/]+))?/);
+  if (!m || m[1] === "nova") return null;
+  const base = `/turmas/${m[1]}`;
+  const registro = m[2] && m[2] !== "novo" ? `${base}/registros/${m[2]}` : null;
+  const naAnalise = /\/analise$/.test(pathname);
+  return [
+    { href: base, label: "Turma / Curso", Icon: Users, ativo: pathname === base },
+    {
+      href: registro ?? `${base}/registros/novo`,
+      label: "Registro Diário",
+      Icon: FileText,
+      ativo: pathname.startsWith(`${base}/registros/`) && !naAnalise,
+    },
+    {
+      href: registro ? `${registro}/analise` : `${base}/analise`,
+      label: "Análise da IA",
+      Icon: ChartColumn,
+      ativo: naAnalise,
+    },
+    {
+      href: `${base}/historico`,
+      label: "Histórico da Turma",
+      Icon: History,
+      ativo: pathname.startsWith(`${base}/historico`),
+    },
+  ];
 }
 
 export function AppShell({
@@ -67,6 +101,7 @@ export function AppShell({
     pathname === href || pathname.startsWith(href + "/");
   const atual = items.find((i) => isActive(i.href));
   const subtitulo = subtituloDaRota(pathname) ?? atual?.label ?? "SkillMap";
+  const submenu = submenuDaTurma(pathname);
 
   return (
     <div className="flex min-h-screen">
@@ -93,21 +128,50 @@ export function AppShell({
         <nav aria-label="Menu principal" className="flex flex-col gap-1 text-sm">
           {items.map(({ href, label, Icon }) => {
             const active = isActive(href);
+            // Com o submenu aberto, o destaque fica no item da turma, não em "Turmas".
+            const temSub = href === "/turmas" && submenu;
             return (
-              <Link
-                key={href}
-                href={href}
-                onClick={() => setOpen(false)}
-                aria-current={active ? "page" : undefined}
-                className={`flex items-center gap-3 rounded-md border-l-4 px-3.5 py-2.5 font-semibold transition-colors ${
-                  active
-                    ? "border-primary bg-sidebar-accent text-sidebar-accent-foreground"
-                    : "border-transparent text-sidebar-foreground hover:bg-muted hover:text-title"
-                }`}
-              >
-                <Icon />
-                {label}
-              </Link>
+              <div key={href}>
+                <Link
+                  href={href}
+                  onClick={() => setOpen(false)}
+                  aria-current={active && !temSub ? "page" : undefined}
+                  className={`flex items-center gap-3 rounded-md border-l-4 px-3.5 py-2.5 font-semibold transition-colors ${
+                    active && !temSub
+                      ? "border-primary bg-sidebar-accent text-sidebar-accent-foreground"
+                      : active
+                        ? "border-transparent text-title hover:bg-muted"
+                        : "border-transparent text-sidebar-foreground hover:bg-muted hover:text-title"
+                  }`}
+                >
+                  <Icon />
+                  {label}
+                </Link>
+                {temSub && (
+                  <ul
+                    aria-label="Turma aberta"
+                    className="mt-1 ml-5 flex flex-col gap-0.5 border-l border-sidebar-border pl-2"
+                  >
+                    {submenu.map((s) => (
+                      <li key={s.label}>
+                        <Link
+                          href={s.href}
+                          onClick={() => setOpen(false)}
+                          aria-current={s.ativo ? "page" : undefined}
+                          className={`flex items-center gap-2.5 rounded-md border-l-[3px] px-2.5 py-2 text-[13px] transition-colors ${
+                            s.ativo
+                              ? "border-primary bg-sidebar-accent font-semibold text-sidebar-accent-foreground"
+                              : "border-transparent font-medium text-muted-foreground hover:bg-muted hover:text-title"
+                          }`}
+                        >
+                          <s.Icon className="size-4 shrink-0" aria-hidden="true" />
+                          {s.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             );
           })}
         </nav>

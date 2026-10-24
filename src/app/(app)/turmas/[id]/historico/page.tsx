@@ -82,14 +82,16 @@ export default async function HistoricoPage({
       .join("\n")
       .toLowerCase();
 
-    return { r, capacidades, sintese, haystack };
+    return { r, capacidades, sintese, haystack, temAnalise: Boolean(ultima) };
   });
 
   const filtrados = q
     ? itens.filter((it) => it.haystack.includes(q.toLowerCase()))
     : itens;
 
-  const abrir = (registroId: string) => `/turmas/${turma.id}/registros/${registroId}`;
+  // Abre a Análise quando já existe; senão, o Registro Diário (para analisar).
+  const abrir = (registroId: string, temAnalise: boolean) =>
+    `/turmas/${turma.id}/registros/${registroId}${temAnalise ? "/analise" : ""}`;
 
   return (
     <main className="mx-auto w-full max-w-6xl space-y-5 p-4 sm:p-6">
@@ -142,7 +144,7 @@ export default async function HistoricoPage({
                   </tr>
                 </thead>
                 <tbody className="divide-y">
-                  {filtrados.map(({ r, capacidades, sintese }) => (
+                  {filtrados.map(({ r, capacidades, sintese, temAnalise }) => (
                     <tr key={r.id} className="align-top">
                       <td className="px-4 py-3.5 tabular-nums whitespace-nowrap">
                         {formatarData(r.data)}
@@ -172,7 +174,7 @@ export default async function HistoricoPage({
                       </td>
                       <td className="px-4 py-3">
                         <Link
-                          href={abrir(r.id)}
+                          href={abrir(r.id, temAnalise)}
                           className={buttonVariants({ variant: "outline-primary" })}
                         >
                           <FolderOpen /> Abrir
@@ -186,10 +188,10 @@ export default async function HistoricoPage({
 
             {/* Mobile: cartões */}
             <ul className="mt-3 space-y-3 lg:hidden">
-              {filtrados.map(({ r, capacidades, sintese }) => (
+              {filtrados.map(({ r, capacidades, sintese, temAnalise }) => (
                 <li key={r.id}>
                   <Link
-                    href={abrir(r.id)}
+                    href={abrir(r.id, temAnalise)}
                     className="block rounded-lg border p-4 transition hover:bg-accent"
                   >
                     <div className="flex items-start justify-between gap-3">

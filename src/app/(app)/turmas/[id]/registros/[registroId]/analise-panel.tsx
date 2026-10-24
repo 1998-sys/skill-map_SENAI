@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState, useTransition } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   analisarRegistro,
@@ -71,13 +71,17 @@ export function AnalisePanel({
   capacidades,
   analise,
   status,
+  gerarAoAbrir = false,
 }: {
   registroId: string;
   capacidades: Capacidade[];
   analise: AnaliseData | null;
   status: "RASCUNHO" | "ENVIADO";
+  /** Veio do "Analisar com IA" do Registro Diário: gera a análise ao abrir. */
+  gerarAoAbrir?: boolean;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [pending, startTransition] = useTransition();
   const readOnly = status === "ENVIADO";
   // Leitura por padrão (como na referência); "Editar" abre os campos.
@@ -122,9 +126,14 @@ export function AnalisePanel({
   }
 
   // Chama a IA; ao voltar, marca o registro para a escrita fluida do resultado.
-  const [analisando, setAnalisando] = useState(false);
+  // Chegou pelo "Analisar com IA" do Registro Diário: já abre "analisando".
+  const gerarAgora = gerarAoAbrir && !analise && !readOnly;
+  const [analisando, setAnalisando] = useState(gerarAgora);
   function analisar(ok: string) {
     setAnalisando(true);
+    chamarIA(ok);
+  }
+  function chamarIA(ok: string) {
     startTransition(async () => {
       const res = await analisarRegistro(registroId);
       setAnalisando(false);
@@ -142,6 +151,17 @@ export function AnalisePanel({
   useEffect(() => {
     recemGeradas.delete(registroId);
   }, [registroId]);
+
+  // Dispara uma vez ao montar (o ref evita a segunda execução do efeito no
+  // modo estrito) e limpa o ?gerar=1 da URL.
+  const disparou = useRef(false);
+  useEffect(() => {
+    if (!gerarAoAbrir || disparou.current) return;
+    disparou.current = true;
+    router.replace(pathname, { scroll: false });
+    if (gerarAgora) chamarIA("Análise gerada.");
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- só ao montar
+  }, []);
 
   const emEdicao = editando && !readOnly;
   const capsSelecionadas = capacidades.filter((c) => selecionadas.has(c.id));

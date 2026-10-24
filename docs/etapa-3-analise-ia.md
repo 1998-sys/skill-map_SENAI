@@ -60,6 +60,18 @@ A partir de um relato real, a IA devolve JSON válido com capacidades (por ID),
 pontos positivos/atenção e sugestões; o professor edita e valida; original e versão
 validada ficam salvos.
 
+## 🧭 Tela própria da Análise (fluxo da especificação, telas 4 → 5)
+Antes a análise era um painel no fim da página do registro. Agora:
+- **Registro Diário** (`/turmas/[id]/registros/[registroId]` e `/novo`): só o relato.
+  Botões "Salvar rascunho" + **"Analisar com IA"** (salva e abre a Análise já gerando,
+  via `intent=analisar` → `?gerar=1`); com análise existente: "Salvar e ver análise" e o
+  link "Ver análise da IA".
+- **Análise da IA** (`.../registros/[registroId]/analise`): resumo do registro + painel
+  (seções numeradas, editar, novas sugestões, validar, enviar à Coordenação).
+- **Submenu da turma** na sidebar: Turma / Curso · Registro Diário · Análise da IA ·
+  Histórico da Turma. `/turmas/[id]/analise` é um atalho que abre a análise mais recente.
+- Histórico: "Abrir" vai para a Análise quando ela existe.
+
 ## 📝 Notas
 - Precisão não é absoluta → **validação humana obrigatória** é parte do design.
 - Objetivo: reduzir trabalho de organizar informação e aumentar a qualidade do

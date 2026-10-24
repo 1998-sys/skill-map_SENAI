@@ -39,7 +39,17 @@ function parseRegistro(
   };
 }
 
-// Cria um registro diário (status inicial: RASCUNHO) e abre a tela do registro.
+// Para onde ir depois de salvar, conforme o botão usado no formulário:
+// "analisar" → tela da Análise já gerando com a IA; "ver" → tela da Análise.
+function destinoAposSalvar(formData: FormData, base: string): string | null {
+  const intent = String(formData.get("intent") ?? "");
+  if (intent === "analisar") return `${base}/analise?gerar=1`;
+  if (intent === "ver") return `${base}/analise`;
+  return null;
+}
+
+// Cria um registro diário (status inicial: RASCUNHO) e abre a tela do registro
+// (ou a da Análise, se o professor clicou em "Analisar com IA").
 export async function createRegistro(
   _prev: RegistroFormState,
   formData: FormData,
@@ -70,7 +80,8 @@ export async function createRegistro(
   });
 
   revalidatePath(`/turmas/${turmaId}`);
-  redirect(`/turmas/${turmaId}/registros/${registro.id}`);
+  const base = `/turmas/${turmaId}/registros/${registro.id}`;
+  redirect(destinoAposSalvar(formData, base) ?? base);
 }
 
 // Atualiza um registro enquanto ele ainda é RASCUNHO.
@@ -101,6 +112,9 @@ export async function updateRegistro(
     data: { ...parsed.campos },
   });
 
-  revalidatePath(`/turmas/${registro.turmaId}/registros/${registroId}`);
+  const base = `/turmas/${registro.turmaId}/registros/${registroId}`;
+  revalidatePath(base, "layout");
+  const destino = destinoAposSalvar(formData, base);
+  if (destino) redirect(destino);
   return { ok: true };
 }

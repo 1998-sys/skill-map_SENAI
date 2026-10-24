@@ -47,12 +47,12 @@ export default async function NovoRegistroPage({
           professor: turma.professor.nome,
         }}
         defaults={{ data: hoje }}
-        submitLabel="Salvar registro"
+        submitLabel="Salvar rascunho"
       />
 
       <PageNote>
-        O professor registra apenas o que observou na aula; depois de salvar, a
-        IA cruza essas informações com as capacidades do curso.
+        O professor registra apenas o que observou na aula; ao clicar em
+        &quot;Analisar com IA&quot;, a IA cruza essas informações com as capacidades do curso.
       </PageNote>
     </main>
   );

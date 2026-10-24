@@ -38,7 +38,7 @@ export async function enviarParaCoordenacao(
     data: { status: "ENVIADO", enviadoEm: new Date() },
   });
 
-  revalidatePath(`/turmas/${registro.turmaId}/registros/${registroId}`);
+  revalidatePath(`/turmas/${registro.turmaId}/registros/${registroId}`, "layout");
   revalidatePath(`/turmas/${registro.turmaId}`);
   return { ok: true };
 }
@@ -64,7 +64,7 @@ export async function reabrirRegistro(
     data: { status: "RASCUNHO" },
   });
 
-  revalidatePath(`/turmas/${registro.turmaId}/registros/${registroId}`);
+  revalidatePath(`/turmas/${registro.turmaId}/registros/${registroId}`, "layout");
   revalidatePath(`/turmas/${registro.turmaId}`);
   return { ok: true };
 }

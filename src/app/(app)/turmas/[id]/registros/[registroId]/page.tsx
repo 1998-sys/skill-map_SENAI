@@ -1,17 +1,17 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { ChartColumn } from "lucide-react";
 import { getCurrentProfile } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { updateRegistro } from "@/lib/actions/registros";
 import { RegistroForm } from "../registro-form";
-import { AnalisePanel } from "./analise-panel";
+import { buttonVariants } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { PageNote } from "@/components/ui/info-field";
 import { formatarData, formatarDataHora } from "@/lib/datas";
 
-// A análise chama a API da IA, que pode levar alguns segundos.
-export const maxDuration = 60;
-
+// Registro Diário (spec, tela 4) de um registro existente. A análise da IA
+// fica na tela própria: ./analise.
 export default async function RegistroPage({
   params,
 }: {
@@ -31,19 +31,9 @@ export default async function RegistroPage({
           professorId: true,
           curso: { select: { nome: true } },
           professor: { select: { nome: true } },
-          capacidades: {
-            orderBy: { ordem: "asc" },
-            select: { id: true, texto: true },
-          },
         },
       },
-      analises: {
-        orderBy: { versao: "desc" },
-        take: 1,
-        include: {
-          capacidadesIdentificadas: { select: { capacidadeId: true } },
-        },
-      },
+      _count: { select: { analises: true } },
     },
   });
 
@@ -56,41 +46,38 @@ export default async function RegistroPage({
   }
 
   const isRascunho = registro.status === "RASCUNHO";
-
-  const ultima = registro.analises[0];
-  const analise = ultima
-    ? {
-        tipo: ultima.tipo,
-        versao: ultima.versao,
-        capacidadeIds: ultima.capacidadesIdentificadas.map(
-          (x) => x.capacidadeId,
-        ),
-        pontosPositivos: ultima.pontosPositivos,
-        pontosAtencao: ultima.pontosAtencao,
-        sugestoes: ultima.sugestoes,
-        observacoesAdicionais: ultima.observacoesAdicionais,
-      }
-    : null;
+  const temAnalise = registro._count.analises > 0;
+  const urlAnalise = `/turmas/${registro.turma.id}/registros/${registro.id}/analise`;
 
   return (
     <main className="mx-auto w-full max-w-5xl space-y-5 p-4 sm:p-6">
-      <div>
-        <Link
-          href={`/turmas/${registro.turma.id}`}
-          className="text-sm text-muted-foreground hover:underline"
-        >
-          ← {registro.turma.nome}
-        </Link>
-        <div className="mt-2 flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-extrabold tracking-tight">
-            Registro de {formatarData(registro.data)}
-          </h1>
-          <StatusBadge status={registro.status} />
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <Link
+            href={`/turmas/${registro.turma.id}`}
+            className="text-sm text-muted-foreground hover:underline"
+          >
+            ← {registro.turma.nome}
+          </Link>
+          <div className="mt-2 flex flex-wrap items-center gap-3">
+            <h1 className="text-2xl font-extrabold tracking-tight">
+              Registro de {formatarData(registro.data)}
+            </h1>
+            <StatusBadge status={registro.status} />
+          </div>
+          {!isRascunho && registro.enviadoEm && (
+            <p className="mt-1 text-sm font-medium text-primary-active">
+              Enviado à Coordenação em {formatarDataHora(registro.enviadoEm)}
+            </p>
+          )}
         </div>
-        {!isRascunho && registro.enviadoEm && (
-          <p className="mt-1 text-sm font-medium text-primary-active">
-            Enviado à Coordenação em {formatarDataHora(registro.enviadoEm)}
-          </p>
+        {temAnalise && (
+          <Link
+            href={urlAnalise}
+            className={buttonVariants({ variant: "outline-primary", size: "lg" })}
+          >
+            <ChartColumn /> Ver análise da IA
+          </Link>
         )}
       </div>
 
@@ -111,19 +98,12 @@ export default async function RegistroPage({
         }}
         submitLabel="Salvar alterações"
         readOnly={!isRascunho}
-      />
-
-      <AnalisePanel
-        key={ultima?.id ?? "nova"}
-        registroId={registro.id}
-        capacidades={registro.turma.capacidades}
-        analise={analise}
-        status={registro.status}
+        temAnalise={temAnalise}
       />
 
       <PageNote>
-        A IA organiza as observações do professor e sugere ações pedagógicas; a
-        decisão final permanece com o docente.
+        O professor registra apenas o que observou na aula; a IA cruza essas
+        informações com as capacidades do curso na tela de Análise.
       </PageNote>
     </main>
   );

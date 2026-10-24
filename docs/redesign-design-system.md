@@ -40,8 +40,9 @@
 - Análise abre em **modo leitura** (seções numeradas 1–5); "Editar" abre os campos.
 - Histórico: tabela a partir de `lg`, cartões abaixo disso.
 - **Fora do escopo (não existem hoje, seriam funcionalidade nova):** botão "Ditar",
-  "Exportar histórico", filtros de Período/Aula, "Analisar com IA" direto no formulário
-  de novo registro. Rascunho segue rotulado "Rascunho" (referência usa "Salvo").
+  "Exportar histórico", filtros de Período/Aula. Rascunho segue rotulado "Rascunho"
+  (referência usa "Salvo"). _"Analisar com IA" no formulário foi implementado depois —
+  ver Etapa 3, "Tela própria da Análise"._
 
 ## Notas da D4
 

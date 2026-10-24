@@ -93,7 +93,7 @@ export async function analisarRegistro(
     },
   });
 
-  revalidatePath(`/turmas/${registro.turmaId}/registros/${registroId}`);
+  revalidatePath(`/turmas/${registro.turmaId}/registros/${registroId}`, "layout");
   return { ok: true };
 }
 
@@ -128,6 +128,6 @@ export async function salvarAnaliseValidada(input: {
     },
   });
 
-  revalidatePath(`/turmas/${registro.turmaId}/registros/${input.registroId}`);
+  revalidatePath(`/turmas/${registro.turmaId}/registros/${input.registroId}`, "layout");
   return { ok: true };
 }

@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
-import { Save } from "lucide-react";
+import { ChartColumn, Save, Sparkles } from "lucide-react";
 import type { RegistroFormState } from "@/lib/actions/registros";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,13 +27,29 @@ type Action = (
   formData: FormData,
 ) => Promise<RegistroFormState>;
 
-function SubmitButton({ label }: { label: string }) {
-  const { pending } = useFormStatus();
+// Botões de envio. O `intent` diz à action para onde ir depois de salvar:
+// "analisar" → tela da Análise já gerando; "ver" → tela da Análise.
+function Acoes({ salvarLabel, temAnalise }: { salvarLabel: string; temAnalise: boolean }) {
+  const { pending, data } = useFormStatus();
+  const intent = pending ? String(data?.get("intent") ?? "") : "";
   return (
-    <Button type="submit" size="lg" disabled={pending} className="px-4">
-      <Save />
-      {pending ? "Salvando..." : label}
-    </Button>
+    <>
+      <Button type="submit" variant="outline-primary" size="lg" disabled={pending} className="px-4">
+        <Save />
+        {pending && !intent ? "Salvando..." : salvarLabel}
+      </Button>
+      {temAnalise ? (
+        <Button type="submit" name="intent" value="ver" size="lg" disabled={pending} className="px-4">
+          <ChartColumn />
+          {intent === "ver" ? "Abrindo..." : "Salvar e ver análise"}
+        </Button>
+      ) : (
+        <Button type="submit" name="intent" value="analisar" size="lg" disabled={pending} className="px-4">
+          <Sparkles />
+          {intent === "analisar" ? "Salvando..." : "Analisar com IA"}
+        </Button>
+      )}
+    </>
   );
 }
 
@@ -54,6 +70,7 @@ export function RegistroForm({
   defaults = {},
   submitLabel = "Salvar",
   readOnly = false,
+  temAnalise = false,
 }: {
   action: Action;
   hidden: Record<string, string>;
@@ -61,6 +78,8 @@ export function RegistroForm({
   defaults?: Defaults;
   submitLabel?: string;
   readOnly?: boolean;
+  /** Já existe análise: o 2º botão vira "Salvar e ver análise". */
+  temAnalise?: boolean;
 }) {
   const [state, formAction] = useActionState<RegistroFormState, FormData>(
     action,
@@ -157,7 +176,7 @@ export function RegistroForm({
             {state.ok && (
               <p className="mr-auto text-sm text-success">Alterações salvas.</p>
             )}
-            {!readOnly && <SubmitButton label={submitLabel} />}
+            {!readOnly && <Acoes salvarLabel={submitLabel} temAnalise={temAnalise} />}
           </div>
         )}
       </SectionCard>
