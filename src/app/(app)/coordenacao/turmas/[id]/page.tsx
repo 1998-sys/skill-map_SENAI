@@ -216,7 +216,7 @@ export default async function CoordenacaoTurmaPage({
                     </td>
                     <td className="px-4 py-2">
                       <Link
-                        href={`/turmas/${turma.id}/registros/${r.id}`}
+                        href={`/coordenacao/turmas/${turma.id}/registros/${r.id}`}
                         className={buttonVariants({ variant: "outline-primary" })}
                       >
                         <FolderOpen /> Abrir

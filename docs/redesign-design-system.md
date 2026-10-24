@@ -51,9 +51,10 @@
   intervenções, resumo com IA, tabela de registros enviados.
 - **Fora do escopo:** checkboxes de "intervenções realizadas" (precisaria persistir) e
   "Abrir histórico completo" (o histórico é restrito ao professor dono).
-- **Bug pré-existente (não visual):** "Abrir" de um registro enviado leva a
-  `/turmas/[id]/registros/[rid]`, que dá **404 para a Coordenação** (a página checa
-  `professorId`). Precisa de uma visão de leitura para a Coordenação.
+- **Corrigido (após a D4):** "Abrir" de um registro enviado dava 404 para a Coordenação.
+  Agora aponta para `/coordenacao/turmas/[id]/registros/[rid]` — visão **somente leitura**
+  (dados da turma, relato, última análise VALIDADA). Só papel COORDENACAO; rascunho ou
+  turma divergente → 404. Seções numeradas extraídas para `src/components/analise-secoes.tsx`.
 
 ## Regras
 

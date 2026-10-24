@@ -12,8 +12,7 @@ histórico rastreável. A IA **não** substitui avaliação, nota ou frequência
 
 - `docs/ROADMAP.md` — etapas 0–7. **0–6 concluídas**, 7 (polimento/piloto) parcial.
 - `docs/redesign-design-system.md` — redesign visual SENAI. **D0–D4 concluídas**;
-  **próximo = D5** (responsividade/QA). Bug aberto: Coordenação recebe 404 ao abrir registro.
-- `docs/etapa-*.md` — spec por etapa. `docs/mobile-responsividade.md` — auditoria mobile.
+  **próximo = D5** (responsividade/QA).- `docs/etapa-*.md` — spec por etapa. `docs/mobile-responsividade.md` — auditoria mobile.
 - `docs/referencia/` — as 5 telas de referência (PNG) + PDF da especificação.
 
 ## Stack
