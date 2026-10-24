@@ -4,15 +4,21 @@
 > **Depende de:** Etapa 2
 > **Tela de referência:** "Análise Pedagógica com IA"
 > **É o coração do produto e a parte de maior risco técnico.**
+>
+> **Status:** ✅ Concluída
 
 ## 🎯 Objetivo
 Transformar o relato do professor em uma **análise pedagógica organizada e acionável**,
 relacionando-o às capacidades cadastradas — sempre com validação humana no fim.
 
 ## 🧰 Tecnologias
-- API da Anthropic (Claude) com **saída estruturada** (tool use / JSON schema)
-- Next.js Route Handler no **servidor** (protege a API key)
-- Prisma (modelos `Analise` e versões)
+- **API da OpenAI** — modelo **`gpt-5-nano`** (configurável via `OPENAI_MODEL`)
+- **Structured Outputs** (JSON Schema em modo `strict`) para garantir o formato
+- Server Actions no **servidor** (protege a `OPENAI_API_KEY`)
+- Prisma (modelos `Analise` e `AnaliseCapacidade`, com versões)
+
+> Observação: originalmente planejado com Claude; trocado para OpenAI (gpt-5-nano)
+> por decisão de custo. A troca ficou contida ao módulo de IA.
 
 ## 🔁 Entradas e saída
 **Entrada fixa:** lista completa das capacidades da turma (cada uma com **ID interno** e texto).
@@ -29,15 +35,18 @@ relacionando-o às capacidades cadastradas — sempre com validação humana no 
 ```
 
 ## ✅ Tarefas
-- [ ] Modelar `Analise` no Prisma: versão original da IA **e** versão validada + migration
-- [ ] Integrar o SDK da Anthropic no servidor
-- [ ] Construir o prompt com a **regra fundamental** (ver abaixo)
-- [ ] Forçar saída estruturada e **validar** o JSON (schema) antes de salvar
-- [ ] Garantir que `capacidades_identificadas` contém **apenas IDs da lista** cadastrada
-- [ ] Tela de análise: capacidades identificadas, pontos positivos, pontos de atenção, sugestões
-- [ ] Permitir **editar** a análise e **pedir novas sugestões**
-- [ ] Guardar versão original da IA e versão final validada pelo professor
-- [ ] Observações sem relação clara → registrar em "observações adicionais"
+- [x] Modelar `Analise` (versão original da IA **e** validada) _(feito na Etapa 0)_
+- [x] Integrar o SDK da **OpenAI** no servidor (client lazy, `gpt-5-nano`)
+- [x] Construir o prompt com a **regra fundamental**
+- [x] Saída estruturada (JSON Schema strict) e **validação** do JSON antes de salvar
+- [x] `capacidades_identificadas` restritas às da lista (códigos → IDs, descarta inválidos)
+- [x] Tela de análise: capacidades (checkboxes), pontos positivos/atenção, sugestões
+- [x] Permitir **editar** a análise e **gerar nova análise** ("Analisar novamente")
+- [x] Guardar versão original da IA (IA_ORIGINAL) e a validada pelo professor (VALIDADA)
+- [x] Observações sem relação clara → campo "observações adicionais"
+
+**Testado:** registro real → "Analisar com IA" (gpt-5-nano, ~4-12s) → JSON válido,
+capacidade correta marcada → edição → "Salvar análise validada" (v2, original preservada).
 
 ## 📜 Regra fundamental do prompt
 > "Use exclusivamente as capacidades fornecidas. Não crie, renomeie ou combine

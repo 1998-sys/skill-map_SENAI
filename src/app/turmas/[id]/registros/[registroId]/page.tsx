@@ -3,8 +3,11 @@ import { notFound, redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { updateRegistro } from "@/lib/actions/registros";
-import { Button } from "@/components/ui/button";
 import { RegistroForm } from "../registro-form";
+import { AnalisePanel } from "./analise-panel";
+
+// A análise chama a API da IA, que pode levar alguns segundos.
+export const maxDuration = 60;
 
 function formatarData(d: Date) {
   return new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC" }).format(d);
@@ -21,7 +24,26 @@ export default async function RegistroPage({
 
   const registro = await prisma.registro.findUnique({
     where: { id: registroId },
-    include: { turma: { select: { id: true, nome: true, professorId: true } } },
+    include: {
+      turma: {
+        select: {
+          id: true,
+          nome: true,
+          professorId: true,
+          capacidades: {
+            orderBy: { ordem: "asc" },
+            select: { id: true, texto: true },
+          },
+        },
+      },
+      analises: {
+        orderBy: { versao: "desc" },
+        take: 1,
+        include: {
+          capacidadesIdentificadas: { select: { capacidadeId: true } },
+        },
+      },
+    },
   });
 
   if (
@@ -33,6 +55,21 @@ export default async function RegistroPage({
   }
 
   const isRascunho = registro.status === "RASCUNHO";
+
+  const ultima = registro.analises[0];
+  const analise = ultima
+    ? {
+        tipo: ultima.tipo,
+        versao: ultima.versao,
+        capacidadeIds: ultima.capacidadesIdentificadas.map(
+          (x) => x.capacidadeId,
+        ),
+        pontosPositivos: ultima.pontosPositivos,
+        pontosAtencao: ultima.pontosAtencao,
+        sugestoes: ultima.sugestoes,
+        observacoesAdicionais: ultima.observacoesAdicionais,
+      }
+    : null;
 
   return (
     <main className="mx-auto w-full max-w-2xl p-6">
@@ -76,20 +113,12 @@ export default async function RegistroPage({
         readOnly={!isRascunho}
       />
 
-      <section className="mt-8 rounded-xl border bg-card p-5">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <h2 className="text-lg font-medium">Análise pedagógica com IA</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              A IA vai relacionar este relato às capacidades da turma e sugerir
-              ações. Chega na próxima etapa.
-            </p>
-          </div>
-          <Button disabled title="Disponível na Etapa 3">
-            Analisar com IA
-          </Button>
-        </div>
-      </section>
+      <AnalisePanel
+        key={ultima?.id ?? "nova"}
+        registroId={registro.id}
+        capacidades={registro.turma.capacidades}
+        analise={analise}
+      />
     </main>
   );
 }
