@@ -7,6 +7,10 @@ import {
   analisarRegistro,
   salvarAnaliseValidada,
 } from "@/lib/actions/analises";
+import {
+  enviarParaCoordenacao,
+  reabrirRegistro,
+} from "@/lib/actions/envio";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -28,15 +32,17 @@ export function AnalisePanel({
   registroId,
   capacidades,
   analise,
+  status,
 }: {
   registroId: string;
   capacidades: Capacidade[];
   analise: AnaliseData | null;
+  status: "RASCUNHO" | "ENVIADO";
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const readOnly = status === "ENVIADO";
 
-  // Estado editável (inicializado da análise; remonta via key no pai).
   const [selecionadas, setSelecionadas] = useState<Set<string>>(
     () => new Set(analise?.capacidadeIds ?? []),
   );
@@ -54,6 +60,7 @@ export function AnalisePanel({
   );
 
   function toggleCap(id: string) {
+    if (readOnly) return;
     setSelecionadas((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -62,38 +69,19 @@ export function AnalisePanel({
     });
   }
 
-  function analisar(msg: string) {
+  function run(fn: () => Promise<{ error?: string; ok?: boolean }>, ok: string) {
     startTransition(async () => {
-      const res = await analisarRegistro(registroId);
+      const res = await fn();
       if (res.error) {
         toast.error(res.error);
         return;
       }
       router.refresh();
-      toast.success(msg);
+      toast.success(ok);
     });
   }
 
-  function salvar() {
-    startTransition(async () => {
-      const res = await salvarAnaliseValidada({
-        registroId,
-        capacidadeIds: [...selecionadas],
-        pontosPositivos: linhasParaArray(positivos),
-        pontosAtencao: linhasParaArray(atencao),
-        sugestoes: linhasParaArray(sugestoes),
-        observacoesAdicionais: observacoes.trim() || null,
-      });
-      if (res.error) {
-        toast.error(res.error);
-        return;
-      }
-      router.refresh();
-      toast.success("Análise validada salva.");
-    });
-  }
-
-  // Sem análise ainda: botão para gerar.
+  // Sem análise: botão para gerar (indisponível se já enviado).
   if (!analise) {
     return (
       <section className="mt-8 rounded-xl border bg-card p-5">
@@ -105,13 +93,20 @@ export function AnalisePanel({
               pontos de atenção e ações para a próxima aula.
             </p>
           </div>
-          <Button disabled={pending} onClick={() => analisar("Análise gerada.")}>
+          <Button
+            disabled={pending || readOnly}
+            onClick={() =>
+              run(() => analisarRegistro(registroId), "Análise gerada.")
+            }
+          >
             {pending ? "Analisando..." : "Analisar com IA"}
           </Button>
         </div>
       </section>
     );
   }
+
+  const podeEnviar = !readOnly && analise.tipo === "VALIDADA";
 
   return (
     <section className="mt-8 space-y-5 rounded-xl border bg-card p-5">
@@ -125,13 +120,17 @@ export function AnalisePanel({
             · v{analise.versao}
           </p>
         </div>
-        <Button
-          variant="outline"
-          disabled={pending}
-          onClick={() => analisar("Nova análise gerada.")}
-        >
-          {pending ? "..." : "Analisar novamente"}
-        </Button>
+        {!readOnly && (
+          <Button
+            variant="outline"
+            disabled={pending}
+            onClick={() =>
+              run(() => analisarRegistro(registroId), "Nova análise gerada.")
+            }
+          >
+            {pending ? "..." : "Analisar novamente"}
+          </Button>
+        )}
       </div>
 
       <div>
@@ -144,6 +143,7 @@ export function AnalisePanel({
                 className="mt-1"
                 checked={selecionadas.has(c.id)}
                 onChange={() => toggleCap(c.id)}
+                disabled={readOnly}
                 id={`cap-${c.id}`}
               />
               <label htmlFor={`cap-${c.id}`}>{c.texto}</label>
@@ -160,6 +160,7 @@ export function AnalisePanel({
             value={positivos}
             onChange={(e) => setPositivos(e.target.value)}
             placeholder="Um por linha"
+            disabled={readOnly}
           />
         </div>
         <div className="space-y-1.5">
@@ -169,6 +170,7 @@ export function AnalisePanel({
             value={atencao}
             onChange={(e) => setAtencao(e.target.value)}
             placeholder="Um por linha"
+            disabled={readOnly}
           />
         </div>
       </div>
@@ -180,6 +182,7 @@ export function AnalisePanel({
           value={sugestoes}
           onChange={(e) => setSugestoes(e.target.value)}
           placeholder="Uma por linha"
+          disabled={readOnly}
         />
       </div>
 
@@ -189,19 +192,74 @@ export function AnalisePanel({
           rows={3}
           value={observacoes}
           onChange={(e) => setObservacoes(e.target.value)}
+          disabled={readOnly}
         />
       </div>
 
-      <p className="text-xs text-muted-foreground">
-        A decisão pedagógica é sua: edite o que for necessário antes de validar.
-        A IA não atribui nota nem aprova/reprova.
-      </p>
-
-      <div className="flex gap-2">
-        <Button disabled={pending} onClick={salvar}>
-          {pending ? "Salvando..." : "Salvar análise validada"}
-        </Button>
-      </div>
+      {readOnly ? (
+        <div className="flex items-center justify-between gap-4 border-t pt-4">
+          <p className="text-sm text-muted-foreground">
+            Esta análise foi enviada à Coordenação. Para corrigir, reabra o
+            registro — o histórico é preservado.
+          </p>
+          <Button
+            variant="outline"
+            disabled={pending}
+            onClick={() =>
+              run(() => reabrirRegistro(registroId), "Registro reaberto.")
+            }
+          >
+            Reabrir para correção
+          </Button>
+        </div>
+      ) : (
+        <>
+          <p className="text-xs text-muted-foreground">
+            A decisão pedagógica é sua: edite o que for necessário, valide e só
+            então envie. A IA não atribui nota nem aprova/reprova.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              disabled={pending}
+              onClick={() =>
+                run(
+                  () =>
+                    salvarAnaliseValidada({
+                      registroId,
+                      capacidadeIds: [...selecionadas],
+                      pontosPositivos: linhasParaArray(positivos),
+                      pontosAtencao: linhasParaArray(atencao),
+                      sugestoes: linhasParaArray(sugestoes),
+                      observacoesAdicionais: observacoes.trim() || null,
+                    }),
+                  "Análise validada salva.",
+                )
+              }
+            >
+              {pending ? "Salvando..." : "Salvar análise validada"}
+            </Button>
+            {podeEnviar && (
+              <Button
+                variant="secondary"
+                disabled={pending}
+                onClick={() =>
+                  run(
+                    () => enviarParaCoordenacao(registroId),
+                    "Enviado à Coordenação.",
+                  )
+                }
+              >
+                Enviar à Coordenação
+              </Button>
+            )}
+          </div>
+          {analise.tipo === "IA_ORIGINAL" && (
+            <p className="text-xs text-muted-foreground">
+              Salve a análise validada para liberar o envio à Coordenação.
+            </p>
+          )}
+        </>
+      )}
     </section>
   );
 }

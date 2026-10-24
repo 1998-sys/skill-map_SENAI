@@ -13,6 +13,13 @@ function formatarData(d: Date) {
   return new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC" }).format(d);
 }
 
+function formatarDataHora(d: Date) {
+  return new Intl.DateTimeFormat("pt-BR", {
+    dateStyle: "short",
+    timeStyle: "short",
+  }).format(d);
+}
+
 export default async function RegistroPage({
   params,
 }: {
@@ -97,6 +104,11 @@ export default async function RegistroPage({
         {registro.tema && (
           <p className="text-sm text-muted-foreground">Tema: {registro.tema}</p>
         )}
+        {!isRascunho && registro.enviadoEm && (
+          <p className="mt-1 text-xs text-emerald-700">
+            Enviado à Coordenação em {formatarDataHora(registro.enviadoEm)}
+          </p>
+        )}
       </div>
 
       <RegistroForm
@@ -118,6 +130,7 @@ export default async function RegistroPage({
         registroId={registro.id}
         capacidades={registro.turma.capacidades}
         analise={analise}
+        status={registro.status}
       />
     </main>
   );

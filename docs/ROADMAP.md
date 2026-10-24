@@ -36,7 +36,7 @@
 | 1 | Turma / Curso + Capacidades | ✅ Concluída | [etapa-1-turma-capacidades.md](etapa-1-turma-capacidades.md) |
 | 2 | Registro Diário da Turma | ✅ Concluída | [etapa-2-registro-diario.md](etapa-2-registro-diario.md) |
 | 3 | Análise Pedagógica com IA | ✅ Concluída | [etapa-3-analise-ia.md](etapa-3-analise-ia.md) |
-| 4 | Envio à Coordenação + rastreabilidade | ⬜ Pendente | [etapa-4-envio-coordenacao.md](etapa-4-envio-coordenacao.md) |
+| 4 | Envio à Coordenação + rastreabilidade | ✅ Concluída | [etapa-4-envio-coordenacao.md](etapa-4-envio-coordenacao.md) |
 | 5 | Histórico da Turma | ⬜ Pendente | [etapa-5-historico-turma.md](etapa-5-historico-turma.md) |
 | 6 | Painel da Coordenação | ⬜ Pendente | [etapa-6-painel-coordenacao.md](etapa-6-painel-coordenacao.md) |
 | 7 | Polimento + Piloto | ⬜ Pendente | [etapa-7-polimento-piloto.md](etapa-7-polimento-piloto.md) |
