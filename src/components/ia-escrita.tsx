@@ -95,19 +95,28 @@ export function CursorIA() {
   );
 }
 
-/** Indicador de "a IA está trabalhando" (antes do primeiro texto chegar). */
+/** Círculo vermelho girando (carregando). */
+export function SpinnerIA({ className = "size-9" }: { className?: string }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={`inline-block shrink-0 animate-spin rounded-full border-4 border-brand-soft border-t-primary ${className}`}
+    />
+  );
+}
+
+/** Indicador de "a IA está trabalhando" (área em branco + círculo vermelho girando). */
 export function PensandoIA({ children }: { children: React.ReactNode }) {
   return (
     <div
       role="status"
-      className="flex items-center gap-3 rounded-lg border border-dashed bg-brand-soft/50 px-4 py-3 text-sm text-foreground"
+      aria-live="polite"
+      className="flex min-h-40 flex-col items-center justify-center gap-3 rounded-lg border border-dashed px-4 py-8 text-center text-sm text-muted-foreground"
     >
-      <Sparkles className="size-4 shrink-0 animate-pulse text-primary-hover" aria-hidden="true" />
-      <span>{children}</span>
-      <span aria-hidden="true" className="flex gap-1">
-        <span className="size-1.5 animate-bounce rounded-full bg-primary [animation-delay:-0.3s]" />
-        <span className="size-1.5 animate-bounce rounded-full bg-primary [animation-delay:-0.15s]" />
-        <span className="size-1.5 animate-bounce rounded-full bg-primary" />
+      <SpinnerIA />
+      <span className="flex items-center gap-1.5">
+        <Sparkles className="size-4 shrink-0 text-primary-hover" aria-hidden="true" />
+        {children}
       </span>
     </div>
   );

@@ -213,6 +213,25 @@ export function AnalisePanel({
 
   const podeEnviar = !readOnly && analise.tipo === "VALIDADA";
 
+  // Gerando novas sugestões: a análise anterior sai da tela (fica em branco)
+  // até a nova chegar. Ela continua salva no banco (histórico de versões) e
+  // volta a aparecer se a geração falhar.
+  if (analisando) {
+    return (
+      <SectionCard
+        title="Análise Pedagógica da Turma"
+        description={
+          <span className="flex flex-wrap items-center gap-2">
+            <SeloIA />
+            <span>Gerando uma nova análise…</span>
+          </span>
+        }
+      >
+        <PensandoIA>A IA está lendo o relato e escrevendo novas sugestões</PensandoIA>
+      </SectionCard>
+    );
+  }
+
   return (
     <SectionCard
       title="Análise Pedagógica da Turma"
@@ -234,16 +253,7 @@ export function AnalisePanel({
         </span>
       }
     >
-      {analisando && (
-        <div className="mb-4">
-          <PensandoIA>A IA está gerando uma nova análise para este relato</PensandoIA>
-        </div>
-      )}
-      <div
-        className="divide-y"
-        aria-live="polite"
-        aria-busy={escrevendo || analisando}
-      >
+      <div className="divide-y" aria-live="polite" aria-busy={escrevendo}>
         <Secao n={1} titulo="Capacidades identificadas">
           {emEdicao ? (
             <ul className="space-y-2">
