@@ -130,8 +130,9 @@ export function CapacidadesEditor({
                 </div>
               ) : (
                 <>
-                  <p className="flex-1 text-sm">{cap.texto}</p>
-                  <div className="flex shrink-0 gap-1">
+                  <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                    <p className="text-sm">{cap.texto}</p>
+                    <div className="flex shrink-0 gap-1">
                     <Button
                       size="sm"
                       variant="ghost"
@@ -155,6 +156,7 @@ export function CapacidadesEditor({
                     >
                       Remover
                     </Button>
+                    </div>
                   </div>
                 </>
               )}
