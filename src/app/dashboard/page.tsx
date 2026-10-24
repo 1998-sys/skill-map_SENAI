@@ -42,6 +42,22 @@ export default async function DashboardPage() {
           Acessar turmas
         </Link>
       </section>
+
+      {role === "COORDENACAO" && (
+        <section className="mt-4 rounded-xl border bg-card p-6">
+          <h2 className="text-lg font-medium">Coordenação</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Veja o acompanhamento consolidado das turmas, calculado apenas sobre
+            os registros enviados pelos professores.
+          </p>
+          <Link
+            href="/coordenacao"
+            className={buttonVariants({ className: "mt-4" })}
+          >
+            Painel da Coordenação
+          </Link>
+        </section>
+      )}
     </main>
   );
 }
