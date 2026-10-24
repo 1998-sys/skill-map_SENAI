@@ -7,20 +7,10 @@ import { RegistroForm } from "../registro-form";
 import { AnalisePanel } from "./analise-panel";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { PageNote } from "@/components/ui/info-field";
+import { formatarData, formatarDataHora } from "@/lib/datas";
 
 // A análise chama a API da IA, que pode levar alguns segundos.
 export const maxDuration = 60;
-
-function formatarData(d: Date) {
-  return new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC" }).format(d);
-}
-
-function formatarDataHora(d: Date) {
-  return new Intl.DateTimeFormat("pt-BR", {
-    dateStyle: "short",
-    timeStyle: "short",
-  }).format(d);
-}
 
 export default async function RegistroPage({
   params,

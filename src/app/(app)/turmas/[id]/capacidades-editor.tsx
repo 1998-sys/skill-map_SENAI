@@ -78,7 +78,7 @@ export function CapacidadesEditor({
             }
             value={bloco}
             onChange={(e) => setBloco(e.target.value)}
-            className="bg-card"
+            className="min-h-44 bg-card"
           />
           <Button
             size="lg"

@@ -15,15 +15,13 @@ import { StatCard } from "@/components/ui/stat-card";
 import { InfoField, PageNote } from "@/components/ui/info-field";
 import { ResumoIA } from "./resumo-ia";
 import type { ConteudoConsolidado } from "@/lib/actions/coordenacao";
+import {
+  formatarData,
+  formatarDataHora,
+  formatarDiaDoInstante,
+} from "@/lib/datas";
 
 export const maxDuration = 60;
-
-const fmtData = new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC" });
-const fmtDataHora = new Intl.DateTimeFormat("pt-BR", {
-  timeZone: "UTC",
-  dateStyle: "short",
-  timeStyle: "short",
-});
 
 export default async function CoordenacaoTurmaPage({
   params,
@@ -110,7 +108,7 @@ export default async function CoordenacaoTurmaPage({
           <StatCard
             icon={<CalendarDays className="size-5" />}
             label="Último envio"
-            value={ultimoEnvio ? fmtData.format(ultimoEnvio) : "—"}
+            value={ultimoEnvio ? formatarDiaDoInstante(ultimoEnvio) : "—"}
           />
           <StatCard
             icon={<TriangleAlert className="size-5" />}
@@ -209,10 +207,10 @@ export default async function CoordenacaoTurmaPage({
               <tbody className="divide-y">
                 {enviados.map((r) => (
                   <tr key={r.id}>
-                    <td className="px-4 py-3 tabular-nums">{fmtData.format(r.data)}</td>
+                    <td className="px-4 py-3 tabular-nums">{formatarData(r.data)}</td>
                     <td className="hidden px-4 py-3 sm:table-cell">{r.tema || "—"}</td>
                     <td className="px-4 py-3 whitespace-nowrap text-muted-foreground tabular-nums">
-                      {r.enviadoEm ? fmtDataHora.format(r.enviadoEm) : "—"}
+                      {r.enviadoEm ? formatarDataHora(r.enviadoEm) : "—"}
                     </td>
                     <td className="px-4 py-2">
                       <Link

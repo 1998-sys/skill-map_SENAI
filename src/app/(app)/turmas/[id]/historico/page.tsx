@@ -7,18 +7,8 @@ import { buttonVariants } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { SectionCard } from "@/components/ui/section-card";
 import { PageNote } from "@/components/ui/info-field";
+import { formatarData, formatarDataHora } from "@/lib/datas";
 import { Filtros } from "./filtros";
-
-function formatarData(d: Date) {
-  return new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC" }).format(d);
-}
-
-function formatarDataHora(d: Date) {
-  return new Intl.DateTimeFormat("pt-BR", {
-    dateStyle: "short",
-    timeStyle: "short",
-  }).format(d);
-}
 
 function trecho(texto: string, max = 160) {
   const t = texto.trim().replace(/\s+/g, " ");

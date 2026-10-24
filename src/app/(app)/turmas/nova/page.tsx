@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
+import { PageNote } from "@/components/ui/info-field";
 import { TurmaForm } from "./turma-form";
 
 export default async function NovaTurmaPage() {
@@ -8,17 +9,15 @@ export default async function NovaTurmaPage() {
   if (!user) redirect("/login");
 
   return (
-    <main className="mx-auto w-full max-w-2xl p-6">
-      <div className="mb-6">
-        <Link href="/turmas" className="text-sm text-muted-foreground hover:underline">
-          ← Voltar para turmas
-        </Link>
-        <h1 className="mt-2 text-2xl font-semibold">Nova turma</h1>
-        <p className="text-sm text-muted-foreground">
-          Configure a turma uma única vez e informe as capacidades que a IA vai usar.
-        </p>
-      </div>
+    <main className="mx-auto w-full max-w-5xl space-y-5 p-4 sm:p-6">
+      <Link href="/turmas" className="text-sm text-muted-foreground hover:underline">
+        ← Minhas turmas
+      </Link>
       <TurmaForm />
+      <PageNote>
+        As capacidades são cadastradas uma única vez pelo professor, com base no
+        Plano de Curso.
+      </PageNote>
     </main>
   );
 }

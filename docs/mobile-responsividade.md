@@ -30,13 +30,14 @@
 
 ---
 
-## ⏳ Falta auditar visualmente no mobile
+## ✅ Redesign SENAI (D3–D5) — auditado a 375px
 
-Risco **baixo** — usam os mesmos padrões já validados, mas não foram vistos a 375px:
-- **Nova turma** (`/turmas/nova`) — formulário em grade `sm:grid-cols-2`.
-- **Histórico** (`/turmas/[id]/historico`) — lista + filtros (`filtros.tsx`).
-- **Painel da Coordenação** (`/coordenacao` e `/coordenacao/turmas/[id]`) — listas,
-  consolidação e botão "Gerar resumo com IA".
+Todas as telas internas foram revisadas após o redesign: Início, Minhas turmas, Nova
+turma, Turma, Registro/Análise, Histórico, Painel da Coordenação (lista, turma e
+registro somente leitura). Sem overflow horizontal; drawer do menu ok.
+- Tabelas: colunas secundárias somem no mobile (`hidden sm:table-cell`); o Histórico
+  troca a tabela por **cartões** abaixo de `lg`.
+- Botões principais com `size="lg"` (36px); ações de capacidade viraram ícones.
 
 ---
 

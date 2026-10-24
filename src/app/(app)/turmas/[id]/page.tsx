@@ -7,11 +7,8 @@ import { buttonVariants } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { SectionCard } from "@/components/ui/section-card";
 import { InfoField, PageNote } from "@/components/ui/info-field";
+import { formatarData } from "@/lib/datas";
 import { CapacidadesEditor } from "./capacidades-editor";
-
-function formatarData(d: Date) {
-  return new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC" }).format(d);
-}
 
 export default async function TurmaDetalhePage({
   params,

@@ -45,7 +45,7 @@ function CardLabel({ htmlFor, children }: { htmlFor: string; children: string })
 // Registro enviado: campos desabilitados, mas legíveis (sem o esmaecido padrão).
 const roCls =
   "disabled:cursor-default disabled:opacity-100 disabled:bg-muted/60 disabled:placeholder:text-transparent";
-const textareaCls = `text-[15px] leading-relaxed ${roCls}`;
+const textareaCls = `min-h-28 text-[15px] leading-relaxed ${roCls}`;
 
 export function RegistroForm({
   action,

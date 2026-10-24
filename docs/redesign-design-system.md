@@ -29,7 +29,7 @@
 | D2 | Componentes base | StatusBadge, StatCard, SectionCard (inputs já ok via shadcn) | ✅ Concluída |
 | D3 | Telas do professor | Turma/Capacidades, Registro, Análise (seções numeradas), Histórico | ✅ Concluída |
 | D4 | Painel da Coordenação | Stat cards + consolidação | ✅ Concluída |
-| D5 | Responsividade + QA | Auditoria mobile, consistência, ajustes finais | ⬜ |
+| D5 | Responsividade + QA | Auditoria mobile, consistência, ajustes finais | ✅ Concluída |
 
 ## Notas da D3
 
@@ -55,6 +55,19 @@
   Agora aponta para `/coordenacao/turmas/[id]/registros/[rid]` — visão **somente leitura**
   (dados da turma, relato, última análise VALIDADA). Só papel COORDENACAO; rascunho ou
   turma divergente → 404. Seções numeradas extraídas para `src/components/analise-secoes.tsx`.
+
+## Notas da D5
+
+- **Datas centralizadas** em `src/lib/datas.ts`: `formatarData` (dia da aula, UTC — a data
+  é salva como meia-noite UTC) e `formatarDataHora` / `formatarDiaDoInstante` (instantes
+  como `enviadoEm`, **fuso America/Sao_Paulo** explícito). Antes, a Coordenação mostrava
+  UTC (ex.: 11:44) e o professor o fuso do servidor (08:44 local, UTC na Vercel).
+- Telas restantes no padrão: Início (`/dashboard`, cartões de atalho), Minhas turmas
+  (tabela), Nova turma (cartões "Dados da Turma" + "Capacidades do Curso").
+- `Textarea` do shadcn usa `field-sizing: content` (ignora `rows`): textareas principais
+  ganharam `min-h-*`.
+- QA a 1280px e 375px em todas as telas: sem overflow horizontal; drawer do menu ok.
+  Telas do professor foram validadas na D3; na D5 só receberam datas e `min-h`.
 
 ## Regras
 

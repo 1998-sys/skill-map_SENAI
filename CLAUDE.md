@@ -11,8 +11,10 @@ histórico rastreável. A IA **não** substitui avaliação, nota ou frequência
 ## Onde estamos (leia os docs antes de agir)
 
 - `docs/ROADMAP.md` — etapas 0–7. **0–6 concluídas**, 7 (polimento/piloto) parcial.
-- `docs/redesign-design-system.md` — redesign visual SENAI. **D0–D4 concluídas**;
-  **próximo = D5** (responsividade/QA).- `docs/etapa-*.md` — spec por etapa. `docs/mobile-responsividade.md` — auditoria mobile.
+- `docs/redesign-design-system.md` — redesign visual SENAI. **D0–D5 concluídas**
+  (redesign completo). Próximo: pendências da Etapa 7 (piloto real).
+- Datas: use **sempre** `@/lib/datas` (`formatarData` p/ dia da aula em UTC;
+  `formatarDataHora` p/ instantes no fuso de Brasília). Não crie `Intl.DateTimeFormat` solto.- `docs/etapa-*.md` — spec por etapa. `docs/mobile-responsividade.md` — auditoria mobile.
 - `docs/referencia/` — as 5 telas de referência (PNG) + PDF da especificação.
 
 ## Stack

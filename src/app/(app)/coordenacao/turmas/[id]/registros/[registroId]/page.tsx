@@ -6,16 +6,10 @@ import { SectionCard } from "@/components/ui/section-card";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { InfoField, PageNote } from "@/components/ui/info-field";
 import { Bullets, Secao } from "@/components/analise-secoes";
+import { formatarData, formatarDataHora } from "@/lib/datas";
 
 // Visão somente leitura de um registro ENVIADO, para a Coordenação.
 // Rascunhos nunca aparecem aqui (mesma regra do painel).
-
-const fmtData = new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC" });
-const fmtDataHora = new Intl.DateTimeFormat("pt-BR", {
-  timeZone: "UTC",
-  dateStyle: "short",
-  timeStyle: "short",
-});
 
 export default async function CoordenacaoRegistroPage({
   params,
@@ -74,13 +68,13 @@ export default async function CoordenacaoRegistroPage({
         </Link>
         <div className="mt-2 flex flex-wrap items-center gap-3">
           <h1 className="text-2xl font-bold tracking-tight">
-            Registro de {fmtData.format(registro.data)}
+            Registro de {formatarData(registro.data)}
           </h1>
           <StatusBadge status={registro.status} />
         </div>
         {registro.enviadoEm && (
           <p className="mt-1 text-sm text-primary">
-            Enviado à Coordenação em {fmtDataHora.format(registro.enviadoEm)}
+            Enviado à Coordenação em {formatarDataHora(registro.enviadoEm)}
           </p>
         )}
       </div>
@@ -90,7 +84,7 @@ export default async function CoordenacaoRegistroPage({
           <InfoField label="Curso" value={registro.turma.curso.nome} />
           <InfoField label="Turma" value={registro.turma.nome} />
           <InfoField label="Professor" value={registro.turma.professor.nome} />
-          <InfoField label="Data" value={fmtData.format(registro.data)} />
+          <InfoField label="Data" value={formatarData(registro.data)} />
         </div>
         {registro.tema && (
           <InfoField className="mt-4" label="Aula / Tema" value={registro.tema} />

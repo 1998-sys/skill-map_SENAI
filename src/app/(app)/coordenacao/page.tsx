@@ -7,13 +7,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { SectionCard } from "@/components/ui/section-card";
 import { StatCard } from "@/components/ui/stat-card";
 import { PageNote } from "@/components/ui/info-field";
-
-const fmtData = new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC" });
-const fmtDataHora = new Intl.DateTimeFormat("pt-BR", {
-  timeZone: "UTC",
-  dateStyle: "short",
-  timeStyle: "short",
-});
+import { formatarDataHora, formatarDiaDoInstante } from "@/lib/datas";
 
 export default async function CoordenacaoPage() {
   const profile = await getCurrentProfile();
@@ -79,7 +73,7 @@ export default async function CoordenacaoPage() {
           <StatCard
             icon={<CalendarDays className="size-5" />}
             label="Último envio"
-            value={ultimoGeral ? fmtData.format(ultimoGeral) : "—"}
+            value={ultimoGeral ? formatarDiaDoInstante(ultimoGeral) : "—"}
           />
         </div>
       </SectionCard>
@@ -119,7 +113,7 @@ export default async function CoordenacaoPage() {
                       {t.total}
                     </td>
                     <td className="hidden px-4 py-3 whitespace-nowrap tabular-nums md:table-cell">
-                      {t.ultimoEnvio ? fmtDataHora.format(t.ultimoEnvio) : "—"}
+                      {t.ultimoEnvio ? formatarDataHora(t.ultimoEnvio) : "—"}
                     </td>
                     <td className="px-4 py-2">
                       <Link

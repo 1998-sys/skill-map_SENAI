@@ -2,7 +2,9 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { FolderOpen, Plus } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
+import { SectionCard } from "@/components/ui/section-card";
 
 export default async function TurmasPage() {
   const profile = await getCurrentProfile();
@@ -18,54 +20,71 @@ export default async function TurmasPage() {
   });
 
   return (
-    <main className="mx-auto w-full max-w-3xl p-6">
-      <header className="mb-6 flex items-center justify-between">
-        <div>
-          <Link href="/dashboard" className="text-sm text-muted-foreground hover:underline">
-            ← Dashboard
+    <main className="mx-auto w-full max-w-5xl space-y-5 p-4 sm:p-6">
+      <SectionCard
+        title="Minhas turmas"
+        description="Escolha uma turma para ver as capacidades, registrar aulas e consultar o histórico."
+        action={
+          <Link href="/turmas/nova" className={buttonVariants({ size: "lg" })}>
+            <Plus /> Nova turma
           </Link>
-          <h1 className="mt-2 text-2xl font-semibold">Minhas turmas</h1>
-        </div>
-        <Link href="/turmas/nova" className={buttonVariants()}>
-          Nova turma
-        </Link>
-      </header>
-
-      {turmas.length === 0 ? (
-        <div className="rounded-xl border border-dashed p-10 text-center">
-          <p className="text-sm text-muted-foreground">
-            Você ainda não cadastrou nenhuma turma.
-          </p>
-          <Link
-            href="/turmas/nova"
-            className={buttonVariants({ className: "mt-4" })}
-          >
-            Cadastrar primeira turma
-          </Link>
-        </div>
-      ) : (
-        <ul className="space-y-3">
-          {turmas.map((turma) => (
-            <li key={turma.id}>
-              <Link
-                href={`/turmas/${turma.id}`}
-                className="block rounded-xl border bg-card p-4 transition hover:bg-accent"
-              >
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <p className="font-medium">{turma.nome}</p>
-                    <p className="text-sm text-muted-foreground">{turma.curso.nome}</p>
-                  </div>
-                  <div className="text-right text-xs text-muted-foreground">
-                    <p>{turma._count.capacidades} capacidades</p>
-                    <p>{turma._count.registros} registros</p>
-                  </div>
-                </div>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
+        }
+      >
+        {turmas.length === 0 ? (
+          <div className="rounded-lg border border-dashed p-10 text-center">
+            <p className="text-sm text-muted-foreground">
+              Você ainda não cadastrou nenhuma turma.
+            </p>
+            <Link
+              href="/turmas/nova"
+              className={buttonVariants({ size: "lg", className: "mt-4" })}
+            >
+              <Plus /> Cadastrar primeira turma
+            </Link>
+          </div>
+        ) : (
+          <div className="overflow-hidden rounded-lg border">
+            <table className="w-full text-sm">
+              <thead className="bg-muted text-left text-foreground">
+                <tr>
+                  <th className="px-4 py-2.5 font-semibold">Turma / Curso</th>
+                  <th className="hidden px-4 py-2.5 font-semibold sm:table-cell">
+                    Capacidades
+                  </th>
+                  <th className="hidden px-4 py-2.5 font-semibold sm:table-cell">
+                    Registros
+                  </th>
+                  <th className="w-px px-4 py-2.5 font-semibold">Ação</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {turmas.map((turma) => (
+                  <tr key={turma.id}>
+                    <td className="px-4 py-3">
+                      <p className="font-medium">{turma.nome}</p>
+                      <p className="text-xs text-muted-foreground">{turma.curso.nome}</p>
+                    </td>
+                    <td className="hidden px-4 py-3 tabular-nums sm:table-cell">
+                      {turma._count.capacidades}
+                    </td>
+                    <td className="hidden px-4 py-3 tabular-nums sm:table-cell">
+                      {turma._count.registros}
+                    </td>
+                    <td className="px-4 py-2">
+                      <Link
+                        href={`/turmas/${turma.id}`}
+                        className={buttonVariants({ variant: "outline-primary" })}
+                      >
+                        <FolderOpen /> Abrir
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </SectionCard>
     </main>
   );
 }
