@@ -142,11 +142,14 @@ export function AnalisePanel({
   function chamarIA(ok: string) {
     startTransition(async () => {
       const res = await analisarRegistro(registroId);
-      setAnalisando(false);
       if (res.error) {
+        setAnalisando(false);
         toast.error(res.error);
         return;
       }
+      // Sucesso: NÃO sai do "analisando" aqui — senão a análise anterior
+      // reaparece até o refresh chegar. A nova análise tem outro id, então o
+      // painel é recriado (key) e já começa em branco, escrevendo.
       recemGeradas.add(registroId);
       router.refresh();
       toast.success(ok);
@@ -183,7 +186,22 @@ export function AnalisePanel({
   });
   const { cortadas, cursor } = revelar(listas, visivel);
   const fim = (k: ListaChave) => (escrevendo && cursor === k ? <CursorIA /> : null);
-  const vazio = (texto: string) => (escrevendo ? null : texto);
+
+  // Enquanto a IA escreve, o cartão começa em branco: cada seção só aparece
+  // quando a escrita chega nela, e o "Nenhum item" só depois que ela passou.
+  const inicio = {} as Record<ListaChave, number>;
+  const tamanho = {} as Record<ListaChave, number>;
+  {
+    let pos = 0;
+    for (const k of ORDEM) {
+      inicio[k] = pos;
+      tamanho[k] = listas[k].reduce((s, t) => s + t.length + 1, 0);
+      pos += tamanho[k];
+    }
+  }
+  const mostrar = (k: ListaChave) => !escrevendo || inicio[k] === 0 || visivel > inicio[k];
+  const vazio = (k: ListaChave, texto: string) =>
+    !escrevendo || visivel > inicio[k] + tamanho[k] ? texto : null;
 
   // Sem análise: botão para gerar (indisponível se já enviado).
   if (!analise) {
@@ -256,6 +274,7 @@ export function AnalisePanel({
       }
     >
       <div className="divide-y" aria-live="polite" aria-busy={escrevendo}>
+        {mostrar("caps") && (
         <Secao n={1} titulo="Capacidades identificadas">
           {emEdicao ? (
             <ul className="space-y-2">
@@ -275,12 +294,14 @@ export function AnalisePanel({
           ) : (
             <Bullets
               itens={cortadas.caps}
-              vazio={vazio("Nenhuma capacidade identificada.")}
+              vazio={vazio("caps", "Nenhuma capacidade identificada.")}
               fim={fim("caps")}
             />
           )}
         </Secao>
+        )}
 
+        {mostrar("pos") && (
         <Secao n={2} titulo="Pontos positivos">
           {emEdicao ? (
             <Textarea
@@ -291,10 +312,12 @@ export function AnalisePanel({
               className="text-[15px]"
             />
           ) : (
-            <Bullets itens={cortadas.pos} vazio={vazio("Nenhum item.")} fim={fim("pos")} />
+            <Bullets itens={cortadas.pos} vazio={vazio("pos", "Nenhum item.")} fim={fim("pos")} />
           )}
         </Secao>
+        )}
 
+        {mostrar("at") && (
         <Secao n={3} titulo="Pontos que merecem atenção">
           {emEdicao ? (
             <Textarea
@@ -305,10 +328,12 @@ export function AnalisePanel({
               className="text-[15px]"
             />
           ) : (
-            <Bullets itens={cortadas.at} vazio={vazio("Nenhum item.")} fim={fim("at")} />
+            <Bullets itens={cortadas.at} vazio={vazio("at", "Nenhum item.")} fim={fim("at")} />
           )}
         </Secao>
+        )}
 
+        {mostrar("sug") && (
         <Secao n={4} titulo="Sugestões para a próxima aula">
           {emEdicao ? (
             <Textarea
@@ -322,11 +347,12 @@ export function AnalisePanel({
             <Bullets
               itens={cortadas.sug}
               numerada
-              vazio={vazio("Nenhum item.")}
+              vazio={vazio("sug", "Nenhum item.")}
               fim={fim("sug")}
             />
           )}
         </Secao>
+        )}
 
         {(emEdicao || cortadas.obs.length > 0) && (
           <Secao n={5} titulo="Observações adicionais">
@@ -347,7 +373,7 @@ export function AnalisePanel({
         )}
       </div>
 
-      {readOnly ? (
+      {escrevendo ? null : readOnly ? (
         <div className="mt-2 flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-muted-foreground">
             Esta análise foi enviada à Coordenação. Para corrigir, reabra o
