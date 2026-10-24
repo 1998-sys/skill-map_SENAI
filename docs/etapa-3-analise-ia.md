@@ -69,7 +69,13 @@ Antes a análise era um painel no fim da página do registro. Agora:
 - **Análise da IA** (`.../registros/[registroId]/analise`): resumo do registro + painel
   (seções numeradas, editar, novas sugestões, validar, enviar à Coordenação).
 - **Submenu da turma** na sidebar: Turma / Curso · Registro Diário · Análise da IA ·
-  Histórico da Turma. `/turmas/[id]/analise` é um atalho que abre a análise mais recente.
+  Histórico da Turma.
+- **Análises da Turma** (`/turmas/[id]/analise`): lista de todas as análises (última
+  versão de cada registro), com filtro por situação via `?situacao=` —
+  **Gerada pela IA** (rascunho + IA_ORIGINAL), **Validada pelo professor** (rascunho +
+  VALIDADA), **Enviada à Coordenação** (registro ENVIADO) — e contagens. Cada item mostra
+  capacidades e pontos de atenção resumidos e "Abrir" → tela de Análise do registro.
+  Badge: `SituacaoBadge` em `components/ui/status-badge.tsx`.
 - Histórico: "Abrir" vai para a Análise quando ela existe.
 
 ## 📝 Notas

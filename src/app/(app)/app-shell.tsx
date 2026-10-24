@@ -46,6 +46,7 @@ const NAV: { href: string; label: string; Icon: () => React.ReactElement; role?:
 function subtituloDaRota(pathname: string): string | null {
   if (pathname === "/turmas/nova") return "Nova turma";
   if (/^\/turmas\/[^/]+\/historico/.test(pathname)) return "Histórico da Turma";
+  if (/^\/turmas\/[^/]+\/analise/.test(pathname)) return "Análises da Turma";
   if (/^\/turmas\/[^/]+\/registros\/[^/]+\/analise/.test(pathname)) return "Análise da IA";
   if (/^\/turmas\/[^/]+\/registros\/[^/]+/.test(pathname)) return "Registro Diário";
   if (/^\/turmas\/[^/]+$/.test(pathname)) return "Turma / Curso";

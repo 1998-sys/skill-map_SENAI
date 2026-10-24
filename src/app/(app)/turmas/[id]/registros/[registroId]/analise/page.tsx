@@ -77,9 +77,14 @@ export default async function AnalisePage({
   return (
     <main className="mx-auto w-full max-w-5xl space-y-5 p-4 sm:p-6">
       <div>
-        <Link href={urlRegistro} className="text-sm text-muted-foreground hover:underline">
-          ← Registro Diário de {formatarData(registro.data)}
-        </Link>
+        <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
+          <Link href={`/turmas/${registro.turma.id}/analise`} className="hover:underline">
+            ← Todas as análises
+          </Link>
+          <Link href={urlRegistro} className="hover:underline">
+            Registro Diário de {formatarData(registro.data)}
+          </Link>
+        </div>
         <div className="mt-2 flex flex-wrap items-center gap-3">
           <h1 className="text-2xl font-extrabold tracking-tight">Análise da IA</h1>
           <StatusBadge status={registro.status} />
