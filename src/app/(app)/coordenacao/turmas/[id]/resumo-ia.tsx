@@ -87,7 +87,7 @@ export function ResumoIA({ conteudo }: { conteudo: ConteudoConsolidado }) {
           <Button size="lg" variant="outline-primary" className="px-4" onClick={parar}>
             <Square /> Parar
           </Button>
-        ) : (
+        ) : digitando ? null : ( // a IA já terminou, mas o texto ainda está sendo escrito
           <Button size="lg" className="px-4" onClick={gerar}>
             <FileText />
             {texto ? "Gerar novamente" : "Gerar resumo da turma"}
