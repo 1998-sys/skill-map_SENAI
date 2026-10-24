@@ -87,7 +87,7 @@ export default async function RegistroPage({
         >
           ← {registro.turma.nome}
         </Link>
-        <div className="mt-2 flex items-center justify-between gap-4">
+        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
           <h1 className="text-2xl font-semibold">
             Registro de {formatarData(registro.data)}
           </h1>

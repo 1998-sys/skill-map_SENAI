@@ -26,7 +26,8 @@ Regras:
 - NÃO atribua nota, nível ou conceito. NÃO aprove nem reprove a turma ou alunos.
 - NÃO faça ranking nem comparação com outras turmas ou professores.
 - Seja conciso (poucos parágrafos). Pode usar tópicos curtos quando ajudar na leitura.
-- Baseie-se SOMENTE nas observações fornecidas; não invente dados.`;
+- Organize em: uma visão geral breve, as recorrências a acompanhar e as recomendações à Coordenação.
+- Baseie-se SOMENTE nas observações fornecidas; não invente dados nem generalize além delas.`;
 
 // Gera um resumo da turma em texto puro, a partir do conteúdo consolidado dos
 // registros ENVIADOS. Exclusivo para a Coordenação.
