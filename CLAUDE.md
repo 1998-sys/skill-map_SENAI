@@ -11,10 +11,12 @@ histórico rastreável. A IA **não** substitui avaliação, nota ou frequência
 ## Onde estamos (leia os docs antes de agir)
 
 - `docs/ROADMAP.md` — etapas 0–7. **0–6 concluídas**, 7 (polimento/piloto) parcial.
-- `docs/redesign-design-system.md` — redesign visual SENAI. **D0–D5 concluídas**
-  (redesign completo). Próximo: pendências da Etapa 7 (piloto real).
+- `docs/redesign-design-system.md` — redesign de layout (D0–D5 ✅).
+- `docs/design-system-senai.md` — identidade visual **oficial SENAI** (S0–S6 ✅).
+  **Próximo:** pendências da Etapa 7 (piloto real).
 - Datas: use **sempre** `@/lib/datas` (`formatarData` p/ dia da aula em UTC;
-  `formatarDataHora` p/ instantes no fuso de Brasília). Não crie `Intl.DateTimeFormat` solto.- `docs/etapa-*.md` — spec por etapa. `docs/mobile-responsividade.md` — auditoria mobile.
+  `formatarDataHora` p/ instantes no fuso de Brasília). Não crie `Intl.DateTimeFormat` solto.
+- `docs/etapa-*.md` — spec por etapa. `docs/mobile-responsividade.md` — auditoria mobile.
 - `docs/referencia/` — as 5 telas de referência (PNG) + PDF da especificação.
 
 ## Stack
@@ -39,10 +41,12 @@ Supabase (Auth + Postgres) · Prisma 6 · OpenAI (`gpt-5-nano`) · deploy Vercel
 - **Trigger de profile NÃO é migration do Prisma** (o shadow DB não vê o schema `auth`):
   aplicar com `node --env-file=.env scripts/db/apply-profile-trigger.mjs`.
 - **IA:** `@/lib/openai` (client lazy) + `@/lib/ia/analisar.ts` (análise, JSON Schema strict,
-  `OPENAI_MODEL` padrão `gpt-5-nano`). Resumo da Coordenação em `src/lib/actions/coordenacao.ts`.
+  `OPENAI_MODEL` padrão `gpt-5-nano`). Resumo da Coordenação: `@/lib/ia/resumo.ts` +
+  rota de **streaming** `POST /api/coordenacao/resumo`. Texto de IA na tela usa
+  `@/components/ia-escrita` (`useEscritaFluida`, `PensandoIA`, `SeloIA` "Gerado por IA").
 - **Design tokens** em `src/app/globals.css` (`:root`, paleta **oficial SENAI-SP**: vermelho
   `#E30613`, fundo `#E6E6E6`, títulos `#1A1A1A`). Fonte **Montserrat** no layout raiz.
-  Plano em andamento: `docs/design-system-senai.md` (S0–S4 ✅, próximo S5). Use tokens
+  Plano em andamento: `docs/design-system-senai.md` (S0–S6 ✅ concluído). Use tokens
   (`text-title`, `bg-brand-soft`, `text-success`…), nunca hex solto.
 - Toda UI em **pt-BR**. Server actions em `src/lib/actions/*.ts` (`"use server"`, checam o dono).
 

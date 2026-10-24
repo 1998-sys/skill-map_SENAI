@@ -3,7 +3,12 @@
 > Troca a "pele" do SkillMap pelo **design system oficial do SENAI-SP** (pasta
 > `senai-design-system/`), **mantendo intactos layout, fluxos e funcionalidades** das
 > etapas 0–6 e do redesign D0–D5.
-> Última atualização: 2026-10-24 · Status: 🟡 em andamento (S0–S4 ✅, S6 parcial)
+> Última atualização: 2026-10-24 · Status: ✅ **concluído** (S0–S6)
+>
+> **S5/S6 (Coordenação):** lista, painel, registro somente leitura e Início auditados com
+> sessão de Coordenação — contraste AA em todos os textos (~140), nenhum controle sem
+> nome acessível, ordem de Tab lógica ("Gerar resumo" alcançável), 375px sem overflow.
+> Nenhuma correção necessária. O resumo com IA (streaming) segue os mesmos tokens.
 
 > **S6 (telas do professor):** auditoria automática de contraste em 8 telas (≈280 textos)
 > — tudo ≥ AA, exceto o separador "|" da topbar (decorativo → `aria-hidden`). Nomes
@@ -132,8 +137,8 @@ navegador (1280px e 375px, Professor e Coordenação) → commit.**
 | S2 | App shell | Sidebar no padrão escolhido, logo oficial, item ativo em vermelho; topbar com barra vermelha de 3px; drawer mobile no mesmo padrão; login com a marca | ✅ Concluída |
 | S3 | Componentes base | `Button` (variantes `default` e `outline-primary` em vermelho, hover/active SENAI); `SectionCard` (título 800 + filete/sublinhado vermelho); `StatCard`; `StatusBadge`; `InfoField`; `PageNote`; inputs/selects/textarea (borda e foco); cabeçalho de tabela; `analise-secoes` (círculo numerado) | ✅ Concluída |
 | S4 | Telas do professor | Revisão tela a tela (Início, Minhas turmas, Nova turma, Turma, Registro/Análise, Histórico); remover hex soltos restantes; nenhum bloco muda de lugar | ✅ Concluída |
-| S5 | Telas da Coordenação | Lista, painel da turma (StatCards, pontos de atenção numerados), registro somente leitura, resumo IA | ⬜ |
-| S6 | QA visual + acessibilidade | Contraste AA em todos os pares; foco visível; estados hover/disabled; 375px sem overflow; comparação lado a lado com o design system; atualizar docs (`CLAUDE.md`, `redesign-design-system.md`) | ⬜ |
+| S5 | Telas da Coordenação | Lista, painel da turma (StatCards, pontos de atenção numerados), registro somente leitura, resumo IA | ✅ Concluída |
+| S6 | QA visual + acessibilidade | Contraste AA em todos os pares; foco visível; estados hover/disabled; 375px sem overflow; comparação lado a lado com o design system; atualizar docs (`CLAUDE.md`, `redesign-design-system.md`) | ✅ Concluída |
 
 Sugestão de ordem de commits: S1 e S3 trocam a maior parte do visual de uma vez, porque
 as telas já usam tokens e componentes. S4 e S5 ficam como revisão fina.
