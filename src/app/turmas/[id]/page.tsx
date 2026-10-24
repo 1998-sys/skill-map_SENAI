@@ -60,12 +60,20 @@ export default async function TurmaDetalhePage({
               ({turma.registros.length})
             </span>
           </h2>
-          <Link
-            href={`/turmas/${turma.id}/registros/novo`}
-            className={buttonVariants()}
-          >
-            Novo registro
-          </Link>
+          <div className="flex gap-2">
+            <Link
+              href={`/turmas/${turma.id}/historico`}
+              className={buttonVariants({ variant: "outline" })}
+            >
+              Ver histórico
+            </Link>
+            <Link
+              href={`/turmas/${turma.id}/registros/novo`}
+              className={buttonVariants()}
+            >
+              Novo registro
+            </Link>
+          </div>
         </div>
 
         {turma.registros.length === 0 ? (
