@@ -47,6 +47,11 @@ export default async function CoordenacaoTurmaPage({
             where: { tipo: "VALIDADA" },
             orderBy: { versao: "desc" },
             take: 1,
+            include: {
+              capacidadesIdentificadas: {
+                include: { capacidade: { select: { texto: true, ordem: true } } },
+              },
+            },
           },
         },
       },
@@ -75,13 +80,32 @@ export default async function CoordenacaoTurmaPage({
     sugestoes.push(...a.sugestoes);
   }
 
+  // Para o resumo com IA: cada registro enviado (com a última análise validada),
+  // em ordem cronológica, para a IA apontar a evolução da turma.
   const conteudo: ConteudoConsolidado = {
     turmaNome: turma.nome,
     cursoNome: turma.curso.nome,
     totalEnviados: enviados.length,
-    pontosPositivos,
-    pontosAtencao,
-    sugestoes,
+    registros: [...enviados]
+      .sort((x, y) => x.data.getTime() - y.data.getTime())
+      .flatMap((r) => {
+        const a = r.analises[0];
+        if (!a) return [];
+        return [
+          {
+            data: formatarData(r.data),
+            tema: r.tema,
+            capacidades: a.capacidadesIdentificadas
+              .map((ac) => ac.capacidade)
+              .sort((p, q) => p.ordem - q.ordem)
+              .map((c) => c.texto),
+            pontosPositivos: a.pontosPositivos,
+            pontosAtencao: a.pontosAtencao,
+            sugestoes: a.sugestoes,
+            observacoes: a.observacoesAdicionais,
+          },
+        ];
+      }),
   };
 
   // Só para exibição: agrupa itens repetidos (mesmo texto) e conta em quantos

@@ -30,8 +30,13 @@ Dar à Coordenação uma visão **simples e consolidada** do acompanhamento peda
   intervenções sugeridas (agregados da última `Analise` VALIDADA de cada
   enviado), lista dos registros enviados com link para abrir cada um.
 - `src/app/coordenacao/turmas/[id]/resumo-ia.tsx` — botão "Gerar resumo da
-  turma com IA" (client), exibe o resumo em texto.
-- `src/lib/actions/coordenacao.ts` — server action `gerarResumoTurma` (OpenAI).
+  turma" (client); texto em **streaming** com escrita fluida.
+- `src/lib/ia/resumo.ts` + `POST /api/coordenacao/resumo` — resumo por IA (substituiu a
+  antiga server action). Recebe a **linha do tempo** dos registros enviados (ordem
+  cronológica): data, tema, capacidades identificadas, pontos positivos/atenção,
+  intervenções e observações da última análise VALIDADA de cada um. O prompt pede visão
+  geral, **evolução citando datas** (o que se repete, o que deixou de aparecer),
+  capacidades mais/menos frequentes e recomendações — sem nota, ranking ou dados inventados.
 - `src/app/dashboard/page.tsx` — link "Painel da Coordenação" só para COORDENACAO.
 
 ## 📦 Entregável (critério de conclusão)
