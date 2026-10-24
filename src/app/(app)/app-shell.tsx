@@ -79,7 +79,7 @@ export function AppShell({
       )}
 
       <aside
-        className={`${open ? "translate-x-0" : "-translate-x-full"} fixed inset-y-0 left-0 z-40 flex w-60 shrink-0 transform flex-col gap-8 border-r border-sidebar-border bg-sidebar px-3.5 py-5 transition-transform md:static md:translate-x-0`}
+        className={`${open ? "translate-x-0" : "-translate-x-full max-md:invisible"} fixed inset-y-0 left-0 z-40 flex w-60 shrink-0 transform flex-col gap-8 border-r border-sidebar-border bg-sidebar px-3.5 py-5 transition-[transform,visibility] md:static md:translate-x-0`}
       >
         <Link
           href="/dashboard"
@@ -125,7 +125,7 @@ export function AppShell({
             </button>
             <div className="flex min-w-0 items-center gap-2.5 text-[15px] sm:text-[17px]">
               <span className="font-extrabold whitespace-nowrap text-title">SENAI SkillMap</span>
-              <span className="text-border">|</span>
+              <span className="text-border" aria-hidden="true">|</span>
               <span className="truncate font-medium text-muted-foreground">{subtitulo}</span>
             </div>
           </div>

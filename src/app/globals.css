@@ -144,6 +144,23 @@
   body {
     @apply bg-background text-foreground;
   }
+  /* Foco visível por teclado em links e controles sem anel próprio
+     (especificidade zero: componentes com ring/outline-none continuam valendo). */
+  :where(a, button, summary, [tabindex]):focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  /* Acessibilidade: quem pede menos movimento não vê animações/transições. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
   /* Títulos no padrão SENAI: Montserrat 800, cor de título. */
   h1,
   h2,

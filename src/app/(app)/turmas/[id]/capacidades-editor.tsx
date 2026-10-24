@@ -75,6 +75,7 @@ export function CapacidadesEditor({
         <div className="space-y-3 rounded-lg border bg-muted/50 p-3">
           <Textarea
             rows={7}
+            aria-label="Capacidades para colar em bloco (uma por linha)"
             placeholder={
               "Cole várias capacidades (uma por linha).\n1. Interpretar diagramas elétricos\n2. Identificar componentes"
             }
@@ -116,6 +117,7 @@ export function CapacidadesEditor({
                 <div className="flex-1 space-y-2">
                   <Textarea
                     rows={2}
+                    aria-label={`Editar capacidade ${i + 1}`}
                     value={editTexto}
                     onChange={(e) => setEditTexto(e.target.value)}
                   />
@@ -186,6 +188,7 @@ export function CapacidadesEditor({
       <div className="flex flex-col gap-2 pt-1 sm:flex-row">
         <Input
           className="h-9"
+          aria-label="Nova capacidade"
           placeholder="Nova capacidade (ex.: Diagnosticar falhas)"
           value={nova}
           onChange={(e) => setNova(e.target.value)}

@@ -3,7 +3,14 @@
 > Troca a "pele" do SkillMap pelo **design system oficial do SENAI-SP** (pasta
 > `senai-design-system/`), **mantendo intactos layout, fluxos e funcionalidades** das
 > etapas 0–6 e do redesign D0–D5.
-> Última atualização: 2026-10-24 · Status: 🟡 em andamento (S0–S4 ✅)
+> Última atualização: 2026-10-24 · Status: 🟡 em andamento (S0–S4 ✅, S6 parcial)
+
+> **S6 (telas do professor):** auditoria automática de contraste em 8 telas (≈280 textos)
+> — tudo ≥ AA, exceto o separador "|" da topbar (decorativo → `aria-hidden`). Nomes
+> acessíveis: faltavam nos campos de capacidade (só placeholder) → `aria-label`. Teclado:
+> a gaveta do menu fechada recebia foco no mobile → `max-md:invisible` quando fechada;
+> foco visível global (`:where(a,button,…):focus-visible`, contorno vermelho). Movimento
+> reduzido: regra global desliga animações/transições. Falta repetir na Coordenação (S5).
 
 > **S4:** telas do professor revisadas com sessão de Professor (1280px e 375px): Turma,
 > Registro (rascunho, enviado e modo edição da análise), Novo registro, Histórico. Único
