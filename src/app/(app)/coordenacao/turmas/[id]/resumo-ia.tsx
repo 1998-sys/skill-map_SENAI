@@ -2,11 +2,13 @@
 
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
+import { FileText } from "lucide-react";
 import {
   gerarResumoTurma,
   type ConteudoConsolidado,
 } from "@/lib/actions/coordenacao";
 import { Button } from "@/components/ui/button";
+import { SectionCard } from "@/components/ui/section-card";
 
 export function ResumoIA({ conteudo }: { conteudo: ConteudoConsolidado }) {
   const [pending, startTransition] = useTransition();
@@ -25,29 +27,29 @@ export function ResumoIA({ conteudo }: { conteudo: ConteudoConsolidado }) {
   }
 
   return (
-    <section className="mt-8 rounded-xl border bg-card p-5">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h2 className="text-lg font-medium">Resumo da turma com IA</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Gera um resumo executivo a partir das observações consolidadas dos
-            registros enviados. Não atribui nota nem faz ranking.
-          </p>
-        </div>
-        <Button disabled={pending} onClick={gerar}>
+    <SectionCard
+      title="Resumo da turma com IA"
+      description="Gera um resumo executivo a partir das observações consolidadas dos registros enviados. Não atribui nota nem faz ranking."
+      action={
+        <Button size="lg" className="px-4" disabled={pending} onClick={gerar}>
+          <FileText />
           {pending
             ? "Gerando..."
             : resumo
               ? "Gerar novamente"
-              : "Gerar resumo da turma com IA"}
+              : "Gerar resumo da turma"}
         </Button>
-      </div>
-
-      {resumo && (
-        <p className="mt-4 whitespace-pre-wrap border-t pt-4 text-sm leading-relaxed">
+      }
+    >
+      {resumo ? (
+        <p className="rounded-lg border bg-muted/50 p-4 text-[15px] leading-relaxed whitespace-pre-wrap">
           {resumo}
         </p>
+      ) : (
+        <p className="text-sm text-muted-foreground">
+          Nenhum resumo gerado nesta visita.
+        </p>
       )}
-    </section>
+    </SectionCard>
   );
 }

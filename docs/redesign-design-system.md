@@ -28,7 +28,7 @@
 | D1 | App shell | Sidebar navy + topbar; navegação ativa por rota; Coordenação por papel; responsivo (drawer no mobile) | ✅ Concluída |
 | D2 | Componentes base | StatusBadge, StatCard, SectionCard (inputs já ok via shadcn) | ✅ Concluída |
 | D3 | Telas do professor | Turma/Capacidades, Registro, Análise (seções numeradas), Histórico | ✅ Concluída |
-| D4 | Painel da Coordenação | Stat cards + consolidação | ⬜ |
+| D4 | Painel da Coordenação | Stat cards + consolidação | ✅ Concluída |
 | D5 | Responsividade + QA | Auditoria mobile, consistência, ajustes finais | ⬜ |
 
 ## Notas da D3
@@ -42,6 +42,18 @@
 - **Fora do escopo (não existem hoje, seriam funcionalidade nova):** botão "Ditar",
   "Exportar histórico", filtros de Período/Aula, "Analisar com IA" direto no formulário
   de novo registro. Rascunho segue rotulado "Rascunho" (referência usa "Salvo").
+
+## Notas da D4
+
+- `/coordenacao`: stat cards (turmas, registros recebidos, último envio) + tabela de turmas.
+- Painel da turma: 4 stat cards, Turma/Curso/Professor, pontos de atenção numerados com
+  contagem ("N registros", agrupando textos iguais — só exibição), pontos positivos,
+  intervenções, resumo com IA, tabela de registros enviados.
+- **Fora do escopo:** checkboxes de "intervenções realizadas" (precisaria persistir) e
+  "Abrir histórico completo" (o histórico é restrito ao professor dono).
+- **Bug pré-existente (não visual):** "Abrir" de um registro enviado leva a
+  `/turmas/[id]/registros/[rid]`, que dá **404 para a Coordenação** (a página checa
+  `professorId`). Precisa de uma visão de leitura para a Coordenação.
 
 ## Regras
 

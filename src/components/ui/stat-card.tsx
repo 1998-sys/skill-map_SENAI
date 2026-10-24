@@ -30,7 +30,7 @@ export function StatCard({
         {icon}
       </div>
       <div className="min-w-0">
-        <div className="truncate text-sm text-muted-foreground">{label}</div>
+        <div className="text-sm leading-tight text-muted-foreground">{label}</div>
         <div className="text-2xl font-bold text-foreground">{value}</div>
       </div>
     </div>

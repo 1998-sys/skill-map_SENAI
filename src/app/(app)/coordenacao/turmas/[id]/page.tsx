@@ -2,7 +2,17 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import {
+  CalendarDays,
+  FileText,
+  FolderOpen,
+  Lightbulb,
+  TriangleAlert,
+} from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
+import { SectionCard } from "@/components/ui/section-card";
+import { StatCard } from "@/components/ui/stat-card";
+import { InfoField, PageNote } from "@/components/ui/info-field";
 import { ResumoIA } from "./resumo-ia";
 import type { ConteudoConsolidado } from "@/lib/actions/coordenacao";
 
@@ -30,6 +40,7 @@ export default async function CoordenacaoTurmaPage({
     where: { id },
     include: {
       curso: { select: { nome: true } },
+      professor: { select: { nome: true } },
       registros: {
         where: { status: "ENVIADO" },
         orderBy: { data: "desc" },
@@ -75,112 +86,174 @@ export default async function CoordenacaoTurmaPage({
     sugestoes,
   };
 
+  // Só para exibição: agrupa itens repetidos (mesmo texto) e conta em quantos
+  // registros aparecem, do mais frequente para o menos.
+  const atencaoAgrupada = agrupar(pontosAtencao);
+  const sugestoesAgrupadas = agrupar(sugestoes);
+
   return (
-    <main className="mx-auto w-full max-w-3xl p-6">
-      <header className="mb-6">
-        <Link
-          href="/coordenacao"
-          className="text-sm text-muted-foreground hover:underline"
-        >
-          ← Painel da Coordenação
-        </Link>
-        <h1 className="mt-2 text-2xl font-semibold">{turma.nome}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">{turma.curso.nome}</p>
-      </header>
+    <main className="mx-auto w-full max-w-5xl space-y-5 p-4 sm:p-6">
+      <Link
+        href="/coordenacao"
+        className="text-sm text-muted-foreground hover:underline"
+      >
+        ← Painel da Coordenação
+      </Link>
 
-      <section className="grid gap-3 sm:grid-cols-2">
-        <div className="rounded-xl border bg-card p-4">
-          <p className="text-xs text-muted-foreground">Registros recebidos</p>
-          <p className="mt-1 text-2xl font-semibold">{enviados.length}</p>
+      <SectionCard title="Painel de Acompanhamento da Coordenação">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard
+            icon={<FileText className="size-5" />}
+            label="Registros recebidos"
+            value={enviados.length}
+          />
+          <StatCard
+            icon={<CalendarDays className="size-5" />}
+            label="Último envio"
+            value={ultimoEnvio ? fmtData.format(ultimoEnvio) : "—"}
+          />
+          <StatCard
+            icon={<TriangleAlert className="size-5" />}
+            label="Pontos de atenção"
+            value={atencaoAgrupada.length}
+            color="orange"
+          />
+          <StatCard
+            icon={<Lightbulb className="size-5" />}
+            label="Intervenções sugeridas"
+            value={sugestoesAgrupadas.length}
+            color="green"
+          />
         </div>
-        <div className="rounded-xl border bg-card p-4">
-          <p className="text-xs text-muted-foreground">Último envio</p>
-          <p className="mt-1 text-lg font-medium">
-            {ultimoEnvio ? fmtDataHora.format(ultimoEnvio) : "—"}
-          </p>
+        <div className="mt-4 grid gap-4 sm:grid-cols-3">
+          <InfoField label="Turma" value={turma.nome} />
+          <InfoField label="Curso" value={turma.curso.nome} />
+          <InfoField label="Professor" value={turma.professor.nome} />
         </div>
-      </section>
+      </SectionCard>
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-2">
-        <ConsolidadoCard
-          titulo="Pontos positivos"
-          itens={pontosPositivos}
-          vazio="Nenhum ponto positivo registrado."
-        />
-        <ConsolidadoCard
-          titulo="Pontos de atenção"
-          itens={pontosAtencao}
-          vazio="Nenhum ponto de atenção registrado."
-        />
-      </div>
-
-      <div className="mt-4">
-        <ConsolidadoCard
-          titulo="Intervenções sugeridas"
-          itens={sugestoes}
-          vazio="Nenhuma intervenção sugerida."
-        />
-      </div>
-
-      <ResumoIA conteudo={conteudo} />
-
-      <section className="mt-8">
-        <h2 className="mb-3 text-lg font-medium">Registros enviados</h2>
-        {enviados.length === 0 ? (
-          <p className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">
-            Esta turma ainda não tem registros enviados.
-          </p>
+      <SectionCard title="Principais pontos de atenção">
+        {atencaoAgrupada.length === 0 ? (
+          <Vazio>Nenhum ponto de atenção registrado.</Vazio>
         ) : (
-          <ul className="space-y-2">
-            {enviados.map((r) => (
-              <li key={r.id}>
-                <Link
-                  href={`/turmas/${turma.id}/registros/${r.id}`}
-                  className="flex items-center justify-between gap-4 rounded-xl border bg-card p-4 transition hover:bg-accent"
-                >
-                  <div>
-                    <p className="font-medium">
-                      {fmtData.format(r.data)}
-                      {r.tema ? ` · ${r.tema}` : ""}
-                    </p>
-                    {r.enviadoEm && (
-                      <p className="text-xs text-muted-foreground">
-                        Enviado em {fmtDataHora.format(r.enviadoEm)}
-                      </p>
-                    )}
-                  </div>
-                  <span className="text-sm text-muted-foreground">Abrir →</span>
-                </Link>
+          <ol className="divide-y rounded-lg border">
+            {atencaoAgrupada.map((p, i) => (
+              <li key={i} className="flex items-center gap-3 px-3 py-2.5 sm:px-4">
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#e4edfb] text-sm font-semibold text-primary">
+                  {i + 1}
+                </span>
+                <span className="flex-1 text-[15px]">{p.texto}</span>
+                <span className="shrink-0 text-sm whitespace-nowrap text-muted-foreground">
+                  {p.n} {p.n === 1 ? "registro" : "registros"}
+                </span>
+              </li>
+            ))}
+          </ol>
+        )}
+      </SectionCard>
+
+      <SectionCard title="Pontos positivos observados">
+        {pontosPositivos.length === 0 ? (
+          <Vazio>Nenhum ponto positivo registrado.</Vazio>
+        ) : (
+          <ul className="space-y-1.5 rounded-lg border px-4 py-3 text-[15px]">
+            {pontosPositivos.map((item, i) => (
+              <li key={i} className="flex gap-3">
+                <span className="mt-[9px] size-1.5 shrink-0 rounded-full bg-primary" />
+                <span>{item}</span>
               </li>
             ))}
           </ul>
         )}
-      </section>
+
+        <h2 className="mt-6 mb-4 text-xl font-bold tracking-tight sm:text-2xl">
+          Intervenções sugeridas
+        </h2>
+        {sugestoesAgrupadas.length === 0 ? (
+          <Vazio>Nenhuma intervenção sugerida.</Vazio>
+        ) : (
+          <ol className="space-y-1.5 rounded-lg border px-4 py-3 text-[15px]">
+            {sugestoesAgrupadas.map((s, i) => (
+              <li key={i} className="flex gap-3">
+                <span className="w-5 shrink-0 text-right tabular-nums">{i + 1}.</span>
+                <span className="flex-1">{s.texto}</span>
+                {s.n > 1 && (
+                  <span className="shrink-0 text-sm text-muted-foreground">
+                    {s.n} registros
+                  </span>
+                )}
+              </li>
+            ))}
+          </ol>
+        )}
+      </SectionCard>
+
+      <ResumoIA conteudo={conteudo} />
+
+      <SectionCard title="Registros enviados">
+        {enviados.length === 0 ? (
+          <Vazio>Esta turma ainda não tem registros enviados.</Vazio>
+        ) : (
+          <div className="overflow-hidden rounded-lg border">
+            <table className="w-full text-sm">
+              <thead className="bg-muted text-left text-foreground">
+                <tr>
+                  <th className="px-4 py-2.5 font-semibold">Data</th>
+                  <th className="hidden px-4 py-2.5 font-semibold sm:table-cell">
+                    Aula / Tema
+                  </th>
+                  <th className="px-4 py-2.5 font-semibold">Enviado em</th>
+                  <th className="w-px px-4 py-2.5 font-semibold">Ação</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {enviados.map((r) => (
+                  <tr key={r.id}>
+                    <td className="px-4 py-3 tabular-nums">{fmtData.format(r.data)}</td>
+                    <td className="hidden px-4 py-3 sm:table-cell">{r.tema || "—"}</td>
+                    <td className="px-4 py-3 whitespace-nowrap text-muted-foreground tabular-nums">
+                      {r.enviadoEm ? fmtDataHora.format(r.enviadoEm) : "—"}
+                    </td>
+                    <td className="px-4 py-2">
+                      <Link
+                        href={`/turmas/${turma.id}/registros/${r.id}`}
+                        className={buttonVariants({ variant: "outline-primary" })}
+                      >
+                        <FolderOpen /> Abrir
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </SectionCard>
+
+      <PageNote>
+        A Coordenação acompanha os registros enviados pelo professor e identifica
+        padrões de evolução e pontos de atenção da turma.
+      </PageNote>
     </main>
   );
 }
 
-function ConsolidadoCard({
-  titulo,
-  itens,
-  vazio,
-}: {
-  titulo: string;
-  itens: string[];
-  vazio: string;
-}) {
+function agrupar(itens: string[]) {
+  const mapa = new Map<string, { texto: string; n: number }>();
+  for (const item of itens) {
+    const chave = item.trim().toLowerCase();
+    if (!chave) continue;
+    const atual = mapa.get(chave);
+    if (atual) atual.n += 1;
+    else mapa.set(chave, { texto: item.trim(), n: 1 });
+  }
+  return [...mapa.values()].sort((a, b) => b.n - a.n);
+}
+
+function Vazio({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border bg-card p-4">
-      <h3 className="text-sm font-medium">{titulo}</h3>
-      {itens.length === 0 ? (
-        <p className="mt-2 text-sm text-muted-foreground">{vazio}</p>
-      ) : (
-        <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
-          {itens.map((item, i) => (
-            <li key={i}>{item}</li>
-          ))}
-        </ul>
-      )}
-    </div>
+    <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+      {children}
+    </p>
   );
 }
