@@ -65,9 +65,10 @@ uma lib leve.
 
 ## 5. Decisões a fechar (antes da M1.1)
 
-- **Visibilidade:** hoje a Coordenação só vê turmas com registros **enviados**. O dashboard
-  de "alimentação" precisa ver **todas as turmas** (inclusive as que não enviaram nada —
-  que são justamente o alerta). Confirmar que a Coordenação pode ver todas as turmas.
+- **Visibilidade:** ✅ **Decidido (2026-10-28): a Coordenação vê TODAS as turmas,
+  inclusive as que não enviaram nada** (são justamente o alerta). _Implicação:_ as queries
+  do dashboard e a listagem da Coordenação passam a considerar todas as turmas (não só as
+  com registros ENVIADO), sem ranking de professores.
 - **Modelo do calendário:** campos mínimos na `Turma` — `dataInicio` (Date), `dataFim`
   (Date, opcional), `diasSemana` (ex.: `Int[]` 1–7) e **duração do encontro**
   (`duracaoAulaMin` ou "horas-aula por encontro"). Alternativa mais simples: só
