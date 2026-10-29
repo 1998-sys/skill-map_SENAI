@@ -35,10 +35,18 @@ function IconClipboard() {
     </svg>
   );
 }
+function IconDash() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+      <rect x="3" y="3" width="7" height="9" rx="1" /><rect x="14" y="3" width="7" height="5" rx="1" /><rect x="14" y="12" width="7" height="9" rx="1" /><rect x="3" y="16" width="7" height="5" rx="1" />
+    </svg>
+  );
+}
 
 const NAV: { href: string; label: string; Icon: () => React.ReactElement; role?: Role }[] = [
   { href: "/dashboard", label: "Início", Icon: IconHome },
   { href: "/turmas", label: "Turmas", Icon: IconUsers },
+  { href: "/coordenacao/dashboard", label: "Dashboard", Icon: IconDash, role: "COORDENACAO" },
   { href: "/coordenacao", label: "Coordenação", Icon: IconClipboard, role: "COORDENACAO" },
 ];
 
@@ -98,9 +106,16 @@ export function AppShell({
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const items = NAV.filter((i) => !i.role || i.role === role);
-  const isActive = (href: string) =>
-    pathname === href || pathname.startsWith(href + "/");
-  const atual = items.find((i) => isActive(i.href));
+  // Item ativo = href que casa com a rota e é o MAIS específico (ex.: em
+  // /coordenacao/dashboard, "Dashboard" acende, não "Coordenação").
+  const activeHref = items
+    .filter((i) => pathname === i.href || pathname.startsWith(i.href + "/"))
+    .reduce<string | null>(
+      (best, i) => (!best || i.href.length > best.length ? i.href : best),
+      null,
+    );
+  const isActive = (href: string) => href === activeHref;
+  const atual = items.find((i) => i.href === activeHref);
   const subtitulo = subtituloDaRota(pathname) ?? atual?.label ?? "SkillMap";
   const submenu = submenuDaTurma(pathname);
 

@@ -3,7 +3,7 @@
 > Evolução **pós-piloto** (fora do MVP). Painel para a **Coordenação** acompanhar se o
 > SkillMap está sendo alimentado e em que pé está cada turma.
 > **Escopo:** exclusivo da **Coordenação** (o professor NÃO tem esta tela). Só leitura.
-> Última atualização: 2026-10-28 · Status: ⬜ Planejado
+> Última atualização: 2026-10-28 · Status: 🟡 Onda 1 entregue (dashboard com os dados atuais); onda 2 (calendário/cobertura) pendente
 
 ## 1. Objetivo
 
@@ -83,9 +83,9 @@ uma lib leve.
 |---|---|---|---|
 | M1.0 | Decisões e escopo | Fechar a §5 (visibilidade, modelo do calendário, limiar de alerta) | ⬜ |
 | M1.1 | Calendário da turma | Campos novos na `Turma` + migration; formulário de nova turma / edição; turmas antigas = incompleto | ⬜ |
-| M1.2 | Camada de cálculo | `src/lib/dashboard.ts` (ou action): funil, registros/semana, tempo até envio, atividade, e — com calendário — previstas/ocorridas/taxa/dias sem registro | ⬜ |
-| M1.3 | Tela do dashboard | Rota `/coordenacao/dashboard` (gateada a COORDENACAO): StatCards + tabela de turmas + gráfico de registros/semana + alertas, no padrão SENAI | ⬜ |
-| M1.4 | Alertas + QA | Destaques (turma parada, baixa cobertura), estados de "cadastro incompleto", build + teste (1280/375px, Coordenação) + commit | ⬜ |
+| M1.2 | Camada de cálculo | `src/lib/dashboard.ts` (ou action): funil, registros/semana, tempo até envio, atividade, e — com calendário — previstas/ocorridas/taxa/dias sem registro | ✅ (parte sem calendário) |
+| M1.3 | Tela do dashboard | Rota `/coordenacao/dashboard` (gateada a COORDENACAO): StatCards + tabela de turmas + gráfico de registros/semana + alertas, no padrão SENAI | ✅ |
+| M1.4 | Alertas + QA | Destaques (turma parada, baixa cobertura), estados de "cadastro incompleto", build + teste (1280/375px, Coordenação) + commit | 🟡 alertas básicos + mobile OK; falta QA 1280px e cobertura |
 
 > Ordem sugerida: M1.2 + M1.3 já entregam o dashboard com os indicadores que existem hoje
 > (funil + atividade); M1.1 habilita a camada de cobertura. Dá para lançar em duas ondas.
