@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { db } from "@/lib/db/cliente";
 import { prisma } from "@/lib/prisma";
 
 // Teste de conexão com o banco por dois caminhos, lado a lado:
@@ -45,10 +45,10 @@ const TABELAS = [
 const LIMITE_PRISMA_MS = 8000;
 
 // ─── Caminho 1: supabase-js (HTTPS) ─────────────────────────────────────────
-// Usa o client do servidor com a sessão do usuário logado (chave pública +
-// cookie de login). Por isso respeita as regras de RLS de cada tabela.
+// Usa o mesmo cliente do resto do sistema: chave secreta, só no servidor.
+// (Com o RLS ligado e sem policies, a chave pública não lê nenhuma tabela.)
 export async function testarViaSupabase(): Promise<ResultadoTeste> {
-  const supabase = await createClient();
+  const supabase = db();
   const inicio = Date.now();
 
   const tabelas = await Promise.all(
@@ -70,7 +70,7 @@ export async function testarViaSupabase(): Promise<ResultadoTeste> {
 // nome do curso e do professor. As chaves estrangeiras (curso_id,
 // professor_id) permitem "embutir" as tabelas relacionadas no select.
 export async function turmasViaSupabase(): Promise<TurmaExemplo[]> {
-  const supabase = await createClient();
+  const supabase = db();
   const { data, error } = await supabase
     .from("turmas")
     .select("nome, curso:cursos(nome), professor:profiles(nome)")
