@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import {
+  buscarTurma,
+} from "@/lib/db/consultas";
 import { createRegistro } from "@/lib/actions/registros";
 import { PageNote } from "@/components/ui/info-field";
 import { RegistroForm } from "../registro-form";
@@ -15,16 +17,7 @@ export default async function NovoRegistroPage({
   const profile = await getCurrentProfile();
   if (!profile) redirect("/login");
 
-  const turma = await prisma.turma.findUnique({
-    where: { id },
-    select: {
-      id: true,
-      nome: true,
-      professorId: true,
-      curso: { select: { nome: true } },
-      professor: { select: { nome: true } },
-    },
-  });
+  const turma = await buscarTurma(id);
   if (!turma || turma.professorId !== profile.id) notFound();
 
   const hoje = new Date().toISOString().slice(0, 10);

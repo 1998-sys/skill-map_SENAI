@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import {
+  buscarRegistro,
+  buscarUltimaAnalise,
+} from "@/lib/db/consultas";
 import { SectionCard } from "@/components/ui/section-card";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { InfoField, PageNote } from "@/components/ui/info-field";
@@ -22,40 +25,14 @@ export default async function CoordenacaoRegistroPage({
   if (!profile) redirect("/login");
   if (profile.role !== "COORDENACAO") redirect("/dashboard");
 
-  const registro = await prisma.registro.findUnique({
-    where: { id: registroId },
-    include: {
-      turma: {
-        select: {
-          id: true,
-          nome: true,
-          curso: { select: { nome: true } },
-          professor: { select: { nome: true } },
-        },
-      },
-      analises: {
-        where: { tipo: "VALIDADA" },
-        orderBy: { versao: "desc" },
-        take: 1,
-        include: {
-          capacidadesIdentificadas: {
-            include: { capacidade: { select: { texto: true, ordem: true } } },
-          },
-        },
-      },
-    },
-  });
+  const registro = await buscarRegistro(registroId);
 
   if (!registro || registro.turma.id !== id || registro.status !== "ENVIADO") {
     notFound();
   }
 
-  const analise = registro.analises[0];
-  const capacidades =
-    analise?.capacidadesIdentificadas
-      .map((ac) => ac.capacidade)
-      .sort((a, b) => a.ordem - b.ordem)
-      .map((c) => c.texto) ?? [];
+  const analise = await buscarUltimaAnalise(registro.id, "VALIDADA");
+  const capacidades = analise?.capacidades.map((c) => c.texto) ?? [];
 
   return (
     <main className="mx-auto w-full max-w-5xl space-y-5 p-4 sm:p-6">

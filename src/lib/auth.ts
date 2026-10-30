@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { prisma } from "@/lib/prisma";
+import { buscarProfile } from "@/lib/db/consultas";
 
 // Usuário autenticado (Supabase Auth) da requisição atual, ou null.
 export async function getCurrentUser() {
@@ -14,5 +14,5 @@ export async function getCurrentUser() {
 export async function getCurrentProfile() {
   const user = await getCurrentUser();
   if (!user) return null;
-  return prisma.profile.findUnique({ where: { id: user.id } });
+  return buscarProfile(user.id);
 }

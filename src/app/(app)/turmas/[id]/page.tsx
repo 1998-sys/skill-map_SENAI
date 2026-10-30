@@ -2,7 +2,11 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { FolderOpen, History, Plus } from "lucide-react";
 import { getCurrentProfile } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import {
+  buscarTurma,
+  listarCapacidades,
+  listarRegistrosDaTurma,
+} from "@/lib/db/consultas";
 import { buttonVariants } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { SectionCard } from "@/components/ui/section-card";
@@ -19,20 +23,15 @@ export default async function TurmaDetalhePage({
   const profile = await getCurrentProfile();
   if (!profile) redirect("/login");
 
-  const turma = await prisma.turma.findUnique({
-    where: { id },
-    include: {
-      curso: true,
-      professor: { select: { nome: true } },
-      capacidades: { orderBy: { ordem: "asc" }, select: { id: true, texto: true } },
-      registros: {
-        orderBy: { data: "desc" },
-        select: { id: true, data: true, tema: true, status: true },
-      },
-    },
-  });
+  const dados = await buscarTurma(id);
+  if (!dados || dados.professorId !== profile.id) notFound();
 
-  if (!turma || turma.professorId !== profile.id) notFound();
+  // Três consultas independentes, em paralelo.
+  const [capacidades, registros] = await Promise.all([
+    listarCapacidades(id),
+    listarRegistrosDaTurma(id),
+  ]);
+  const turma = { ...dados, capacidades, registros };
 
   return (
     <main className="mx-auto w-full max-w-5xl space-y-5 p-4 sm:p-6">

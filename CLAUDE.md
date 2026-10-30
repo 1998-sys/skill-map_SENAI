@@ -36,7 +36,13 @@ Supabase (Auth + Postgres) · Prisma 6 · OpenAI (`gpt-5-nano`) · deploy Vercel
   `rm -rf .next && npx next build`.
 - **Auth:** middleware protege tudo. `@/lib/auth`: `getCurrentUser()`, `getCurrentProfile()`
   (`.id`, `.nome`, `.role` = `PROFESSOR|COORDENACAO`).
-- **DB:** `import { prisma } from "@/lib/prisma"`. Schema em `prisma/schema.prisma`
+- **DB (acesso):** via **supabase-js / Data API (HTTPS)**, não mais Prisma — funciona em redes
+  que bloqueiam o Postgres (5432/6543). Leituras em `@/lib/db/consultas` (devolvem camelCase +
+  `Date`); escritas nas Server Actions com `db()` de `@/lib/db/cliente` (chave service role, só
+  servidor, ignora RLS — permissão continua no código). O banco **não gera `id` nem `updated_at`**:
+  use `novoId()` e `agora()`. Instantes vêm sem fuso → `lerInstante`; coluna `date` → `lerDia`.
+  `/teste-conexao` compara supabase-js × Prisma.
+- **DB (estrutura):** schema continua em `prisma/schema.prisma` (Prisma só para migrations)
   (Curso, Turma, Capacidade, Registro[status RASCUNHO|ENVIADO], Analise[tipo IA_ORIGINAL|VALIDADA], AnaliseCapacidade, Profile).
 - **Trigger de profile NÃO é migration do Prisma** (o shadow DB não vê o schema `auth`):
   aplicar com `node --env-file=.env scripts/db/apply-profile-trigger.mjs`.
@@ -66,7 +72,8 @@ documentado em `.env.example`. **Ambos são gitignored.**
 ## Produção (Vercel)
 
 Variáveis: as do `.env.example` (as `NEXT_PUBLIC_*` como Config; o resto Secret,
-incluindo **`OPENAI_API_KEY`** — senão a IA não roda em produção). `postinstall`
+incluindo **`OPENAI_API_KEY`** — senão a IA não roda em produção — e
+**`SUPABASE_SERVICE_ROLE_KEY`**, obrigatória para todo acesso ao banco; marque também em Preview). `postinstall`
 roda `prisma generate`.
 
 ## Ambiente

@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import {
+  buscarTurma,
+  listarRegistrosComUltimaAnalise,
+} from "@/lib/db/consultas";
 import { FolderOpen, Plus } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -28,10 +31,7 @@ export default async function HistoricoPage({
   const profile = await getCurrentProfile();
   if (!profile) redirect("/login");
 
-  const turma = await prisma.turma.findUnique({
-    where: { id },
-    select: { id: true, nome: true, professorId: true, curso: { select: { nome: true } } },
-  });
+  const turma = await buscarTurma(id);
 
   if (!turma || turma.professorId !== profile.id) notFound();
 
@@ -41,27 +41,12 @@ export default async function HistoricoPage({
       : undefined;
   const q = (qParam ?? "").trim();
 
-  const registros = await prisma.registro.findMany({
-    where: { turmaId: turma.id, ...(status ? { status } : {}) },
-    orderBy: { data: "desc" },
-    include: {
-      analises: {
-        orderBy: { versao: "desc" },
-        take: 1,
-        include: {
-          capacidadesIdentificadas: {
-            include: { capacidade: { select: { id: true, texto: true } } },
-          },
-        },
-      },
-    },
-  });
+  const registros = await listarRegistrosComUltimaAnalise(turma.id, { status });
 
   // Monta a visão de cada registro (capacidades + síntese vêm da última análise).
   const itens = registros.map((r) => {
-    const ultima = r.analises[0];
-    const capacidades =
-      ultima?.capacidadesIdentificadas.map((ac) => ac.capacidade.texto) ?? [];
+    const ultima = r.ultimaAnalise;
+    const capacidades = ultima?.capacidades.map((c) => c.texto) ?? [];
     const sintese =
       ultima?.pontosAtencao[0] ??
       ultima?.pontosPositivos[0] ??
