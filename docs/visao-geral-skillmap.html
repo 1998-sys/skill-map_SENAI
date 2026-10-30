@@ -142,7 +142,7 @@ footer { font-size: 13px; color: var(--muted); text-align: center; }
     <span class="eyebrow">Documentação do sistema · MVP</span>
     <h1>Memória pedagógica contínua da turma</h1>
     <p class="lead">O professor registra as aulas em linguagem natural; a IA relaciona cada relato às capacidades do curso e sugere pontos de atenção e ações. O docente valida e envia à Coordenação, que acompanha a evolução da turma com histórico rastreável.</p>
-    <span class="meta">Atualizado em 24/10/2026 · Produção: skill-map-senai.vercel.app</span>
+    <span class="meta">Atualizado em 29/10/2026 · Produção: skill-map-senai.vercel.app</span>
   </div>
 </header>
 
@@ -153,6 +153,7 @@ footer { font-size: 13px; color: var(--muted); text-align: center; }
     <a href="#fluxo">Fluxo</a>
     <a href="#professor">Visão do professor</a>
     <a href="#coordenacao">Visão da Coordenação</a>
+    <a href="#permissoes">Quem pode o quê</a>
     <a href="#modelo">Modelo de IA</a>
     <a href="#memoria">Memória para a Coordenação</a>
     <a href="#melhorias">Melhorias a implementar</a>
@@ -165,7 +166,7 @@ footer { font-size: 13px; color: var(--muted); text-align: center; }
     <ul>
       <li><strong>A IA apoia, não decide.</strong> Só a versão validada pelo professor vira registro pedagógico e pode ser enviada.</li>
       <li><strong>A IA só usa capacidades cadastradas.</strong> Não cria, renomeia nem combina capacidades; não atribui nota, nível ou conceito.</li>
-      <li><strong>Nada enviado é apagado.</strong> Correções criam nova versão; o histórico fica preservado.</li>
+      <li><strong>Nada é apagado do banco.</strong> Correções criam nova versão; quando a Coordenação exclui uma turma ou registro, ele é <strong>arquivado</strong> (sai das telas, mas fica guardado e pode ser restaurado).</li>
     </ul>
   </section>
 
@@ -221,6 +222,33 @@ footer { font-size: 13px; color: var(--muted); text-align: center; }
         <h3>Resumo da turma com IA</h3>
         <p>Resumo executivo em streaming, escrito na tela enquanto a IA gera, com evolução da turma citando datas.</p>
       </div>
+      <div class="bloco">
+        <h3>Dashboard de acompanhamento</h3>
+        <p>Todas as turmas: total de registros, turmas sem registro, tempo médio até o envio, gráfico de registros por semana e funil por turma (sem análise → gerada → validada → enviada). Toda turma tem o botão <strong>Abrir</strong>, inclusive as sem envio.</p>
+      </div>
+      <div class="bloco">
+        <h3>Excluir e restaurar</h3>
+        <p>No fim das telas de turma e de registro há o cartão <strong>Excluir</strong>, com confirmação em dois passos. O item some de todas as telas (inclusive do professor). A tela <strong>Excluídos</strong> mostra quem excluiu e quando, e permite <strong>restaurar</strong>.</p>
+      </div>
+    </div>
+    <p class="nota">Excluir uma turma leva junto todos os registros dela (enviados e rascunhos); ao restaurar a turma, esses registros voltam. Registros excluídos um a um são restaurados individualmente.</p>
+  </section>
+
+  <section id="permissoes">
+    <h2>Quem pode o quê</h2>
+    <p>As permissões são conferidas <strong>no servidor</strong>, não só escondendo botões: uma ação chamada direto, sem passar pela tela, também é recusada.</p>
+    <div class="tabela">
+      <table>
+        <thead><tr><th>Ação</th><th>Professor</th><th>Coordenação</th></tr></thead>
+        <tbody>
+          <tr><td>Criar turma e cadastrar capacidades</td><td>Sim (as próprias)</td><td>Sim</td></tr>
+          <tr><td>Registrar aula, analisar com IA, validar</td><td>Sim (nas próprias turmas)</td><td>Só nas turmas em que é o professor</td></tr>
+          <tr><td>Enviar e reabrir registro</td><td>Sim (os próprios)</td><td>Só nas turmas em que é o professor</td></tr>
+          <tr><td>Painel, dashboard e resumo com IA</td><td>Não</td><td>Sim (todas as turmas)</td></tr>
+          <tr><td>Excluir turma ou registro</td><td>Não</td><td>Sim (arquiva)</td></tr>
+          <tr><td>Ver excluídos e restaurar</td><td>Não</td><td>Sim</td></tr>
+        </tbody>
+      </table>
     </div>
   </section>
 
@@ -262,6 +290,7 @@ footer { font-size: 13px; color: var(--muted); text-align: center; }
       <li><strong>Reabertura</strong>: o professor pode reabrir para correção; o histórico é preservado e uma nova validação gera nova versão.</li>
       <li><strong>Consolidação</strong>: o painel usa a última versão validada de cada registro enviado e agrupa pontos de atenção iguais com contagem.</li>
       <li><strong>Resumo com evolução</strong>: a IA recebe a linha do tempo dos registros enviados, em ordem cronológica, com data, tema, capacidades, pontos, intervenções e observações.</li>
+      <li><strong>Exclusão = arquivamento</strong>: quando a Coordenação exclui, o registro (ou a turma) ganha a data e o autor da exclusão e sai das telas e da consolidação, mas continua no banco e pode ser restaurado.</li>
     </ol>
 <pre class="mermaid">
 flowchart LR
@@ -278,10 +307,11 @@ flowchart LR
 
   <section id="melhorias">
     <h2>Melhorias a implementar</h2>
-    <p>Duas evoluções propostas para a próxima fase, depois do piloto.</p>
+    <p>Evoluções propostas para a próxima fase. A lista completa e atualizada fica em <code>docs/pontos-de-melhoria.md</code>.</p>
 
     <div class="melhoria">
-      <div class="cab"><span class="tag">Melhoria 1</span><b>Dashboard de acompanhamento</b></div>
+      <div class="cab"><span class="tag">Melhoria 1</span><b>Dashboard de acompanhamento</b><span class="pill p-val">Onda 1 no ar</span></div>
+      <p><strong>Já implementado (onda 1):</strong> funil da análise, registros por semana, tempo médio até o envio e atividade recente por turma. <strong>Falta (onda 2):</strong> os indicadores que dependem do calendário da turma — aulas previstas, taxa de preenchimento e dias letivos sem registro.</p>
       <p>Mostrar, por turma, se o SkillMap está sendo alimentado: quantas aulas já aconteceram, quantas têm registro e em que etapa cada registro está. Serve à Coordenação (visão de todas as turmas) e ao professor (a própria turma).</p>
       <div class="kpis">
         <div class="kpi"><b>Aulas previstas</b><span>Carga horária da turma dividida pela duração de uma aula.</span></div>
@@ -292,11 +322,11 @@ flowchart LR
         <div class="kpi"><b>Tempo até o envio</b><span>Dias entre a aula e o envio à Coordenação.</span></div>
       </div>
       <div class="formula">preenchimento = aulas_registradas ÷ aulas_ocorridas<br>aulas_previstas = carga_horaria ÷ horas_por_aula</div>
-      <h3>O que precisa ser feito</h3>
+      <h3>O que falta para a onda 2</h3>
       <ul>
         <li>Novos dados da turma: data de início e fim, dias da semana com aula e duração da aula (hoje só existe a carga horária).</li>
         <li>Calcular as aulas já ocorridas a partir desse calendário e comparar com os registros.</li>
-        <li>Tela de dashboard com os indicadores acima e um gráfico de registros por semana.</li>
+        <li>Acrescentar ao dashboard os indicadores de cobertura do calendário.</li>
         <li>Manter a regra do MVP: indicadores de acompanhamento, sem ranking de professores.</li>
       </ul>
     </div>
@@ -319,6 +349,17 @@ flowchart LR
         <li>Mesma regra da análise: a IA sugere, o professor decide.</li>
       </ul>
     </div>
+
+    <div class="melhoria">
+      <div class="cab"><span class="tag">Técnicas</span><b>Melhorias de base</b></div>
+      <ul>
+        <li><strong>Gravações atômicas:</strong> criar turma e salvar análise em uma única transação, com uma função no banco (RPC).</li>
+        <li><strong>Valores padrão no banco</strong> para <code>id</code> e <code>updated_at</code>, para não depender só do código.</li>
+        <li><strong>Migrations automáticas no deploy</strong>, com um banco separado para os previews (hoje o preview usa o banco de produção).</li>
+        <li><strong>Revisar as vulnerabilidades do npm</strong>, sem forçar a atualização do Prisma.</li>
+        <li><strong>Tipos gerados do banco</strong> para o supabase-js e migração do <code>middleware</code> para <code>proxy</code> (Next.js).</li>
+      </ul>
+    </div>
   </section>
 
   <section id="tecnica">
@@ -329,9 +370,13 @@ flowchart LR
         <tbody>
           <tr><td>Aplicação</td><td>Next.js 16 (App Router) + TypeScript, deploy na Vercel</td></tr>
           <tr><td>Interface</td><td>Tailwind CSS v4 + shadcn/ui, design system oficial SENAI-SP (vermelho #E30613, Montserrat)</td></tr>
-          <tr><td>Dados e login</td><td>Supabase (Postgres + Auth) com Prisma 6; papéis Professor e Coordenação</td></tr>
+          <tr><td>Dados e login</td><td>Supabase (Postgres + Auth); papéis Professor e Coordenação</td></tr>
+          <tr><td>Acesso aos dados</td><td><code>supabase-js</code> pela Data API do Supabase (HTTPS, porta 443), só no servidor, com a chave <em>service role</em>. Prisma 6 fica apenas para o schema e as migrations</td></tr>
+          <tr><td>Segurança</td><td>RLS ligado em todas as tabelas: a chave pública (que vai ao navegador) não lê nem grava dados. Permissões por papel conferidas no servidor</td></tr>
+          <tr><td>Rede do SENAI</td><td>Bloqueia o protocolo do Postgres (portas 5432/6543); por isso o acesso é por HTTPS. Mudanças de estrutura do banco são aplicadas pelo SQL Editor do Supabase</td></tr>
+          <tr><td>Exclusão</td><td>Lógica (arquivamento): colunas <code>excluido_em</code> e <code>excluido_por</code> em turmas e registros</td></tr>
           <tr><td>IA</td><td>OpenAI <code>gpt-5-nano</code> (configurável), Structured Outputs e streaming</td></tr>
-          <tr><td>Situação</td><td>Etapas 0 a 6 do MVP concluídas; Etapa 7 (piloto real) em andamento</td></tr>
+          <tr><td>Situação</td><td>Etapas 0 a 6 do MVP concluídas; Melhoria 1 (onda 1) e exclusão pela Coordenação no ar; Etapa 7 (piloto real) em andamento</td></tr>
         </tbody>
       </table>
     </div>
