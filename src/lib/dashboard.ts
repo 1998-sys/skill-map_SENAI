@@ -78,6 +78,8 @@ export async function obterDashboardCoordenacao(): Promise<DashboardData> {
         "id, nome, curso:cursos(nome), professor:profiles(nome), " +
           "registros(data, status, enviadoEm:enviado_em, analises(tipo))",
       )
+      .is("excluido_em", null) // turmas arquivadas pela Coordenação ficam de fora
+      .is("registros.excluido_em", null)
       .order("nome"),
   );
   // Datas chegam como texto: converte para Date.

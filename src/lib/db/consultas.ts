@@ -9,6 +9,8 @@ import { db, exigir, lerDia, lerInstante } from "./cliente";
 //   - "curso:cursos(nome)" traz a tabela relacionada pela chave estrangeira
 //     (turmas.curso_id → cursos.id), como o `include` do Prisma.
 //   - "capacidades(count)" traz só a contagem da tabela relacionada.
+// Turmas e registros ARQUIVADOS pela Coordenação (excluido_em preenchido)
+// ficam de fora de todas as consultas: `.is("excluido_em", null)`.
 // As escritas (insert/update/delete) ficam nas Server Actions.
 
 export type RegistroStatus = "RASCUNHO" | "ENVIADO";
@@ -120,7 +122,12 @@ export async function buscarProfile(id: string): Promise<Profile | null> {
 
 export async function buscarTurma(id: string): Promise<Turma | null> {
   return exigir<Turma | null>(
-    await db().from("turmas").select(SEL_TURMA).eq("id", id).maybeSingle(),
+    await db()
+      .from("turmas")
+      .select(SEL_TURMA)
+      .eq("id", id)
+      .is("excluido_em", null)
+      .maybeSingle(),
   );
 }
 
@@ -137,6 +144,8 @@ export async function listarTurmasDoProfessor(professorId: string) {
       .from("turmas")
       .select("id, nome, curso:cursos(nome), capacidades(count), registros(count)")
       .eq("professor_id", professorId)
+      .is("excluido_em", null)
+      .is("registros.excluido_em", null) // a contagem ignora os arquivados
       .order("created_at", { ascending: false }),
   );
   return linhas.map((t) => ({
@@ -166,7 +175,9 @@ export async function listarTurmasComEnvios() {
         "id, nome, curso:cursos(nome), professor:profiles(nome), " +
           "registros!inner(enviadoEm:enviado_em)",
       )
-      .eq("registros.status", "ENVIADO"),
+      .eq("registros.status", "ENVIADO")
+      .is("registros.excluido_em", null)
+      .is("excluido_em", null),
   );
   return linhas.map(({ registros, ...t }) => ({
     ...t,
@@ -194,6 +205,7 @@ export async function listarRegistrosDaTurma(turmaId: string): Promise<Registro[
       .from("registros")
       .select(SEL_REGISTRO)
       .eq("turma_id", turmaId)
+      .is("excluido_em", null)
       .order("data", { ascending: false }),
   );
   return linhas.map(paraRegistro);
@@ -203,8 +215,10 @@ export async function buscarRegistro(id: string): Promise<RegistroComTurma | nul
   const linha = exigir<(LinhaRegistro & { turma: Turma }) | null>(
     await db()
       .from("registros")
-      .select(`${SEL_REGISTRO}, turma:turmas(${SEL_TURMA})`)
+      .select(`${SEL_REGISTRO}, turma:turmas!inner(${SEL_TURMA})`)
       .eq("id", id)
+      .is("excluido_em", null)
+      .is("turma.excluido_em", null) // registro de turma arquivada também some
       .maybeSingle(),
   );
   return linha ? paraRegistro(linha) : null;
@@ -220,7 +234,8 @@ export async function listarRegistrosComUltimaAnalise(
   let consulta = db()
     .from("registros")
     .select(`${SEL_REGISTRO}, analises(${SEL_ANALISE})`)
-    .eq("turma_id", turmaId);
+    .eq("turma_id", turmaId)
+    .is("excluido_em", null);
   if (filtros.status) consulta = consulta.eq("status", filtros.status);
   if (filtros.tipoAnalise) consulta = consulta.eq("analises.tipo", filtros.tipoAnalise);
 
@@ -271,4 +286,95 @@ export async function ultimaVersaoAnalise(registroId: string): Promise<number> {
       .maybeSingle(),
   );
   return linha?.versao ?? 0;
+}
+
+// ─── Arquivados (só a Coordenação vê) ───────────────────────────────────────
+
+export type TurmaArquivada = {
+  id: string;
+  nome: string;
+  curso: { nome: string };
+  professor: { nome: string };
+  excluidoEm: Date;
+  excluidoPor: string | null; // nome de quem arquivou
+};
+
+export type RegistroArquivado = {
+  id: string;
+  data: Date;
+  tema: string | null;
+  status: RegistroStatus;
+  turma: { id: string; nome: string };
+  excluidoEm: Date;
+  excluidoPor: string | null;
+};
+
+// Turmas arquivadas e registros arquivados UM A UM (os que saíram junto com
+// a turma aparecem só na turma), do mais recente para o mais antigo.
+export async function listarArquivados(): Promise<{
+  turmas: TurmaArquivada[];
+  registros: RegistroArquivado[];
+}> {
+  type LinhaTurma = Omit<TurmaArquivada, "excluidoEm" | "excluidoPor"> & {
+    excluidoEm: string;
+    excluidoPor: string | null;
+  };
+  type LinhaRegistro = Omit<RegistroArquivado, "data" | "excluidoEm" | "excluidoPor"> & {
+    data: string;
+    excluidoEm: string;
+    excluidoPor: string | null;
+  };
+
+  const [turmas, registros] = await Promise.all([
+    db()
+      .from("turmas")
+      .select(
+        "id, nome, curso:cursos(nome), professor:profiles(nome), " +
+          "excluidoEm:excluido_em, excluidoPor:excluido_por",
+      )
+      .not("excluido_em", "is", null)
+      .order("excluido_em", { ascending: false }),
+    db()
+      .from("registros")
+      .select(
+        "id, data, tema, status, excluidoEm:excluido_em, excluidoPor:excluido_por, " +
+          "turma:turmas!inner(id, nome)",
+      )
+      .not("excluido_em", "is", null)
+      .is("turma.excluido_em", null)
+      .order("excluido_em", { ascending: false }),
+  ]);
+  const linhasTurma = exigir<LinhaTurma[]>(turmas);
+  const linhasRegistro = exigir<LinhaRegistro[]>(registros);
+
+  // excluido_por guarda só o id; busca os nomes de uma vez.
+  const ids = [
+    ...new Set(
+      [...linhasTurma, ...linhasRegistro]
+        .map((l) => l.excluidoPor)
+        .filter((id): id is string => Boolean(id)),
+    ),
+  ];
+  const perfis =
+    ids.length > 0
+      ? exigir<{ id: string; nome: string }[]>(
+          await db().from("profiles").select("id, nome").in("id", ids),
+        )
+      : [];
+  const nome = new Map(perfis.map((p) => [p.id, p.nome]));
+  const quem = (id: string | null) => (id ? (nome.get(id) ?? null) : null);
+
+  return {
+    turmas: linhasTurma.map((t) => ({
+      ...t,
+      excluidoEm: lerInstante(t.excluidoEm),
+      excluidoPor: quem(t.excluidoPor),
+    })),
+    registros: linhasRegistro.map((r) => ({
+      ...r,
+      data: lerDia(r.data),
+      excluidoEm: lerInstante(r.excluidoEm),
+      excluidoPor: quem(r.excluidoPor),
+    })),
+  };
 }

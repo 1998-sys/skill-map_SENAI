@@ -42,6 +42,11 @@ Supabase (Auth + Postgres) · Prisma 6 · OpenAI (`gpt-5-nano`) · deploy Vercel
   servidor, ignora RLS — permissão continua no código). O banco **não gera `id` nem `updated_at`**:
   use `novoId()` e `agora()`. Instantes vêm sem fuso → `lerInstante`; coluna `date` → `lerDia`.
   `/teste-conexao` compara supabase-js × Prisma.
+- **Exclusão = arquivamento, só da Coordenação:** `turmas` e `registros` têm `excluido_em`/
+  `excluido_por`. **Toda consulta nova deve filtrar `.is("excluido_em", null)`** (inclusive em
+  tabelas embutidas, ex.: `.is("registros.excluido_em", null)`). Ações em
+  `@/lib/actions/arquivamento` checam o papel no servidor; restaurar em `/coordenacao/excluidos`.
+  Arquivar a turma arquiva seus registros com o mesmo instante (assim a restauração os traz de volta).
 - **DB (estrutura):** schema continua em `prisma/schema.prisma` (Prisma só para migrations)
   (Curso, Turma, Capacidade, Registro[status RASCUNHO|ENVIADO], Analise[tipo IA_ORIGINAL|VALIDADA], AnaliseCapacidade, Profile).
 - **Trigger de profile NÃO é migration do Prisma** (o shadow DB não vê o schema `auth`):
