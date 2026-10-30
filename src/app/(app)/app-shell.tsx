@@ -28,6 +28,14 @@ function IconHome() {
     </svg>
   );
 }
+function IconUserKey() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+      <circle cx="9" cy="7" r="4" /><path d="M2 21v-2a4 4 0 0 1 4-4h6" /><circle cx="18" cy="15" r="2.5" /><path d="M18 17.5V22M18 20h2" />
+    </svg>
+  );
+}
+
 function IconArchive() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
@@ -57,6 +65,7 @@ const NAV: { href: string; label: string; Icon: () => React.ReactElement; role?:
   { href: "/coordenacao/dashboard", label: "Dashboard", Icon: IconDash, role: "COORDENACAO" },
   { href: "/coordenacao", label: "Coordenação", Icon: IconClipboard, role: "COORDENACAO" },
   { href: "/coordenacao/excluidos", label: "Excluídos", Icon: IconArchive, role: "COORDENACAO" },
+  { href: "/coordenacao/usuarios", label: "Usuários", Icon: IconUserKey, role: "COORDENACAO" },
 ];
 
 // Subtítulo da topbar para as telas internas da turma (padrão das referências).

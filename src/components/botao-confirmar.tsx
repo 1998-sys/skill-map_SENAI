@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { RotateCcw, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { ArquivamentoState } from "@/lib/actions/arquivamento";
+type Resultado = { error?: string; ok?: boolean };
 
 // Botão de ação sensível com confirmação em dois passos, na própria linha
 // (sem modal): 1º clique mostra o aviso + "Confirmar"/"Cancelar".
@@ -17,18 +17,20 @@ export function BotaoConfirmar({
   sucesso,
   redirecionarPara,
   tipo = "excluir",
+  icone,
 }: {
-  acao: () => Promise<ArquivamentoState>; // Server Action já com o id (bind)
+  acao: () => Promise<Resultado>; // Server Action já com o id (bind)
   rotulo: string;
   aviso: string;
   sucesso: string;
   redirecionarPara?: string;
   tipo?: "excluir" | "restaurar";
+  icone?: React.ComponentType; // troca o ícone padrão (lixeira / restaurar)
 }) {
   const router = useRouter();
   const [confirmando, setConfirmando] = useState(false);
   const [pendente, startTransition] = useTransition();
-  const Icone = tipo === "excluir" ? Trash2 : RotateCcw;
+  const Icone = icone ?? (tipo === "excluir" ? Trash2 : RotateCcw);
 
   function executar() {
     startTransition(async () => {

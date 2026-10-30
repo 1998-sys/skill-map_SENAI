@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -26,7 +27,11 @@ export default function LoginPage() {
 
     setCarregando(false);
     if (error) {
-      setErro("E-mail ou senha inválidos.");
+      setErro(
+        error.code === "user_banned"
+          ? "Seu acesso está desativado. Procure a Coordenação."
+          : "E-mail ou senha inválidos.",
+      );
       return;
     }
     router.push("/dashboard");
@@ -84,6 +89,11 @@ export default function LoginPage() {
               {carregando ? "Entrando..." : "Entrar"}
             </Button>
           </form>
+          <p className="mt-4 text-center text-sm">
+            <Link href="/esqueci-senha" className="font-semibold text-primary-active hover:underline">
+              Esqueci minha senha
+            </Link>
+          </p>
         </div>
       </div>
     </main>
