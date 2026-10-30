@@ -154,6 +154,7 @@ footer { font-size: 13px; color: var(--muted); text-align: center; }
     <a href="#professor">Visão do professor</a>
     <a href="#coordenacao">Visão da Coordenação</a>
     <a href="#permissoes">Quem pode o quê</a>
+    <a href="#acessos">Acessos e senhas</a>
     <a href="#modelo">Modelo de IA</a>
     <a href="#memoria">Memória para a Coordenação</a>
     <a href="#melhorias">Melhorias a implementar</a>
@@ -230,6 +231,10 @@ footer { font-size: 13px; color: var(--muted); text-align: center; }
         <h3>Excluir e restaurar</h3>
         <p>No fim das telas de turma e de registro há o cartão <strong>Excluir</strong>, com confirmação em dois passos. O item some de todas as telas (inclusive do professor). A tela <strong>Excluídos</strong> mostra quem excluiu e quando, e permite <strong>restaurar</strong>.</p>
       </div>
+      <div class="bloco">
+        <h3>Usuários</h3>
+        <p>A Coordenação cria os acessos (nome, e-mail e papel), gera <strong>senha temporária</strong> para quem esqueceu e <strong>desativa ou reativa</strong> usuários. A lista mostra a situação de cada um e o último acesso. Detalhes em <a href="#acessos">Acessos e senhas</a>.</p>
+      </div>
     </div>
     <p class="nota">Excluir uma turma leva junto todos os registros dela (enviados e rascunhos); ao restaurar a turma, esses registros voltam. Registros excluídos um a um são restaurados individualmente.</p>
   </section>
@@ -247,8 +252,43 @@ footer { font-size: 13px; color: var(--muted); text-align: center; }
           <tr><td>Painel, dashboard e resumo com IA</td><td>Não</td><td>Sim (todas as turmas)</td></tr>
           <tr><td>Excluir turma ou registro</td><td>Não</td><td>Sim (arquiva)</td></tr>
           <tr><td>Ver excluídos e restaurar</td><td>Não</td><td>Sim</td></tr>
+          <tr><td>Criar usuário</td><td>Não</td><td>Sim</td></tr>
+          <tr><td>Gerar senha temporária para outro usuário</td><td>Não</td><td>Sim</td></tr>
+          <tr><td>Desativar e reativar acesso</td><td>Não</td><td>Sim (menos o próprio e a última Coordenação ativa)</td></tr>
+          <tr><td>Trocar a própria senha</td><td>Sim</td><td>Sim</td></tr>
         </tbody>
       </table>
+    </div>
+  </section>
+
+  <section id="acessos">
+    <h2>Acessos e senhas</h2>
+    <p>Por enquanto, <strong>só a Coordenação gerencia os acessos</strong> e nada depende de envio de e-mail. A tela fica no menu da Coordenação, em <strong>Usuários</strong>.</p>
+    <ol class="fluxo">
+      <li><span class="n">1</span><b>Criar usuário</b><span class="d">A Coordenação informa nome, e-mail e papel (Professor ou Coordenação).</span></li>
+      <li><span class="n">2</span><b>Senha temporária</b><span class="d">O sistema gera a senha e a mostra uma única vez, com o texto pronto para copiar e enviar.</span></li>
+      <li><span class="n">3</span><b>Primeiro acesso</b><span class="d">Com a senha temporária, o usuário é levado para "Crie sua senha" e só usa o sistema depois de trocar.</span></li>
+      <li><span class="n">4</span><b>Esqueci minha senha</b><span class="d">O link no login orienta a procurar a Coordenação, que gera uma nova senha temporária.</span></li>
+      <li><span class="n">5</span><b>Desativar</b><span class="d">O usuário não consegue mais entrar; o nome continua nas turmas e registros. Pode ser reativado.</span></li>
+    </ol>
+    <div class="grid2">
+      <div class="bloco">
+        <h3>Situações do usuário</h3>
+        <ul>
+          <li><span class="pill p-val">Ativo</span> entra normalmente.</li>
+          <li><span class="pill p-ia">Aguardando troca de senha</span> recebeu senha temporária e ainda não criou a própria.</li>
+          <li><span class="pill p-env">Desativado</span> o login é recusado com a mensagem "Seu acesso está desativado. Procure a Coordenação."</li>
+        </ul>
+      </div>
+      <div class="bloco">
+        <h3>Regras de segurança</h3>
+        <ul>
+          <li>Todas as ações conferem o papel de Coordenação <strong>no servidor</strong>.</li>
+          <li>A senha temporária não é gravada nas tabelas do sistema nem em log.</li>
+          <li>A marca de "trocar senha" fica numa área que o próprio usuário não consegue alterar.</li>
+          <li>A Coordenação não pode desativar a si mesma nem o último acesso de Coordenação ativo.</li>
+        </ul>
+      </div>
     </div>
   </section>
 
@@ -351,6 +391,40 @@ flowchart LR
     </div>
 
     <div class="melhoria">
+      <div class="cab"><span class="tag">Melhoria 3</span><b>Recuperação de senha por e-mail e cadastro automatizado</b></div>
+      <p>Hoje a Coordenação cria cada usuário e gera a senha temporária quando alguém esquece. A proposta é tirar a Coordenação desse caminho: o professor <strong>se cadastra sozinho</strong> e <strong>recupera a senha pelo e-mail</strong> do Outlook, sem precisar pedir a ninguém.</p>
+      <div class="grid2">
+        <div class="bloco">
+          <h3>Esqueci minha senha por e-mail</h3>
+          <ol>
+            <li>O professor clica em "Esqueci minha senha" e informa o e-mail.</li>
+            <li>Recebe no Outlook um link de redefinição, válido por tempo limitado.</li>
+            <li>O link abre o SkillMap direto na tela de criar a senha nova.</li>
+            <li>A mensagem é sempre a mesma ("se o e-mail estiver cadastrado..."), para não revelar quem tem conta.</li>
+          </ol>
+        </div>
+        <div class="bloco">
+          <h3>Cadastro automatizado</h3>
+          <ol>
+            <li>O professor se cadastra na tela de login com o e-mail institucional.</li>
+            <li>Só são aceitos e-mails do domínio da escola (por exemplo, <code>@sp.senai.br</code>).</li>
+            <li>Recebe um e-mail para confirmar o endereço antes de entrar.</li>
+            <li>Entra sempre como <strong>Professor</strong>; promover a Coordenação continua manual.</li>
+            <li>A Coordenação mantém o poder de desativar qualquer acesso.</li>
+          </ol>
+        </div>
+      </div>
+      <h3>O que precisa ser feito</h3>
+      <ul>
+        <li><strong>SMTP próprio no Supabase</strong> — o envio padrão só entrega para e-mails da equipe do projeto e tem limite de poucos e-mails por hora. Opções: Microsoft 365 (<code>smtp.office365.com</code>, porta 587, com SMTP AUTH liberado pela TI numa caixa institucional) ou um serviço de e-mail transacional (Brevo, Resend…).</li>
+        <li>Endereços permitidos (URL Configuration) com o site de produção e os previews, e modelos de e-mail em português apontando para o próprio SkillMap.</li>
+        <li>Rota que confirma o link do e-mail e abre a tela de criar senha (já existe a tela <code>/definir-senha</code>).</li>
+        <li>Tela de cadastro com a trava de domínio conferida no servidor.</li>
+        <li><strong>Alternativa que resolve as duas coisas:</strong> entrar com a conta Microsoft (login único do Outlook/Microsoft 365). O professor usa a senha que já tem na escola, e a recuperação de senha fica com a TI da Microsoft. Exige registrar o SkillMap no Azure AD da escola.</li>
+      </ul>
+    </div>
+
+    <div class="melhoria">
       <div class="cab"><span class="tag">Técnicas</span><b>Melhorias de base</b></div>
       <ul>
         <li><strong>Gravações atômicas:</strong> criar turma e salvar análise em uma única transação, com uma função no banco (RPC).</li>
@@ -375,8 +449,9 @@ flowchart LR
           <tr><td>Segurança</td><td>RLS ligado em todas as tabelas: a chave pública (que vai ao navegador) não lê nem grava dados. Permissões por papel conferidas no servidor</td></tr>
           <tr><td>Rede do SENAI</td><td>Bloqueia o protocolo do Postgres (portas 5432/6543); por isso o acesso é por HTTPS. Mudanças de estrutura do banco são aplicadas pelo SQL Editor do Supabase</td></tr>
           <tr><td>Exclusão</td><td>Lógica (arquivamento): colunas <code>excluido_em</code> e <code>excluido_por</code> em turmas e registros</td></tr>
+          <tr><td>Acessos</td><td>Criados pela Coordenação no Supabase Auth (API de administração, só no servidor), com senha temporária e troca obrigatória no primeiro acesso; desativação por bloqueio do login. Sem envio de e-mail por enquanto</td></tr>
           <tr><td>IA</td><td>OpenAI <code>gpt-5-nano</code> (configurável), Structured Outputs e streaming</td></tr>
-          <tr><td>Situação</td><td>Etapas 0 a 6 do MVP concluídas; Melhoria 1 (onda 1) e exclusão pela Coordenação no ar; Etapa 7 (piloto real) em andamento</td></tr>
+          <tr><td>Situação</td><td>Etapas 0 a 6 do MVP concluídas; Melhoria 1 (onda 1), exclusão pela Coordenação e gestão de usuários no ar; Etapa 7 (piloto real) em andamento</td></tr>
         </tbody>
       </table>
     </div>

@@ -45,7 +45,33 @@ Legenda de prioridade: 🔴 alta · 🟡 média · 🟢 baixa
   → `lerInstante()`; coluna `date` → `lerDia()`. Sem isso, os horários ficam
   3 horas errados.
 
-## 4. Melhorias técnicas sugeridas
+## 4. Acessos e senhas
+
+Hoje a Coordenação cria os usuários e gera senha temporária quando alguém
+esquece (versão sem e-mail). Próximos passos, para tirar a Coordenação desse
+caminho:
+
+- [ ] 🟡 **Recuperação de senha por e-mail.** "Esqueci minha senha" envia ao
+  Outlook um link de redefinição que abre o SkillMap na tela de criar senha
+  (`/definir-senha` já existe). Mensagem sempre neutra, sem revelar quem tem
+  conta.
+- [ ] 🟡 **Cadastro automatizado, sem passar pela Coordenação.** O professor se
+  cadastra com o e-mail institucional (só o domínio da escola, ex.:
+  `@sp.senai.br`, conferido no servidor), confirma o endereço por e-mail e entra
+  como Professor. Promover a Coordenação continua manual; a Coordenação mantém o
+  poder de desativar.
+- [ ] 🔴 **Pré-requisito dos dois itens: SMTP próprio no Supabase.** O envio
+  padrão só entrega para e-mails da equipe do projeto e tem limite de poucos
+  e-mails por hora. Opções: Microsoft 365 (`smtp.office365.com`, porta 587, com
+  SMTP AUTH liberado pela TI) ou serviço transacional (Brevo, Resend…). Também
+  configurar URL Configuration e os modelos de e-mail em português.
+- [ ] 🟢 **Alternativa: entrar com a conta Microsoft.** Login único do Outlook/
+  Microsoft 365 resolve cadastro e recuperação de senha de uma vez (a senha é a
+  da escola). Exige registrar o SkillMap no Azure AD com a TI.
+
+Plano detalhado: `docs/melhoria-usuarios-e-senhas.md`.
+
+## 5. Melhorias técnicas sugeridas
 
 - [ ] 🟡 **Gravações atômicas com função no banco (RPC).** Criar turma
   (curso + turma + capacidades) e salvar análise (análise + capacidades) hoje
@@ -71,7 +97,7 @@ Legenda de prioridade: 🔴 alta · 🟡 média · 🟢 baixa
   hoje só é usado pela `/teste-conexao`. Se essa página sair, o Prisma fica
   apenas para schema e migrations.
 
-## 5. Para o curso
+## 6. Para o curso
 
 - O caminho que funciona no laboratório é **HTTPS**: painel web do Supabase
   (SQL Editor), `supabase-py` / `supabase-js`, ou ambientes na nuvem
