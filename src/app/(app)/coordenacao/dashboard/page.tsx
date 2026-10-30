@@ -162,21 +162,15 @@ export default async function DashboardCoordenacaoPage() {
                         )}
                       </td>
                       <td className="px-4 py-2">
-                        {t.enviados > 0 ? (
-                          <Link
-                            href={`/coordenacao/turmas/${t.id}`}
-                            className={buttonVariants({
-                              variant: "outline-primary",
-                              size: "sm",
-                            })}
-                          >
-                            <FolderOpen /> Abrir
-                          </Link>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">
-                            Sem envios
-                          </span>
-                        )}
+                        <Link
+                          href={`/coordenacao/turmas/${t.id}`}
+                          className={buttonVariants({
+                            variant: "outline-primary",
+                            size: "sm",
+                          })}
+                        >
+                          <FolderOpen /> Abrir
+                        </Link>
                       </td>
                     </tr>
                   );

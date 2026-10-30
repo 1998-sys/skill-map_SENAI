@@ -10,6 +10,8 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { InfoField, PageNote } from "@/components/ui/info-field";
 import { Bullets, Secao } from "@/components/analise-secoes";
 import { formatarData, formatarDataHora } from "@/lib/datas";
+import { BotaoConfirmar } from "@/components/botao-confirmar";
+import { arquivarRegistro } from "@/lib/actions/arquivamento";
 
 // Visão somente leitura de um registro ENVIADO, para a Coordenação.
 // Rascunhos nunca aparecem aqui (mesma regra do painel).
@@ -113,6 +115,19 @@ export default async function CoordenacaoRegistroPage({
             )}
           </div>
         )}
+      </SectionCard>
+
+      <SectionCard
+        title="Excluir registro"
+        description="Somente a Coordenação pode excluir. O registro fica guardado em Excluídos e pode ser restaurado."
+      >
+        <BotaoConfirmar
+          acao={arquivarRegistro.bind(null, registro.id)}
+          rotulo="Excluir registro"
+          aviso={`O registro de ${formatarData(registro.data)} vai sair de todas as telas, inclusive das do professor, com as análises dele. Nada é apagado do banco.`}
+          sucesso="Registro excluído. Ele pode ser restaurado em Excluídos."
+          redirecionarPara={`/coordenacao/turmas/${registro.turma.id}`}
+        />
       </SectionCard>
 
       <PageNote>

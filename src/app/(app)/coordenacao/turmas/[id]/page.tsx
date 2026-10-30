@@ -17,6 +17,8 @@ import { SectionCard, TitleAccent } from "@/components/ui/section-card";
 import { StatCard } from "@/components/ui/stat-card";
 import { InfoField, PageNote } from "@/components/ui/info-field";
 import { ResumoIA } from "./resumo-ia";
+import { BotaoConfirmar } from "@/components/botao-confirmar";
+import { arquivarTurma } from "@/lib/actions/arquivamento";
 import type { ConteudoConsolidado } from "@/lib/ia/resumo";
 import {
   formatarData,
@@ -236,6 +238,19 @@ export default async function CoordenacaoTurmaPage({
             </table>
           </div>
         )}
+      </SectionCard>
+
+      <SectionCard
+        title="Excluir turma"
+        description="Somente a Coordenação pode excluir. A turma fica guardada em Excluídos e pode ser restaurada."
+      >
+        <BotaoConfirmar
+          acao={arquivarTurma.bind(null, turma.id)}
+          rotulo="Excluir turma"
+          aviso={`A turma "${turma.nome}" vai sair de todas as telas, inclusive das do professor, junto com todos os registros dela (enviados e rascunhos). Nada é apagado do banco.`}
+          sucesso="Turma excluída. Ela pode ser restaurada em Excluídos."
+          redirecionarPara="/coordenacao/dashboard"
+        />
       </SectionCard>
 
       <PageNote>

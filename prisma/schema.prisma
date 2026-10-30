@@ -67,6 +67,9 @@ model Turma {
   professorId  String   @map("professor_id") @db.Uuid
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
+  // Arquivamento pela Coordenação (exclusão lógica): some das telas, fica no banco.
+  excluidoEm   DateTime? @map("excluido_em")
+  excluidoPor  String?   @map("excluido_por") @db.Uuid // profiles.id de quem arquivou
 
   curso       Curso        @relation(fields: [cursoId], references: [id])
   professor   Profile      @relation("ProfessorTurmas", fields: [professorId], references: [id])
@@ -102,6 +105,9 @@ model Registro {
   enviadoEm        DateTime?      @map("enviado_em")
   createdAt        DateTime       @default(now()) @map("created_at")
   updatedAt        DateTime       @updatedAt @map("updated_at")
+  // Arquivamento pela Coordenação (exclusão lógica): some das telas, fica no banco.
+  excluidoEm       DateTime?      @map("excluido_em")
+  excluidoPor      String?        @map("excluido_por") @db.Uuid // profiles.id de quem arquivou
 
   turma     Turma     @relation(fields: [turmaId], references: [id])
   professor Profile   @relation(fields: [professorId], references: [id])
