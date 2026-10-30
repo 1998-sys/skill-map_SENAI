@@ -2,7 +2,10 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ChartColumn } from "lucide-react";
 import { getCurrentProfile } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import {
+  buscarRegistro,
+  contarAnalises,
+} from "@/lib/db/consultas";
 import { updateRegistro } from "@/lib/actions/registros";
 import { RegistroForm } from "../registro-form";
 import { buttonVariants } from "@/components/ui/button";
@@ -21,21 +24,7 @@ export default async function RegistroPage({
   const profile = await getCurrentProfile();
   if (!profile) redirect("/login");
 
-  const registro = await prisma.registro.findUnique({
-    where: { id: registroId },
-    include: {
-      turma: {
-        select: {
-          id: true,
-          nome: true,
-          professorId: true,
-          curso: { select: { nome: true } },
-          professor: { select: { nome: true } },
-        },
-      },
-      _count: { select: { analises: true } },
-    },
-  });
+  const registro = await buscarRegistro(registroId);
 
   if (
     !registro ||
@@ -46,7 +35,7 @@ export default async function RegistroPage({
   }
 
   const isRascunho = registro.status === "RASCUNHO";
-  const temAnalise = registro._count.analises > 0;
+  const temAnalise = (await contarAnalises(registro.id)) > 0;
   const urlAnalise = `/turmas/${registro.turma.id}/registros/${registro.id}/analise`;
 
   return (

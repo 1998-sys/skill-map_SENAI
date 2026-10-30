@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import {
+  listarTurmasDoProfessor,
+} from "@/lib/db/consultas";
 import { FolderOpen, Plus } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { SectionCard } from "@/components/ui/section-card";
@@ -10,14 +12,7 @@ export default async function TurmasPage() {
   const profile = await getCurrentProfile();
   if (!profile) redirect("/login");
 
-  const turmas = await prisma.turma.findMany({
-    where: { professorId: profile.id },
-    include: {
-      curso: true,
-      _count: { select: { capacidades: true, registros: true } },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+  const turmas = await listarTurmasDoProfessor(profile.id);
 
   return (
     <main className="mx-auto w-full max-w-5xl space-y-5 p-4 sm:p-6">
@@ -65,10 +60,10 @@ export default async function TurmasPage() {
                       <p className="text-xs text-muted-foreground">{turma.curso.nome}</p>
                     </td>
                     <td className="hidden px-4 py-3 tabular-nums sm:table-cell">
-                      {turma._count.capacidades}
+                      {turma.totalCapacidades}
                     </td>
                     <td className="hidden px-4 py-3 tabular-nums sm:table-cell">
-                      {turma._count.registros}
+                      {turma.totalRegistros}
                     </td>
                     <td className="px-4 py-2">
                       <Link

@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import { agora, db, exigir } from "@/lib/db/cliente";
+import { buscarRegistro } from "@/lib/db/consultas";
 import { getCurrentProfile } from "@/lib/auth";
 
 export type EnvioState = { error?: string; ok?: boolean };
@@ -15,10 +16,7 @@ export async function enviarParaCoordenacao(
   const profile = await getCurrentProfile();
   if (!profile) redirect("/login");
 
-  const registro = await prisma.registro.findUnique({
-    where: { id: registroId },
-    select: { professorId: true, status: true, turmaId: true },
-  });
+  const registro = await buscarRegistro(registroId);
   if (!registro || registro.professorId !== profile.id) {
     return { error: "Registro inválido ou sem permissão." };
   }
@@ -26,17 +24,23 @@ export async function enviarParaCoordenacao(
     return { error: "Este registro já foi enviado à Coordenação." };
   }
 
-  const validadas = await prisma.analise.count({
-    where: { registroId, tipo: "VALIDADA" },
-  });
-  if (validadas === 0) {
+  const { count: validadas, error } = await db()
+    .from("analises")
+    .select("id", { count: "exact", head: true })
+    .eq("registro_id", registroId)
+    .eq("tipo", "VALIDADA");
+  if (error) throw new Error(`Banco: ${error.message}`);
+  if (!validadas) {
     return { error: "Valide a análise antes de enviar à Coordenação." };
   }
 
-  await prisma.registro.update({
-    where: { id: registroId },
-    data: { status: "ENVIADO", enviadoEm: new Date() },
-  });
+  const momento = agora();
+  exigir(
+    await db()
+      .from("registros")
+      .update({ status: "ENVIADO", enviado_em: momento, updated_at: momento })
+      .eq("id", registroId),
+  );
 
   revalidatePath(`/turmas/${registro.turmaId}/registros/${registroId}`, "layout");
   revalidatePath(`/turmas/${registro.turmaId}`);
@@ -51,18 +55,17 @@ export async function reabrirRegistro(
   const profile = await getCurrentProfile();
   if (!profile) redirect("/login");
 
-  const registro = await prisma.registro.findUnique({
-    where: { id: registroId },
-    select: { professorId: true, turmaId: true },
-  });
+  const registro = await buscarRegistro(registroId);
   if (!registro || registro.professorId !== profile.id) {
     return { error: "Registro inválido ou sem permissão." };
   }
 
-  await prisma.registro.update({
-    where: { id: registroId },
-    data: { status: "RASCUNHO" },
-  });
+  exigir(
+    await db()
+      .from("registros")
+      .update({ status: "RASCUNHO", updated_at: agora() })
+      .eq("id", registroId),
+  );
 
   revalidatePath(`/turmas/${registro.turmaId}/registros/${registroId}`, "layout");
   revalidatePath(`/turmas/${registro.turmaId}`);

@@ -2,7 +2,10 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { FolderOpen, Plus } from "lucide-react";
 import { getCurrentProfile } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import {
+  buscarTurma,
+  listarRegistrosComUltimaAnalise,
+} from "@/lib/db/consultas";
 import { formatarData } from "@/lib/datas";
 import { buttonVariants } from "@/components/ui/button";
 import { SectionCard } from "@/components/ui/section-card";
@@ -37,38 +40,18 @@ export default async function AnalisesDaTurmaPage({
   const profile = await getCurrentProfile();
   if (!profile) redirect("/login");
 
-  const turma = await prisma.turma.findUnique({
-    where: { id },
-    select: { id: true, nome: true, professorId: true, curso: { select: { nome: true } } },
-  });
+  const turma = await buscarTurma(id);
   if (!turma || turma.professorId !== profile.id) notFound();
 
-  const registros = await prisma.registro.findMany({
-    where: { turmaId: turma.id },
-    orderBy: { data: "desc" },
-    include: {
-      analises: {
-        orderBy: { versao: "desc" },
-        take: 1,
-        include: {
-          capacidadesIdentificadas: {
-            include: { capacidade: { select: { texto: true, ordem: true } } },
-          },
-        },
-      },
-    },
-  });
+  const registros = await listarRegistrosComUltimaAnalise(turma.id);
 
   // Situação = status do registro + tipo da última versão da análise.
   const itens = registros.flatMap((r) => {
-    const a = r.analises[0];
+    const a = r.ultimaAnalise;
     if (!a) return [];
     const situacao: SituacaoAnalise =
       r.status === "ENVIADO" ? "enviada" : a.tipo === "VALIDADA" ? "validada" : "gerada";
-    const capacidades = a.capacidadesIdentificadas
-      .map((ac) => ac.capacidade)
-      .sort((x, y) => x.ordem - y.ordem)
-      .map((c) => c.texto);
+    const capacidades = a.capacidades.map((c) => c.texto);
     return [{ r, a, situacao, capacidades }];
   });
   const semAnalise = registros.length - itens.length;

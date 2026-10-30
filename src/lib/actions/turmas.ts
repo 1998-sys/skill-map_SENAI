@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import { agora, db, exigir, novoId } from "@/lib/db/cliente";
+import { buscarTurma } from "@/lib/db/consultas";
 import { getCurrentProfile } from "@/lib/auth";
 
 export type FormState = { error?: string };
@@ -15,14 +16,25 @@ function parseCapacidades(texto: string): string[] {
     .filter((l) => l.length > 0);
 }
 
+// Maior `ordem` já usada nas capacidades da turma (-1 se não houver).
+async function maiorOrdem(turmaId: string): Promise<number> {
+  const linha = exigir<{ ordem: number } | null>(
+    await db()
+      .from("capacidades")
+      .select("ordem")
+      .eq("turma_id", turmaId)
+      .order("ordem", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  );
+  return linha?.ordem ?? -1;
+}
+
 // Garante que o usuário atual é o professor dono da turma.
 async function requireTurmaOwner(turmaId: string) {
   const profile = await getCurrentProfile();
   if (!profile) redirect("/login");
-  const turma = await prisma.turma.findUnique({
-    where: { id: turmaId },
-    select: { professorId: true },
-  });
+  const turma = await buscarTurma(turmaId);
   if (!turma || turma.professorId !== profile.id) {
     throw new Error("Você não tem permissão para editar esta turma.");
   }
@@ -51,22 +63,54 @@ export async function createTurma(
     return { error: "Carga horária deve ser um número." };
   }
 
-  const turma = await prisma.turma.create({
-    data: {
-      nome: turmaNome,
-      periodo,
-      cargaHoraria,
-      curso: { create: { nome: cursoNome } },
-      professor: { connect: { id: profile.id } },
-      capacidades: {
-        create: capacidades.map((texto, i) => ({ texto, ordem: i })),
-      },
-    },
-    select: { id: true },
-  });
+  // O Prisma fazia tudo numa transação ("nested create"). Na Data API são
+  // três inserts; se um falhar, desfazemos os anteriores.
+  const cursoId = novoId();
+  const turmaId = novoId();
+  const momento = agora();
+
+  exigir(
+    await db()
+      .from("cursos")
+      .insert({ id: cursoId, nome: cursoNome, updated_at: momento }),
+  );
+  try {
+    exigir(
+      await db().from("turmas").insert({
+        id: turmaId,
+        nome: turmaNome,
+        periodo,
+        carga_horaria: cargaHoraria,
+        curso_id: cursoId,
+        professor_id: profile.id,
+        updated_at: momento,
+      }),
+    );
+    if (capacidades.length > 0) {
+      exigir(
+        await db()
+          .from("capacidades")
+          .insert(
+            capacidades.map((texto, i) => ({
+              id: novoId(),
+              turma_id: turmaId,
+              texto,
+              ordem: i,
+            })),
+          ),
+      );
+    }
+  } catch (e) {
+    // Desfaz: apagar a turma apaga as capacidades (ON DELETE CASCADE).
+    await db().from("turmas").delete().eq("id", turmaId);
+    await db().from("cursos").delete().eq("id", cursoId);
+    return {
+      error: e instanceof Error ? e.message : "Não foi possível criar a turma.",
+    };
+  }
 
   revalidatePath("/turmas");
-  redirect(`/turmas/${turma.id}`);
+  redirect(`/turmas/${turmaId}`);
 }
 
 // Adiciona uma capacidade ao final da lista.
@@ -74,13 +118,12 @@ export async function addCapacidade(turmaId: string, texto: string) {
   await requireTurmaOwner(turmaId);
   const t = texto.trim();
   if (!t) return;
-  const agg = await prisma.capacidade.aggregate({
-    where: { turmaId },
-    _max: { ordem: true },
-  });
-  await prisma.capacidade.create({
-    data: { turmaId, texto: t, ordem: (agg._max.ordem ?? -1) + 1 },
-  });
+  const maxOrdem = await maiorOrdem(turmaId);
+  exigir(
+    await db()
+      .from("capacidades")
+      .insert({ id: novoId(), turma_id: turmaId, texto: t, ordem: maxOrdem + 1 }),
+  );
   revalidatePath(`/turmas/${turmaId}`);
 }
 
@@ -89,14 +132,20 @@ export async function addCapacidadesEmBloco(turmaId: string, texto: string) {
   await requireTurmaOwner(turmaId);
   const novas = parseCapacidades(texto);
   if (novas.length === 0) return;
-  const agg = await prisma.capacidade.aggregate({
-    where: { turmaId },
-    _max: { ordem: true },
-  });
-  const base = (agg._max.ordem ?? -1) + 1;
-  await prisma.capacidade.createMany({
-    data: novas.map((t, i) => ({ turmaId, texto: t, ordem: base + i })),
-  });
+  const maxOrdem = await maiorOrdem(turmaId);
+  const base = maxOrdem + 1;
+  exigir(
+    await db()
+      .from("capacidades")
+      .insert(
+        novas.map((t, i) => ({
+          id: novoId(),
+          turma_id: turmaId,
+          texto: t,
+          ordem: base + i,
+        })),
+      ),
+  );
   revalidatePath(`/turmas/${turmaId}`);
 }
 
@@ -108,12 +157,21 @@ export async function updateCapacidade(
   await requireTurmaOwner(turmaId);
   const t = texto.trim();
   if (!t) return;
-  await prisma.capacidade.update({ where: { id }, data: { texto: t } });
+  // Filtra também pela turma: só altera capacidade da turma verificada acima.
+  exigir(
+    await db()
+      .from("capacidades")
+      .update({ texto: t })
+      .eq("id", id)
+      .eq("turma_id", turmaId),
+  );
   revalidatePath(`/turmas/${turmaId}`);
 }
 
 export async function deleteCapacidade(id: string, turmaId: string) {
   await requireTurmaOwner(turmaId);
-  await prisma.capacidade.delete({ where: { id } });
+  exigir(
+    await db().from("capacidades").delete().eq("id", id).eq("turma_id", turmaId),
+  );
   revalidatePath(`/turmas/${turmaId}`);
 }

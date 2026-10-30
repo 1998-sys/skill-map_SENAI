@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { db, exigir, lerDia, lerInstante } from "@/lib/db/cliente";
 
 // Dashboard de acompanhamento da Coordenação (onda 1): só com os dados que já
 // existem (Registro + Analise). Os indicadores de cobertura (aulas previstas/
@@ -59,23 +59,36 @@ function segundaDaSemana(d: Date): Date {
 }
 
 export async function obterDashboardCoordenacao(): Promise<DashboardData> {
-  const turmas = await prisma.turma.findMany({
-    orderBy: { nome: "asc" },
-    select: {
-      id: true,
-      nome: true,
-      curso: { select: { nome: true } },
-      professor: { select: { nome: true } },
-      registros: {
-        select: {
-          data: true,
-          status: true,
-          enviadoEm: true,
-          analises: { select: { tipo: true } },
-        },
-      },
-    },
-  });
+  type Linha = {
+    id: string;
+    nome: string;
+    curso: { nome: string };
+    professor: { nome: string };
+    registros: {
+      data: string;
+      status: string;
+      enviadoEm: string | null;
+      analises: { tipo: string }[];
+    }[];
+  };
+  const linhas = exigir<Linha[]>(
+    await db()
+      .from("turmas")
+      .select(
+        "id, nome, curso:cursos(nome), professor:profiles(nome), " +
+          "registros(data, status, enviadoEm:enviado_em, analises(tipo))",
+      )
+      .order("nome"),
+  );
+  // Datas chegam como texto: converte para Date.
+  const turmas = linhas.map((t) => ({
+    ...t,
+    registros: t.registros.map((r) => ({
+      ...r,
+      data: lerDia(r.data),
+      enviadoEm: lerInstante(r.enviadoEm),
+    })),
+  }));
 
   const hoje = diaUTC(new Date());
   const temposEnvio: number[] = [];

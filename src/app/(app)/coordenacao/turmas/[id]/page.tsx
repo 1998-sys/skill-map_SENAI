@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import {
+  buscarTurma,
+  listarRegistrosComUltimaAnalise,
+} from "@/lib/db/consultas";
 import {
   CalendarDays,
   FileText,
@@ -34,31 +37,15 @@ export default async function CoordenacaoTurmaPage({
   if (!profile) redirect("/login");
   if (profile.role !== "COORDENACAO") redirect("/dashboard");
 
-  const turma = await prisma.turma.findUnique({
-    where: { id },
-    include: {
-      curso: { select: { nome: true } },
-      professor: { select: { nome: true } },
-      registros: {
-        where: { status: "ENVIADO" },
-        orderBy: { data: "desc" },
-        include: {
-          analises: {
-            where: { tipo: "VALIDADA" },
-            orderBy: { versao: "desc" },
-            take: 1,
-            include: {
-              capacidadesIdentificadas: {
-                include: { capacidade: { select: { texto: true, ordem: true } } },
-              },
-            },
-          },
-        },
-      },
-    },
-  });
+  const dados = await buscarTurma(id);
+  if (!dados) notFound();
 
-  if (!turma) notFound();
+  // Só registros ENVIADOS, cada um com a última análise VALIDADA.
+  const registros = await listarRegistrosComUltimaAnalise(id, {
+    status: "ENVIADO",
+    tipoAnalise: "VALIDADA",
+  });
+  const turma = { ...dados, registros };
 
   const enviados = turma.registros;
 
@@ -73,7 +60,7 @@ export default async function CoordenacaoTurmaPage({
   const pontosAtencao: string[] = [];
   const sugestoes: string[] = [];
   for (const r of enviados) {
-    const a = r.analises[0];
+    const a = r.ultimaAnalise;
     if (!a) continue;
     pontosPositivos.push(...a.pontosPositivos);
     pontosAtencao.push(...a.pontosAtencao);
@@ -89,16 +76,13 @@ export default async function CoordenacaoTurmaPage({
     registros: [...enviados]
       .sort((x, y) => x.data.getTime() - y.data.getTime())
       .flatMap((r) => {
-        const a = r.analises[0];
+        const a = r.ultimaAnalise;
         if (!a) return [];
         return [
           {
             data: formatarData(r.data),
             tema: r.tema,
-            capacidades: a.capacidadesIdentificadas
-              .map((ac) => ac.capacidade)
-              .sort((p, q) => p.ordem - q.ordem)
-              .map((c) => c.texto),
+            capacidades: a.capacidades.map((c) => c.texto),
             pontosPositivos: a.pontosPositivos,
             pontosAtencao: a.pontosAtencao,
             sugestoes: a.sugestoes,

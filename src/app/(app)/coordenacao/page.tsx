@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import {
+  listarTurmasComEnvios,
+} from "@/lib/db/consultas";
 import { CalendarDays, FileText, FolderOpen, Users } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { SectionCard } from "@/components/ui/section-card";
@@ -16,31 +18,20 @@ export default async function CoordenacaoPage() {
 
   // Turmas que têm ao menos um registro ENVIADO, com a contagem de enviados e
   // a data do último envio. Rascunhos não entram.
-  const turmas = await prisma.turma.findMany({
-    where: { registros: { some: { status: "ENVIADO" } } },
-    include: {
-      curso: { select: { nome: true } },
-      professor: { select: { nome: true } },
-      registros: {
-        where: { status: "ENVIADO" },
-        select: { enviadoEm: true },
-      },
-    },
-  });
+  const turmas = await listarTurmasComEnvios();
 
   const linhas = turmas
     .map((turma) => {
-      const enviados = turma.registros;
-      const ultimoEnvio = enviados.reduce<Date | null>((max, r) => {
-        if (!r.enviadoEm) return max;
-        return !max || r.enviadoEm > max ? r.enviadoEm : max;
+      const ultimoEnvio = turma.envios.reduce<Date | null>((max, d) => {
+        if (!d) return max;
+        return !max || d > max ? d : max;
       }, null);
       return {
         id: turma.id,
         nome: turma.nome,
         curso: turma.curso.nome,
         professor: turma.professor.nome,
-        total: enviados.length,
+        total: turma.envios.length,
         ultimoEnvio,
       };
     })

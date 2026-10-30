@@ -2,7 +2,11 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { FileText } from "lucide-react";
 import { getCurrentProfile } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import {
+  buscarRegistro,
+  buscarUltimaAnalise,
+  listarCapacidades,
+} from "@/lib/db/consultas";
 import { formatarData, formatarDataHora } from "@/lib/datas";
 import { buttonVariants } from "@/components/ui/button";
 import { SectionCard } from "@/components/ui/section-card";
@@ -26,30 +30,7 @@ export default async function AnalisePage({
   const profile = await getCurrentProfile();
   if (!profile) redirect("/login");
 
-  const registro = await prisma.registro.findUnique({
-    where: { id: registroId },
-    include: {
-      turma: {
-        select: {
-          id: true,
-          nome: true,
-          professorId: true,
-          curso: { select: { nome: true } },
-          capacidades: {
-            orderBy: { ordem: "asc" },
-            select: { id: true, texto: true },
-          },
-        },
-      },
-      analises: {
-        orderBy: { versao: "desc" },
-        take: 1,
-        include: {
-          capacidadesIdentificadas: { select: { capacidadeId: true } },
-        },
-      },
-    },
-  });
+  const registro = await buscarRegistro(registroId);
 
   if (
     !registro ||
@@ -59,12 +40,15 @@ export default async function AnalisePage({
     notFound();
   }
 
-  const ultima = registro.analises[0];
+  const [capacidadesTurma, ultima] = await Promise.all([
+    listarCapacidades(registro.turma.id),
+    buscarUltimaAnalise(registro.id),
+  ]);
   const analise = ultima
     ? {
         tipo: ultima.tipo,
         versao: ultima.versao,
-        capacidadeIds: ultima.capacidadesIdentificadas.map((x) => x.capacidadeId),
+        capacidadeIds: ultima.capacidades.map((c) => c.id),
         pontosPositivos: ultima.pontosPositivos,
         pontosAtencao: ultima.pontosAtencao,
         sugestoes: ultima.sugestoes,
@@ -118,7 +102,7 @@ export default async function AnalisePage({
       <AnalisePanel
         key={ultima?.id ?? "nova"}
         registroId={registro.id}
-        capacidades={registro.turma.capacidades}
+        capacidades={capacidadesTurma}
         analise={analise}
         status={registro.status}
         gerarAoAbrir={gerar === "1"}
