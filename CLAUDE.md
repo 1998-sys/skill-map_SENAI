@@ -47,6 +47,11 @@ Supabase (Auth + Postgres) · Prisma 6 · OpenAI (`gpt-5-nano`) · deploy Vercel
   tabelas embutidas, ex.: `.is("registros.excluido_em", null)`). Ações em
   `@/lib/actions/arquivamento` checam o papel no servidor; restaurar em `/coordenacao/excluidos`.
   Arquivar a turma arquiva seus registros com o mesmo instante (assim a restauração os traz de volta).
+- **Usuários (só Coordenação, sem e-mail):** `/coordenacao/usuarios` cria usuário com senha
+  temporária (`auth.admin.createUser` + upsert em `profiles`), gera nova senha temporária e
+  desativa/reativa (ban no Auth). Senha temporária marca `app_metadata.trocar_senha`; o layout de
+  `(app)` manda para `/definir-senha` (fora de `(app)` para não entrar em loop). Ações em
+  `@/lib/actions/usuarios`; plano em `docs/melhoria-usuarios-e-senhas.md`.
 - **DB (estrutura):** schema continua em `prisma/schema.prisma` (Prisma só para migrations)
   (Curso, Turma, Capacidade, Registro[status RASCUNHO|ENVIADO], Analise[tipo IA_ORIGINAL|VALIDADA], AnaliseCapacidade, Profile).
 - **Trigger de profile NÃO é migration do Prisma** (o shadow DB não vê o schema `auth`):
