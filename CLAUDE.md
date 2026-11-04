@@ -52,6 +52,12 @@ Supabase (Auth + Postgres) · Prisma 6 · OpenAI (`gpt-5-nano`) · deploy Vercel
   desativa/reativa (ban no Auth). Senha temporária marca `app_metadata.trocar_senha`; o layout de
   `(app)` manda para `/definir-senha` (fora de `(app)` para não entrar em loop). Ações em
   `@/lib/actions/usuarios`; plano em `docs/melhoria-usuarios-e-senhas.md`.
+- **Capacidades por PDF:** `@/components/importar-pdf` (botão "Importar do PDF" na Nova turma e
+  no `capacidades-editor`) → Server Action `@/lib/actions/capacidades-pdf` (≤ 4 MB, confere
+  `%PDF`) → `@/lib/ia/capacidades-pdf` (`unpdf` extrai o texto; só páginas com "Capacidades
+  Básicas/Técnicas/Socioemocionais" vão à IA; sem texto → envia o PDF). Nada é salvo sem a revisão
+  do professor; o PDF não é guardado. `next.config.ts` sobe o `bodySizeLimit` das Server Actions
+  para 5 MB. **`unpdf` fixado em 1.8.1.**
 - **DB (estrutura):** schema continua em `prisma/schema.prisma` (Prisma só para migrations)
   (Curso, Turma, Capacidade, Registro[status RASCUNHO|ENVIADO], Analise[tipo IA_ORIGINAL|VALIDADA], AnaliseCapacidade, Profile).
 - **Trigger de profile NÃO é migration do Prisma** (o shadow DB não vê o schema `auth`):

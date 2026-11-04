@@ -372,21 +372,21 @@ flowchart LR
     </div>
 
     <div class="melhoria">
-      <div class="cab"><span class="tag">Melhoria 2</span><b>Cadastro de cursos por PDF do Plano de Curso</b></div>
-      <p>Hoje as capacidades são coladas manualmente. A proposta é anexar o PDF do Plano de Curso e deixar a IA identificar as capacidades, que o professor revisa antes de salvar.</p>
+      <div class="cab"><span class="tag">Melhoria 2</span><b>Capacidades a partir do PDF do Plano de Curso</b><span class="pill p-val">Implementada</span></div>
+      <p>Na <strong>Nova turma</strong> e na tela da turma, o botão <strong>Importar do PDF</strong> lê o Plano de Curso e sugere as capacidades, que o professor revisa antes de usar. O PDF não fica guardado.</p>
       <ol>
-        <li>O professor anexa o PDF ao criar ou editar a turma.</li>
-        <li>O servidor extrai o texto do PDF.</li>
-        <li>A IA identifica as capacidades com saída estruturada (JSON Schema), podendo classificar em técnicas e socioemocionais, como a especificação já admite.</li>
-        <li>O professor revisa a lista sugerida: edita, remove ou adiciona.</li>
-        <li>Só depois da confirmação as capacidades são salvas como itens individuais.</li>
+        <li>O professor escolhe o PDF (até 4 MB).</li>
+        <li>O servidor extrai o texto e envia à IA só as páginas com capacidades (num Plano de Curso de 95 páginas, 28 páginas). PDF escaneado, sem texto, vai inteiro para a IA ler as imagens.</li>
+        <li>A IA devolve, em JSON Schema strict, as unidades curriculares com as capacidades técnicas/básicas e socioemocionais, copiadas literalmente.</li>
+        <li>O professor escolhe a unidade curricular da turma, edita o texto ou desmarca o que não vai usar.</li>
+        <li><strong>Usar estas capacidades</strong>: na Nova turma vão para a caixa de texto; na turma, entram no fim da lista sem repetir as existentes.</li>
       </ol>
-      <h3>O que precisa ser feito</h3>
+      <p class="nota">Teste com o Plano de Curso de Auxiliar de Linha de Produção: 9 de 9 unidades encontradas, textos idênticos ao PDF, em cerca de 30 segundos.</p>
+      <h3>Para depois</h3>
       <ul>
-        <li>Armazenar o PDF (por exemplo, Supabase Storage) para manter a referência da origem das capacidades.</li>
-        <li>Extração de texto no servidor; PDFs escaneados vão precisar de OCR.</li>
-        <li>Limite de tamanho e tratamento de erro claro ("não foi possível ler o PDF").</li>
-        <li>Mesma regra da análise: a IA sugere, o professor decide.</li>
+        <li>Guardar o PDF no Supabase Storage, para rastrear a origem das capacidades.</li>
+        <li>Guardar no banco o tipo da capacidade (técnica/básica ou socioemocional).</li>
+        <li>Planos de Curso acima de 4 MB (envio direto para o Storage antes da leitura).</li>
       </ul>
     </div>
 
@@ -451,7 +451,8 @@ flowchart LR
           <tr><td>Exclusão</td><td>Lógica (arquivamento): colunas <code>excluido_em</code> e <code>excluido_por</code> em turmas e registros</td></tr>
           <tr><td>Acessos</td><td>Criados pela Coordenação no Supabase Auth (API de administração, só no servidor), com senha temporária e troca obrigatória no primeiro acesso; desativação por bloqueio do login. Sem envio de e-mail por enquanto</td></tr>
           <tr><td>IA</td><td>OpenAI <code>gpt-5-nano</code> (configurável), Structured Outputs e streaming</td></tr>
-          <tr><td>Situação</td><td>Etapas 0 a 6 do MVP concluídas; Melhoria 1 (onda 1), exclusão pela Coordenação e gestão de usuários no ar; Etapa 7 (piloto real) em andamento</td></tr>
+          <tr><td>Leitura de PDF</td><td><code>unpdf</code> extrai o texto no servidor; a IA recebe só as páginas com capacidades (ou o PDF inteiro, se for escaneado). Limite de 4 MB</td></tr>
+          <tr><td>Situação</td><td>Etapas 0 a 6 do MVP concluídas; Melhoria 1 (onda 1), Melhoria 2 (capacidades por PDF), exclusão pela Coordenação e gestão de usuários no ar; Etapa 7 (piloto real) em andamento</td></tr>
         </tbody>
       </table>
     </div>

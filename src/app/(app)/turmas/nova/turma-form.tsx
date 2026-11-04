@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useRef } from "react";
 import { useFormStatus } from "react-dom";
 import { createTurma, type FormState } from "@/lib/actions/turmas";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { SectionCard } from "@/components/ui/section-card";
 import { Save } from "lucide-react";
+import { ImportarPdf } from "@/components/importar-pdf";
 
 const labelCls = "font-normal text-muted-foreground";
 const inputCls = "h-[42px] text-[15px]";
@@ -28,6 +29,19 @@ export function TurmaForm() {
     createTurma,
     {},
   );
+  const caixaCapacidades = useRef<HTMLTextAreaElement>(null);
+
+  // Capacidades vindas do PDF: entram no fim da caixa de texto, sem repetir
+  // as que já estão lá. O professor ainda pode ajustar antes de criar a turma.
+  function receberDoPdf(capacidades: string[]) {
+    const caixa = caixaCapacidades.current;
+    if (!caixa) return;
+    const atuais = caixa.value.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+    const vistas = new Set(atuais.map((l) => l.toLowerCase()));
+    const novas = capacidades.filter((c) => !vistas.has(c.toLowerCase()));
+    caixa.value = [...atuais, ...novas].join("\n");
+    caixa.focus();
+  }
 
   return (
     <form action={formAction} className="space-y-5">
@@ -57,9 +71,13 @@ export function TurmaForm() {
 
       <SectionCard
         title={<label htmlFor="capacidades">Capacidades do Curso</label>}
-        description="Cole abaixo as capacidades previstas no Plano de Curso — uma por linha. Você poderá editar, adicionar ou remover depois."
+        description="Importe do PDF do Plano de Curso ou cole abaixo as capacidades — uma por linha. Você poderá editar, adicionar ou remover depois."
       >
+        <div className="mb-4">
+          <ImportarPdf onConfirmar={receberDoPdf} />
+        </div>
         <Textarea
+          ref={caixaCapacidades}
           id="capacidades"
           name="capacidades"
           rows={10}

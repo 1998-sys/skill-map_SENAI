@@ -14,6 +14,9 @@ import { InfoField, PageNote } from "@/components/ui/info-field";
 import { formatarData } from "@/lib/datas";
 import { CapacidadesEditor } from "./capacidades-editor";
 
+// A importação de capacidades por PDF chama a IA, que pode levar até 1 minuto.
+export const maxDuration = 60;
+
 export default async function TurmaDetalhePage({
   params,
 }: {
