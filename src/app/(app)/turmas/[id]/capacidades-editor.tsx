@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { TitleAccent } from "@/components/ui/section-card";
+import { ImportarPdf } from "@/components/importar-pdf";
 
 type Cap = { id: string; texto: string };
 
@@ -57,8 +58,8 @@ export function CapacidadesEditor({
           </h2>
           <TitleAccent />
           <p className="mt-2.5 text-sm text-muted-foreground">
-            Capacidades previstas no Plano de Curso. Cole a lista em bloco ou
-            adicione uma a uma.
+            Capacidades previstas no Plano de Curso. Importe do PDF, cole a lista
+            em bloco ou adicione uma a uma.
           </p>
         </div>
         <Button
@@ -70,6 +71,24 @@ export function CapacidadesEditor({
           {mostrarBloco ? "Fechar colar em bloco" : "Colar em bloco"}
         </Button>
       </div>
+
+      <ImportarPdf
+        existentes={capacidades.map((c) => c.texto)}
+        onConfirmar={async (novas) => {
+          // Mesma ação do "Colar em bloco": entram no fim da lista.
+          try {
+            await addCapacidadesEmBloco(turmaId, novas.join("\n"));
+            router.refresh();
+            toast.success(
+              novas.length === 1
+                ? "1 capacidade importada."
+                : `${novas.length} capacidades importadas.`,
+            );
+          } catch (e) {
+            toast.error(e instanceof Error ? e.message : "Não foi possível importar.");
+          }
+        }}
+      />
 
       {mostrarBloco && (
         <div className="space-y-3 rounded-lg border bg-muted/50 p-3">

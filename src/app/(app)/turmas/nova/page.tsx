@@ -4,6 +4,9 @@ import { getCurrentUser } from "@/lib/auth";
 import { PageNote } from "@/components/ui/info-field";
 import { TurmaForm } from "./turma-form";
 
+// A importação de capacidades por PDF chama a IA, que pode levar até 1 minuto.
+export const maxDuration = 60;
+
 export default async function NovaTurmaPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
