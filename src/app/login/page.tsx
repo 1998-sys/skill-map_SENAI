@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
+import { FundoVideo } from "@/components/fundo-video";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -39,8 +40,9 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center p-4">
-      <div className="w-full max-w-md overflow-hidden rounded-xl border bg-card shadow-sm">
+    <main className="relative isolate flex min-h-screen items-center justify-center overflow-hidden p-4">
+      <FundoVideo />
+      <div className="w-full max-w-md overflow-hidden rounded-xl border bg-card shadow-2xl">
         <div className="h-1 bg-primary" aria-hidden="true" />
         <div className="p-6 sm:p-8">
           <div className="mb-6 flex flex-col items-center text-center">
