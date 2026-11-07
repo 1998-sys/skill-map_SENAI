@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { agora, db, exigir, novoId } from "@/lib/db/cliente";
 import { buscarTurma } from "@/lib/db/consultas";
 import { getCurrentProfile } from "@/lib/auth";
+import { lerCalendario } from "@/lib/calendario-form";
 
 export type FormState = { error?: string };
 
@@ -62,6 +63,9 @@ export async function createTurma(
   if (cargaRaw && Number.isNaN(cargaHoraria)) {
     return { error: "Carga horária deve ser um número." };
   }
+  // Calendário é opcional (cartão "Calendário da turma").
+  const calendario = lerCalendario(formData);
+  if (!calendario.ok) return { error: calendario.error };
 
   // O Prisma fazia tudo numa transação ("nested create"). Na Data API são
   // três inserts; se um falhar, desfazemos os anteriores.
@@ -84,6 +88,7 @@ export async function createTurma(
         curso_id: cursoId,
         professor_id: profile.id,
         updated_at: momento,
+        ...calendario.colunas,
       }),
     );
     if (capacidades.length > 0) {
@@ -174,4 +179,29 @@ export async function deleteCapacidade(id: string, turmaId: string) {
     await db().from("capacidades").delete().eq("id", id).eq("turma_id", turmaId),
   );
   revalidatePath(`/turmas/${turmaId}`);
+}
+
+// Salva (ou apaga) o calendário da turma — só o professor dono.
+export async function salvarCalendario(
+  _prev: FormState & { ok?: boolean },
+  formData: FormData,
+): Promise<FormState & { ok?: boolean }> {
+  const turmaId = String(formData.get("turmaId") ?? "");
+  try {
+    await requireTurmaOwner(turmaId);
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Sem permissão." };
+  }
+  const calendario = lerCalendario(formData);
+  if (!calendario.ok) return { error: calendario.error };
+
+  exigir(
+    await db()
+      .from("turmas")
+      .update({ ...calendario.colunas, updated_at: agora() })
+      .eq("id", turmaId),
+  );
+  revalidatePath(`/turmas/${turmaId}`);
+  revalidatePath("/coordenacao/dashboard");
+  return { ok: true };
 }

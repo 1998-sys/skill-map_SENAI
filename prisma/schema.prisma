@@ -63,6 +63,12 @@ model Turma {
   nome         String
   periodo      String? // ex.: 2026/1
   cargaHoraria Int?     @map("carga_horaria")
+  // Calendário (Dashboard onda 2): regra para editar + lista final das datas de aula.
+  dataInicio   DateTime?  @map("data_inicio") @db.Date
+  dataFim      DateTime?  @map("data_fim") @db.Date
+  diasSemana   Int[]      @map("dias_semana") // 0 = domingo … 6 = sábado
+  horasPorDia  Float?     @map("horas_por_dia")
+  datasAula    DateTime[] @map("datas_aula") @db.Date // já com feriados e ajustes
   cursoId      String   @map("curso_id") @db.Uuid
   professorId  String   @map("professor_id") @db.Uuid
   createdAt    DateTime @default(now()) @map("created_at")

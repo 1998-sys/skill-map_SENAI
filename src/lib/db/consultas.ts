@@ -28,6 +28,12 @@ export type Turma = {
   professorId: string;
   curso: { nome: string };
   professor: { nome: string };
+  // Calendário (null em turmas sem calendário). Datas como "AAAA-MM-DD".
+  dataInicio: string | null;
+  dataFim: string | null;
+  diasSemana: number[] | null;
+  horasPorDia: number | null;
+  datasAula: string[] | null;
 };
 
 export type Registro = {
@@ -61,6 +67,8 @@ export type RegistroComAnalise = Registro & { ultimaAnalise: Analise | null };
 
 const SEL_TURMA =
   "id, nome, periodo, cargaHoraria:carga_horaria, professorId:professor_id, " +
+  "dataInicio:data_inicio, dataFim:data_fim, diasSemana:dias_semana, " +
+  "horasPorDia:horas_por_dia, datasAula:datas_aula, " +
   "curso:cursos(nome), professor:profiles(nome)";
 
 const SEL_REGISTRO =

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
   AlertTriangle,
+  CalendarCheck,
   Clock,
   FolderOpen,
   Send,
@@ -9,6 +10,7 @@ import {
 } from "lucide-react";
 import { getCurrentProfile } from "@/lib/auth";
 import { obterDashboardCoordenacao } from "@/lib/dashboard";
+import type { Cobertura } from "@/lib/calendario";
 import { formatarData } from "@/lib/datas";
 import { buttonVariants } from "@/components/ui/button";
 import { SectionCard } from "@/components/ui/section-card";
@@ -33,7 +35,7 @@ export default async function DashboardCoordenacaoPage() {
         title="Dashboard de acompanhamento"
         description="Visão de todas as turmas — se o SkillMap está sendo alimentado e em que etapa está cada registro. Sem ranking de professores."
       >
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           <StatCard
             icon={<Users className="size-5" />}
             label="Turmas"
@@ -61,7 +63,30 @@ export default async function DashboardCoordenacaoPage() {
             }
             color="neutral"
           />
+          <StatCard
+            icon={<CalendarCheck className="size-5" />}
+            label="Cobertura do calendário"
+            value={
+              consolidado.coberturaGeral != null ? `${consolidado.coberturaGeral}%` : "—"
+            }
+            color={
+              consolidado.coberturaGeral == null
+                ? "neutral"
+                : consolidado.aulasSemRegistro > 0
+                  ? "warning"
+                  : "success"
+            }
+          />
         </div>
+        <p className="mt-3 text-xs text-muted-foreground">
+          {consolidado.turmasComCalendario === 0
+            ? "Nenhuma turma tem calendário ainda. O professor monta o calendário na tela da turma."
+            : `Cobertura = aulas que já aconteceram com registro, nas ${consolidado.turmasComCalendario} ${
+                consolidado.turmasComCalendario === 1 ? "turma" : "turmas"
+              } com calendário. ${consolidado.aulasSemRegistro} ${
+                consolidado.aulasSemRegistro === 1 ? "aula está" : "aulas estão"
+              } sem registro.`}
+        </p>
       </SectionCard>
 
       <SectionCard
@@ -116,6 +141,7 @@ export default async function DashboardCoordenacaoPage() {
                   <th className="hidden px-4 py-2.5 font-semibold lg:table-cell">
                     Funil (sem · IA · validada · enviada)
                   </th>
+                  <th className="px-4 py-2.5 font-semibold">Cobertura</th>
                   <th className="hidden px-4 py-2.5 font-semibold sm:table-cell">
                     Atividade
                   </th>
@@ -143,6 +169,9 @@ export default async function DashboardCoordenacaoPage() {
                       </td>
                       <td className="hidden px-4 py-3 lg:table-cell">
                         <Funil funil={t.funil} />
+                      </td>
+                      <td className="px-4 py-3">
+                        <CoberturaCelula cobertura={t.cobertura} />
                       </td>
                       <td className="hidden px-4 py-3 sm:table-cell">
                         {t.ultimoRegistro == null ? (
@@ -182,9 +211,9 @@ export default async function DashboardCoordenacaoPage() {
       </SectionCard>
 
       <PageNote>
-        Indicadores de acompanhamento, calculados sobre os registros existentes. A
-        cobertura do calendário (aulas previstas, taxa de preenchimento, dias letivos
-        sem registro) chega quando a turma tiver datas e carga cadastradas.
+        Indicadores de acompanhamento, sem ranking de professores. A cobertura compara
+        as aulas do calendário que já aconteceram com os registros feitos; turmas sem
+        calendário aparecem como &quot;sem calendário&quot;.
       </PageNote>
     </main>
   );
@@ -209,6 +238,35 @@ function Funil({
           {i.n}
         </span>
       ))}
+    </div>
+  );
+}
+
+function CoberturaCelula({ cobertura }: { cobertura: Cobertura | null }) {
+  if (!cobertura) {
+    return <span className="text-xs text-muted-foreground">sem calendário</span>;
+  }
+  if (cobertura.ocorridas === 0) {
+    return (
+      <span className="text-xs text-muted-foreground">
+        {cobertura.previstas} aulas previstas · ainda não começou
+      </span>
+    );
+  }
+  const pendentes = cobertura.semRegistro.length;
+  return (
+    <div className="text-xs leading-relaxed">
+      <p className="font-semibold tabular-nums text-title">
+        {cobertura.registradas}/{cobertura.ocorridas} aulas ({cobertura.percentual}%)
+      </p>
+      <p className="tabular-nums text-muted-foreground">
+        {cobertura.enviadas} enviadas · {cobertura.previstas} previstas
+      </p>
+      {pendentes > 0 && (
+        <p className="font-medium text-warning">
+          {pendentes} sem registro
+        </p>
+      )}
     </div>
   );
 }

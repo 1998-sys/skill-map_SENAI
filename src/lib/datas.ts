@@ -25,6 +25,14 @@ export function formatarDataHora(d: Date) {
   return fmtInstante.format(d);
 }
 
+// "en-CA" formata como AAAA-MM-DD — o formato da coluna `date` do banco.
+const fmtDiaISO = new Intl.DateTimeFormat("en-CA", { timeZone: FUSO });
+
+/** Dia de hoje (ou de um instante) no horário de Brasília, como "AAAA-MM-DD". */
+export function diaISOEmBrasilia(d: Date = new Date()) {
+  return fmtDiaISO.format(d);
+}
+
 /** Só o dia de um instante, no horário de Brasília. Ex.: 24/10/2026 */
 export function formatarDiaDoInstante(d: Date) {
   return fmtDiaInstante.format(d);
