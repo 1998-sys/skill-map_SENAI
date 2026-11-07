@@ -8,7 +8,9 @@ import { useEffect, useRef, type RefObject } from "react";
 //   celular. As sobras (laterais no computador, em cima/embaixo no celular) são
 //   preenchidas por uma cópia desfocada do mesmo vídeo, em vez de faixas pretas.
 // - No celular em pé o vídeo fica no alto da tela; o cartão de login, mais abaixo.
-// - Película escura por cima: o cartão fica legível.
+// - Imagem mais viva: brilho, contraste e saturação levemente aumentados no
+//   vídeo principal (não muda a resolução, só a aparência). Película bem leve,
+//   porque o cartão de login já tem o próprio fundo escuro translúcido.
 // - Corte do final: o arquivo termina com uma tela amarela (~11,1 s até o fim)
 //   que não usamos; o vídeo volta ao início em `fim` segundos. Para cortar o
 //   arquivo de verdade: ffmpeg -i fundo-login.mp4 -t 10.8 -c copy saida.mp4
@@ -67,16 +69,16 @@ export function FundoVideo({
         {...atributos}
         src={src}
         tabIndex={-1}
-        className="absolute inset-0 h-full w-full scale-110 object-cover opacity-70 blur-2xl"
+        className="absolute inset-0 h-full w-full scale-110 object-cover opacity-90 blur-2xl brightness-90"
       />
       {/* Vídeo inteiro, sem corte: no alto no celular, centralizado no computador. */}
       <video
         ref={principal}
         {...atributos}
         src={src}
-        className="absolute inset-0 h-full w-full object-contain object-top sm:object-center"
+        className="absolute inset-0 h-full w-full object-contain object-top brightness-110 contrast-110 saturate-125 sm:object-center"
       />
-      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/55" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/5 to-black/25" />
     </div>
   );
 }
