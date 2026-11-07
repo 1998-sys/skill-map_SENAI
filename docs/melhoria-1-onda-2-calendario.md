@@ -3,7 +3,8 @@
 > **Objetivo:** saber, por turma, **quais dias tiveram aula** para controlar os
 > registros: aulas previstas, aulas que já aconteceram, quais estão sem registro e
 > quantas foram enviadas à Coordenação.
-> **Situação:** implementado na branch `feat/calendario-turma`, aguardando aprovação.
+> **Situação:** implementado e testado na branch `feat/calendario-turma` (SQL já
+> aplicado no Supabase), aguardando aprovação.
 
 ## Como fica para o usuário (o mais simples possível)
 
@@ -49,8 +50,12 @@
   calendário**).
 - [x] **C4 — Professor:** "Aulas sem registro" + **Registrar** com a data preenchida.
 - [x] **C5 — Dashboard:** coluna de cobertura por turma e totais.
-- [ ] **C6 — Testes e documentação** (depois de aplicar o SQL): salvar calendário,
-  aulas sem registro, dashboard; atualizar `CLAUDE.md` e a visão geral.
+- [x] **C6 — Testes e documentação:** turma de teste (apagada depois) com
+  sábados de 03/10 a 12/12/2026: 11 aulas · 44 h com aviso × carga de 40 h; clique
+  tirando 12/12 → 10 aulas · 40 h "bate"; 6 aulas sem registro; **Registrar** em
+  24/10 abriu o registro com a data e a lista caiu para 5 (17%); reposição em
+  28/10 salva pelo **Editar calendário**; Dashboard com cobertura geral 14% e a
+  coluna por turma.
 
 ## Para depois
 

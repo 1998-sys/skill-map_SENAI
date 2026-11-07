@@ -58,6 +58,11 @@ Supabase (Auth + Postgres) · Prisma 6 · OpenAI (`gpt-5-nano`) · deploy Vercel
   Básicas/Técnicas/Socioemocionais" vão à IA; sem texto → envia o PDF). Nada é salvo sem a revisão
   do professor; o PDF não é guardado. `next.config.ts` sobe o `bodySizeLimit` das Server Actions
   para 5 MB. **`unpdf` fixado em 1.8.1.**
+- **Calendário da turma (Dashboard onda 2):** colunas `data_inicio`, `data_fim`, `dias_semana`,
+  `horas_por_dia` e `datas_aula` (lista final, já com feriados e cliques) em `turmas`. Lógica pura
+  em `@/lib/calendario` (datas como texto "AAAA-MM-DD", feriados nacionais pela Páscoa,
+  `calcularCobertura`); editor `@/components/calendario-turma` grava campos ocultos `cal_*` lidos
+  por `@/lib/calendario-form`. "Hoje" = `diaISOEmBrasilia()` de `@/lib/datas`.
 - **DB (estrutura):** schema continua em `prisma/schema.prisma` (Prisma só para migrations)
   (Curso, Turma, Capacidade, Registro[status RASCUNHO|ENVIADO], Analise[tipo IA_ORIGINAL|VALIDADA], AnaliseCapacidade, Profile).
 - **Trigger de profile NÃO é migration do Prisma** (o shadow DB não vê o schema `auth`):

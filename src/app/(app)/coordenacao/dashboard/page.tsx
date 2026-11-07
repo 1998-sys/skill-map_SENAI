@@ -81,9 +81,11 @@ export default async function DashboardCoordenacaoPage() {
         <p className="mt-3 text-xs text-muted-foreground">
           {consolidado.turmasComCalendario === 0
             ? "Nenhuma turma tem calendário ainda. O professor monta o calendário na tela da turma."
-            : `Cobertura = aulas que já aconteceram com registro, nas ${consolidado.turmasComCalendario} ${
-                consolidado.turmasComCalendario === 1 ? "turma" : "turmas"
-              } com calendário. ${consolidado.aulasSemRegistro} ${
+            : `Cobertura = aulas que já aconteceram com registro, ${
+                consolidado.turmasComCalendario === 1
+                  ? "na única turma com calendário"
+                  : `nas ${consolidado.turmasComCalendario} turmas com calendário`
+              }. ${consolidado.aulasSemRegistro} ${
                 consolidado.aulasSemRegistro === 1 ? "aula está" : "aulas estão"
               } sem registro.`}
         </p>
