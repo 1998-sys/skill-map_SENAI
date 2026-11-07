@@ -45,10 +45,11 @@ export default function LoginPage() {
     router.refresh();
   }
 
+  // Celular: vídeo inteiro no alto e cartão mais abaixo; computador: centralizado.
   return (
-    <main className="relative isolate flex min-h-screen items-center justify-center overflow-hidden p-4">
+    <main className="relative isolate flex min-h-svh items-end justify-center overflow-hidden p-4 pb-8 sm:min-h-screen sm:items-center sm:pb-4">
       <FundoVideo />
-      <div className="w-full max-w-md overflow-hidden rounded-2xl border border-white/15 bg-black/45 text-white shadow-2xl backdrop-blur-md">
+      <div className="w-full max-w-md overflow-hidden rounded-2xl border border-white/15 bg-black/60 text-white shadow-2xl backdrop-blur-md">
         <div className="h-1 bg-primary" aria-hidden="true" />
         <div className="p-6 sm:p-8">
           <div className="mb-6 flex flex-col items-center text-center">
@@ -57,7 +58,7 @@ export default function LoginPage() {
               SkillMap
             </h1>
             <div className="mt-3 h-1 w-14 bg-primary" aria-hidden="true" />
-            <p className="mt-3 text-sm text-white/75">
+            <p className="mt-3 text-sm text-white/85">
               Entre para acessar o acompanhamento pedagógico.
             </p>
           </div>

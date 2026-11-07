@@ -1,23 +1,53 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { Pause, Play } from "lucide-react";
+import { useEffect, useRef, type RefObject } from "react";
 
 // Vídeo de fundo da tela de login (decorativo).
 // - Sem som, em loop, começa sozinho (autoPlay só funciona com muted + playsInline).
-// - Toca SEMPRE, mesmo com "menos movimento" ligado no sistema: nos computadores
-//   do SENAI as animações do Windows costumam vir desligadas e o vídeo ficaria
-//   parado para todos. Em troca, há um botão para pausar (acessibilidade: conteúdo
-//   que se move sozinho precisa poder ser parado). A escolha fica lembrada.
-// - Película escura por cima: o cartão fica legível e a pequena perda de nitidez
-//   do vídeo 720p em telas grandes não aparece.
-// - Corte do final: o arquivo termina com uma tela amarela ("competitividade
-//   para a indústria", de ~11,1 s até o fim) que ficava atrás do cartão. O vídeo
-//   volta ao início em `fim` segundos, então esse trecho nunca aparece. Para
-//   cortar o arquivo de verdade: ffmpeg -i fundo-login.mp4 -t 10.8 -c copy saida.mp4
+// - Vídeo INTEIRO na tela (object-contain): nada é cortado no computador nem no
+//   celular. As sobras (laterais no computador, em cima/embaixo no celular) são
+//   preenchidas por uma cópia desfocada do mesmo vídeo, em vez de faixas pretas.
+// - No celular em pé o vídeo fica no alto da tela; o cartão de login, mais abaixo.
+// - Imagem mais viva: brilho, contraste e saturação levemente aumentados no
+//   vídeo principal (não muda a resolução, só a aparência). Película bem leve,
+//   porque o cartão de login já tem o próprio fundo escuro translúcido.
+// - Corte do final: o arquivo termina com uma tela amarela (~11,1 s até o fim)
+//   que não usamos; o vídeo volta ao início em `fim` segundos. Para cortar o
+//   arquivo de verdade: ffmpeg -i fundo-login.mp4 -t 10.8 -c copy saida.mp4
 // O pai precisa ter `relative isolate` para o vídeo ficar atrás do conteúdo.
 
-const CHAVE = "skillmap:video-login-pausado";
+// Volta o vídeo ao início antes de `fim`. requestVideoFrameCallback confere a
+// cada quadro (preciso); onde não existe, timeupdate (~4x/s) com folga de 0,3 s.
+function useCorte(ref: RefObject<HTMLVideoElement | null>, fim: number) {
+  useEffect(() => {
+    const v = ref.current;
+    if (!v) return;
+    v.play().catch(() => {});
+    const conferir = () => {
+      if (v.currentTime >= fim) v.currentTime = 0;
+    };
+    if (typeof v.requestVideoFrameCallback === "function") {
+      let quadro = 0;
+      const aCadaQuadro = () => {
+        conferir();
+        quadro = v.requestVideoFrameCallback(aCadaQuadro);
+      };
+      quadro = v.requestVideoFrameCallback(aCadaQuadro);
+      return () => v.cancelVideoFrameCallback(quadro);
+    }
+    v.addEventListener("timeupdate", conferir);
+    return () => v.removeEventListener("timeupdate", conferir);
+  }, [ref, fim]);
+}
+
+const atributos = {
+  autoPlay: true,
+  muted: true,
+  loop: true,
+  playsInline: true,
+  preload: "auto",
+  disablePictureInPicture: true,
+} as const;
 
 export function FundoVideo({
   src = "/login/fundo-login.mp4",
@@ -26,84 +56,29 @@ export function FundoVideo({
   src?: string;
   fim?: number;
 }) {
-  const video = useRef<HTMLVideoElement>(null);
-  const [pausado, setPausado] = useState(false);
-
-  useEffect(() => {
-    const v = video.current;
-    if (!v) return;
-
-    // Lembra se a pessoa pausou da última vez (só neste navegador).
-    let lembrado = false;
-    try {
-      lembrado = localStorage.getItem(CHAVE) === "1";
-    } catch {
-      // navegador sem armazenamento: segue tocando
-    }
-    // Só comanda o vídeo; o estado do botão vem dos eventos play/pause.
-    if (lembrado) v.pause();
-    else v.play().catch(() => {});
-
-    // Volta ao início antes do trecho cortado. requestVideoFrameCallback confere
-    // a cada quadro (preciso); onde não existe, o evento timeupdate (~4x/s) e a
-    // folga de 0,3 s até a tela amarela dão conta.
-    const comQuadros = typeof v.requestVideoFrameCallback === "function";
-    let quadro = 0;
-    const conferir = () => {
-      if (v.currentTime >= fim) v.currentTime = 0;
-    };
-    const aCadaQuadro = () => {
-      conferir();
-      quadro = v.requestVideoFrameCallback(aCadaQuadro);
-    };
-    if (comQuadros) quadro = v.requestVideoFrameCallback(aCadaQuadro);
-    else v.addEventListener("timeupdate", conferir);
-
-    return () => {
-      if (comQuadros) v.cancelVideoFrameCallback(quadro);
-      else v.removeEventListener("timeupdate", conferir);
-    };
-  }, [fim]);
-
-  function alternar() {
-    const v = video.current;
-    if (!v) return;
-    const pausar = !v.paused;
-    if (pausar) v.pause();
-    else v.play().catch(() => {});
-    try {
-      localStorage.setItem(CHAVE, pausar ? "1" : "0");
-    } catch {
-      // sem armazenamento: só não lembra
-    }
-  }
+  const principal = useRef<HTMLVideoElement>(null);
+  const desfocado = useRef<HTMLVideoElement>(null);
+  useCorte(principal, fim);
+  useCorte(desfocado, fim);
 
   return (
-    <>
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden bg-title">
-        <video
-          ref={video}
-          className="h-full w-full object-cover"
-          src={src}
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="auto"
-          disablePictureInPicture
-          onPlay={() => setPausado(false)}
-          onPause={() => setPausado(true)}
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/35 to-black/60" />
-      </div>
-      <button
-        type="button"
-        onClick={alternar}
-        className="absolute right-4 bottom-4 flex items-center gap-1.5 rounded-full bg-black/45 px-3 py-1.5 text-xs font-medium text-white/90 backdrop-blur-sm transition-colors hover:bg-black/65 focus-visible:outline-2 focus-visible:outline-white"
-      >
-        {pausado ? <Play className="size-3.5" /> : <Pause className="size-3.5" />}
-        {pausado ? "Reproduzir vídeo" : "Pausar vídeo"}
-      </button>
-    </>
+    <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden bg-title">
+      {/* Cópia desfocada: preenche as sobras ao redor do vídeo inteiro. */}
+      <video
+        ref={desfocado}
+        {...atributos}
+        src={src}
+        tabIndex={-1}
+        className="absolute inset-0 h-full w-full scale-110 object-cover opacity-90 blur-2xl brightness-90"
+      />
+      {/* Vídeo inteiro, sem corte: no alto no celular, centralizado no computador. */}
+      <video
+        ref={principal}
+        {...atributos}
+        src={src}
+        className="absolute inset-0 h-full w-full object-contain object-top brightness-110 contrast-110 saturate-125 sm:object-center"
+      />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/5 to-black/25" />
+    </div>
   );
 }
