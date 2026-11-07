@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { FolderOpen, History, Plus } from "lucide-react";
+import { CalendarPlus, FolderOpen, History, Plus } from "lucide-react";
 import { getCurrentProfile } from "@/lib/auth";
 import {
   buscarTurma,
@@ -11,8 +11,10 @@ import { buttonVariants } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { SectionCard } from "@/components/ui/section-card";
 import { InfoField, PageNote } from "@/components/ui/info-field";
-import { formatarData } from "@/lib/datas";
+import { diaISOEmBrasilia, formatarData } from "@/lib/datas";
+import { calcularCobertura, rotuloCurto } from "@/lib/calendario";
 import { CapacidadesEditor } from "./capacidades-editor";
+import { CalendarioForm } from "./calendario-form";
 
 // A importação de capacidades por PDF chama a IA, que pode levar até 1 minuto.
 export const maxDuration = 60;
@@ -36,6 +38,17 @@ export default async function TurmaDetalhePage({
   ]);
   const turma = { ...dados, capacidades, registros };
 
+  // Cobertura do calendário: aulas que já aconteceram × registros feitos.
+  const datasAula = turma.datasAula ?? [];
+  const cobertura = datasAula.length
+    ? calcularCobertura(
+        datasAula,
+        registros.map((r) => ({ data: r.data.toISOString().slice(0, 10), status: r.status })),
+        diaISOEmBrasilia(),
+      )
+    : null;
+  const MAX_PENDENTES = 12;
+
   return (
     <main className="mx-auto w-full max-w-5xl space-y-5 p-4 sm:p-6">
       <Link href="/turmas" className="text-sm text-muted-foreground hover:underline">
@@ -53,6 +66,83 @@ export default async function TurmaDetalhePage({
             value={turma.cargaHoraria != null ? `${turma.cargaHoraria}h` : null}
           />
         </div>
+      </SectionCard>
+
+      <SectionCard
+        title="Calendário da turma"
+        description={
+          cobertura
+            ? "Aulas previstas no calendário e quais delas já têm registro."
+            : "Monte o calendário para o SkillMap mostrar as aulas sem registro."
+        }
+      >
+        {cobertura && (
+          <div className="mb-5 space-y-4">
+            <div className="grid gap-3 sm:grid-cols-4">
+              <Indicador rotulo="Aulas previstas" valor={cobertura.previstas} />
+              <Indicador rotulo="Já aconteceram" valor={cobertura.ocorridas} />
+              <Indicador
+                rotulo="Com registro"
+                valor={`${cobertura.registradas}${cobertura.percentual != null ? ` (${cobertura.percentual}%)` : ""}`}
+                destaque={cobertura.semRegistro.length > 0 ? "warning" : "success"}
+              />
+              <Indicador rotulo="Enviadas à Coordenação" valor={cobertura.enviadas} />
+            </div>
+
+            {cobertura.semRegistro.length > 0 ? (
+              <div>
+                <p className="mb-2 text-sm font-semibold text-warning">
+                  {cobertura.semRegistro.length === 1
+                    ? "1 aula sem registro"
+                    : `${cobertura.semRegistro.length} aulas sem registro`}
+                </p>
+                <ul className="flex flex-wrap gap-2">
+                  {cobertura.semRegistro.slice(0, MAX_PENDENTES).map((d) => (
+                    <li key={d}>
+                      <Link
+                        href={`/turmas/${turma.id}/registros/novo?data=${d}`}
+                        className={buttonVariants({ variant: "outline-primary", size: "sm" })}
+                        aria-label={`Registrar a aula de ${rotuloCurto(d)}`}
+                      >
+                        <CalendarPlus /> {rotuloCurto(d)} · Registrar
+                      </Link>
+                    </li>
+                  ))}
+                  {cobertura.semRegistro.length > MAX_PENDENTES && (
+                    <li className="self-center text-xs text-muted-foreground">
+                      +{cobertura.semRegistro.length - MAX_PENDENTES} mais antigas
+                    </li>
+                  )}
+                </ul>
+              </div>
+            ) : (
+              cobertura.ocorridas > 0 && (
+                <p className="text-sm font-medium text-success">
+                  Todas as aulas que já aconteceram têm registro.
+                </p>
+              )
+            )}
+          </div>
+        )}
+
+        <details open={!cobertura} className="group rounded-lg border">
+          <summary className="cursor-pointer list-none px-4 py-3 text-sm font-semibold text-primary-active hover:bg-muted">
+            {cobertura ? "Editar calendário" : "Montar calendário"}
+          </summary>
+          <div className="border-t p-4">
+            <CalendarioForm
+              turmaId={turma.id}
+              cargaHoraria={turma.cargaHoraria}
+              inicial={{
+                inicio: turma.dataInicio,
+                fim: turma.dataFim,
+                diasSemana: turma.diasSemana,
+                horasPorDia: turma.horasPorDia,
+                datasAula: turma.datasAula,
+              }}
+            />
+          </div>
+        </details>
       </SectionCard>
 
       <SectionCard>
@@ -127,5 +217,24 @@ export default async function TurmaDetalhePage({
         Plano de Curso.
       </PageNote>
     </main>
+  );
+}
+
+function Indicador({
+  rotulo,
+  valor,
+  destaque,
+}: {
+  rotulo: string;
+  valor: number | string;
+  destaque?: "warning" | "success";
+}) {
+  const cor =
+    destaque === "warning" ? "text-warning" : destaque === "success" ? "text-success" : "text-title";
+  return (
+    <div className="rounded-lg bg-muted px-3 py-2.5">
+      <p className="text-xs text-muted-foreground">{rotulo}</p>
+      <p className={`text-xl font-extrabold tabular-nums ${cor}`}>{valor}</p>
+    </div>
   );
 }

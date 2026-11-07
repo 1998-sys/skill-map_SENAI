@@ -1,8 +1,11 @@
 import { db, exigir, lerDia, lerInstante } from "@/lib/db/cliente";
+import { calcularCobertura, type Cobertura } from "@/lib/calendario";
+import { diaISOEmBrasilia } from "@/lib/datas";
 
-// Dashboard de acompanhamento da Coordenação (onda 1): só com os dados que já
-// existem (Registro + Analise). Os indicadores de cobertura (aulas previstas/
-// ocorridas, taxa de preenchimento) dependem do calendário da turma — onda 2.
+// Dashboard de acompanhamento da Coordenação.
+// Onda 1: funil, registros por semana e tempo até o envio (Registro + Analise).
+// Onda 2: cobertura do calendário — aulas previstas, ocorridas, com registro e
+// enviadas — para as turmas que têm calendário (turmas.datas_aula).
 // Tudo somente leitura; a Coordenação vê TODAS as turmas.
 
 const MS_DIA = 24 * 60 * 60 * 1000;
@@ -25,6 +28,7 @@ export type TurmaDashboard = {
   ultimoEnvio: Date | null;
   diasDesdeUltimoRegistro: number | null;
   funil: FunilRegistros;
+  cobertura: Cobertura | null; // null = turma sem calendário
 };
 
 export type SemanaRegistros = {
@@ -41,6 +45,9 @@ export type DashboardData = {
     totalRegistros: number;
     totalEnviados: number;
     tempoMedioEnvioDias: number | null;
+    turmasComCalendario: number;
+    aulasSemRegistro: number; // soma das turmas com calendário
+    coberturaGeral: number | null; // % de aulas ocorridas com registro
   };
   turmas: TurmaDashboard[];
   registrosPorSemana: SemanaRegistros[];
@@ -62,6 +69,7 @@ export async function obterDashboardCoordenacao(): Promise<DashboardData> {
   type Linha = {
     id: string;
     nome: string;
+    datasAula: string[] | null;
     curso: { nome: string };
     professor: { nome: string };
     registros: {
@@ -75,13 +83,22 @@ export async function obterDashboardCoordenacao(): Promise<DashboardData> {
     await db()
       .from("turmas")
       .select(
-        "id, nome, curso:cursos(nome), professor:profiles(nome), " +
+        "id, nome, datasAula:datas_aula, curso:cursos(nome), professor:profiles(nome), " +
           "registros(data, status, enviadoEm:enviado_em, analises(tipo))",
       )
       .is("excluido_em", null) // turmas arquivadas pela Coordenação ficam de fora
       .is("registros.excluido_em", null)
       .order("nome"),
   );
+  // Cobertura usa as datas como texto (AAAA-MM-DD), antes da conversão.
+  const hojeISO = diaISOEmBrasilia();
+  const coberturas = new Map(
+    linhas.map((t) => [
+      t.id,
+      t.datasAula?.length ? calcularCobertura(t.datasAula, t.registros, hojeISO) : null,
+    ]),
+  );
+
   // Datas chegam como texto: converte para Date.
   const turmas = linhas.map((t) => ({
     ...t,
@@ -140,6 +157,7 @@ export async function obterDashboardCoordenacao(): Promise<DashboardData> {
       ultimoEnvio,
       diasDesdeUltimoRegistro,
       funil,
+      cobertura: coberturas.get(t.id) ?? null,
     };
   });
 
@@ -176,8 +194,20 @@ export async function obterDashboardCoordenacao(): Promise<DashboardData> {
       totalRegistros,
       totalEnviados,
       tempoMedioEnvioDias,
+      ...consolidarCobertura(turmasDash),
     },
     turmas: turmasDash,
     registrosPorSemana,
+  };
+}
+
+function consolidarCobertura(turmas: TurmaDashboard[]) {
+  const com = turmas.flatMap((t) => (t.cobertura ? [t.cobertura] : []));
+  const ocorridas = com.reduce((s, c) => s + c.ocorridas, 0);
+  const registradas = com.reduce((s, c) => s + c.registradas, 0);
+  return {
+    turmasComCalendario: com.length,
+    aulasSemRegistro: com.reduce((s, c) => s + c.semRegistro.length, 0),
+    coberturaGeral: ocorridas ? Math.round((registradas / ocorridas) * 100) : null,
   };
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useRef } from "react";
+import { useActionState, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { createTurma, type FormState } from "@/lib/actions/turmas";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { SectionCard } from "@/components/ui/section-card";
 import { Save } from "lucide-react";
 import { ImportarPdf } from "@/components/importar-pdf";
+import { CalendarioTurma } from "@/components/calendario-turma";
 
 const labelCls = "font-normal text-muted-foreground";
 const inputCls = "h-[42px] text-[15px]";
@@ -30,6 +31,8 @@ export function TurmaForm() {
     {},
   );
   const caixaCapacidades = useRef<HTMLTextAreaElement>(null);
+  // Carga horária controlada: o calendário compara o total de horas com ela.
+  const [carga, setCarga] = useState("");
 
   // Capacidades vindas do PDF: entram no fim da caixa de texto, sem repetir
   // as que já estão lá. O professor ainda pode ajustar antes de criar a turma.
@@ -64,9 +67,16 @@ export function TurmaForm() {
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="cargaHoraria" className={labelCls}>Carga horária (h)</Label>
-            <Input id="cargaHoraria" name="cargaHoraria" type="number" min="0" placeholder="Ex.: 800" className={inputCls} />
+            <Input id="cargaHoraria" name="cargaHoraria" type="number" min="0" placeholder="Ex.: 800" className={inputCls} value={carga} onChange={(e) => setCarga(e.target.value)} />
           </div>
         </div>
+      </SectionCard>
+
+      <SectionCard
+        title="Calendário da turma (opcional)"
+        description="Informe o período, os dias e as horas de aula. Os feriados nacionais saem sozinhos; clique em um dia para ajustar. Com o calendário, o SkillMap mostra as aulas sem registro."
+      >
+        <CalendarioTurma cargaHoraria={Number(carga) || null} />
       </SectionCard>
 
       <SectionCard

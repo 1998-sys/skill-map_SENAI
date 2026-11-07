@@ -7,20 +7,26 @@ import {
 import { createRegistro } from "@/lib/actions/registros";
 import { PageNote } from "@/components/ui/info-field";
 import { RegistroForm } from "../registro-form";
+import { ehDiaValido } from "@/lib/calendario";
+import { diaISOEmBrasilia } from "@/lib/datas";
 
 export default async function NovoRegistroPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ data?: string }>;
 }) {
   const { id } = await params;
+  const { data: dataParam } = await searchParams;
   const profile = await getCurrentProfile();
   if (!profile) redirect("/login");
 
   const turma = await buscarTurma(id);
   if (!turma || turma.professorId !== profile.id) notFound();
 
-  const hoje = new Date().toISOString().slice(0, 10);
+  // "Registrar" nas aulas sem registro chega com ?data=AAAA-MM-DD.
+  const dataInicial = ehDiaValido(dataParam) ? dataParam : diaISOEmBrasilia();
 
   return (
     <main className="mx-auto w-full max-w-5xl space-y-5 p-4 sm:p-6">
@@ -39,7 +45,7 @@ export default async function NovoRegistroPage({
           turma: turma.nome,
           professor: turma.professor.nome,
         }}
-        defaults={{ data: hoje }}
+        defaults={{ data: dataInicial }}
         submitLabel="Salvar rascunho"
       />
 

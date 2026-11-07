@@ -350,7 +350,8 @@ flowchart LR
     <p>Evoluções propostas para a próxima fase. A lista completa e atualizada fica em <code>docs/pontos-de-melhoria.md</code>.</p>
 
     <div class="melhoria">
-      <div class="cab"><span class="tag">Melhoria 1</span><b>Dashboard de acompanhamento</b><span class="pill p-val">Onda 1 no ar</span></div>
+      <div class="cab"><span class="tag">Melhoria 1</span><b>Dashboard de acompanhamento</b><span class="pill p-val">Ondas 1 e 2 implementadas</span></div>
+      <p><strong>Onda 2 — calendário da turma:</strong> o professor informa início, término, dias de aula e horas por dia; o sistema marca as aulas (sem feriados nacionais) e ele ajusta clicando nos dias. A tela da turma mostra as <strong>aulas sem registro</strong> com o botão Registrar (data já preenchida), e o Dashboard mostra a <strong>cobertura</strong> por turma: aulas com registro ÷ aulas que já aconteceram, enviadas e previstas.</p>
       <p><strong>Já implementado (onda 1):</strong> funil da análise, registros por semana, tempo médio até o envio e atividade recente por turma. <strong>Falta (onda 2):</strong> os indicadores que dependem do calendário da turma — aulas previstas, taxa de preenchimento e dias letivos sem registro.</p>
       <p>Mostrar, por turma, se o SkillMap está sendo alimentado: quantas aulas já aconteceram, quantas têm registro e em que etapa cada registro está. Serve à Coordenação (visão de todas as turmas) e ao professor (a própria turma).</p>
       <div class="kpis">
@@ -452,7 +453,7 @@ flowchart LR
           <tr><td>Acessos</td><td>Criados pela Coordenação no Supabase Auth (API de administração, só no servidor), com senha temporária e troca obrigatória no primeiro acesso; desativação por bloqueio do login. Sem envio de e-mail por enquanto</td></tr>
           <tr><td>IA</td><td>OpenAI <code>gpt-5-nano</code> (configurável), Structured Outputs e streaming</td></tr>
           <tr><td>Leitura de PDF</td><td><code>unpdf</code> extrai o texto no servidor; a IA recebe só as páginas com capacidades (ou o PDF inteiro, se for escaneado). Limite de 4 MB</td></tr>
-          <tr><td>Situação</td><td>Etapas 0 a 6 do MVP concluídas; Melhoria 1 (onda 1), Melhoria 2 (capacidades por PDF), exclusão pela Coordenação e gestão de usuários no ar; Etapa 7 (piloto real) em andamento</td></tr>
+          <tr><td>Situação</td><td>Etapas 0 a 6 do MVP concluídas; Melhoria 1 (ondas 1 e 2), Melhoria 2 (capacidades por PDF), exclusão pela Coordenação e gestão de usuários no ar; Etapa 7 (piloto real) em andamento</td></tr>
         </tbody>
       </table>
     </div>
