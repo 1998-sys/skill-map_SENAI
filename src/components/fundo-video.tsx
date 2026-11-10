@@ -1,16 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
+import { useEffect, useRef, type RefObject } from "react";
 
 // Vídeo de fundo da tela de login (decorativo).
 // - Sem som, em loop, começa sozinho (autoPlay só funciona com muted + playsInline).
 // - Telas mais largas que o vídeo (16:9 ou mais — quase todo navegador de
-//   computador): enquadramento SOB MEDIDA. O vídeo preenche a tela o máximo
-//   possível sem distorcer, mas sempre mostra a FAIXA IMPORTANTE — do logo SENAI
-//   (a ~5% do topo) até o bloco amarelo "SENAI-SP" (termina a ~93% da altura).
-//   Se preencher tudo cortasse essa faixa, sobram faixas finas nas laterais,
-//   preenchidas pela cópia desfocada. Medido quadro a quadro no vídeo atual —
-//   ao trocar o vídeo, revise FAIXA_IMPORTANTE.
+//   computador, já que abas e barra de endereço "achatam" a área): PREENCHE a
+//   tela toda sem distorcer (object-cover). Como a área do site quase nunca tem
+//   exatamente 16:9, uma faixa fica de fora — ancoramos no TOPO para o logo SENAI
+//   do canto superior nunca ser cortado; o que sai é um pedaço de baixo.
 // - Telas mais estreitas (celular, tablet, monitor 4:3): preencher cortaria as
 //   laterais (e o logo SENAI da direita), então o vídeo aparece
 //   INTEIRO no alto (object-contain) e o cartão de login fica mais abaixo. As
@@ -54,40 +52,6 @@ function useCorte(ref: RefObject<HTMLVideoElement | null>, fim?: number) {
   }, [ref, fim]);
 }
 
-// Parte da ALTURA do vídeo que nunca pode ser cortada (0 = topo, 1 = base).
-const FAIXA_IMPORTANTE = { topo: 0.04, base: 0.95 };
-const PROPORCAO = 16 / 9; // 1920x1080
-
-// Calcula tamanho e posição do vídeo principal em telas largas; null nas
-// estreitas (aí vale o object-contain das classes).
-function useEnquadramento(ref: RefObject<HTMLDivElement | null>) {
-  const [estilo, setEstilo] = useState<CSSProperties | null>(null);
-  useEffect(() => {
-    const caixa = ref.current;
-    if (!caixa) return;
-    const medir = () => {
-      const W = caixa.clientWidth;
-      const H = caixa.clientHeight;
-      if (!W || !H || W / H < PROPORCAO) {
-        setEstilo(null);
-        return;
-      }
-      const alturaCobrindo = W / PROPORCAO; // preenche a largura toda
-      const alturaMaxima = H / (FAIXA_IMPORTANTE.base - FAIXA_IMPORTANTE.topo);
-      const h = Math.min(alturaCobrindo, alturaMaxima);
-      const w = h * PROPORCAO;
-      // Centraliza a faixa importante na tela, sem deixar buraco em cima/embaixo.
-      const centroFaixa = ((FAIXA_IMPORTANTE.topo + FAIXA_IMPORTANTE.base) / 2) * h;
-      const topo = Math.min(0, Math.max(H - h, H / 2 - centroFaixa));
-      setEstilo({ width: w, height: h, left: (W - w) / 2, top: topo });
-    };
-    const observador = new ResizeObserver(medir); // mede já ao começar a observar
-    observador.observe(caixa);
-    return () => observador.disconnect();
-  }, [ref]);
-  return estilo;
-}
-
 const atributos = {
   autoPlay: true,
   muted: true,
@@ -104,19 +68,13 @@ export function FundoVideo({
   src?: string;
   fim?: number;
 }) {
-  const caixa = useRef<HTMLDivElement>(null);
   const principal = useRef<HTMLVideoElement>(null);
   const desfocado = useRef<HTMLVideoElement>(null);
   useCorte(principal, fim);
   useCorte(desfocado, fim);
-  const enquadramento = useEnquadramento(caixa);
 
   return (
-    <div
-      ref={caixa}
-      aria-hidden="true"
-      className="pointer-events-none absolute inset-0 -z-10 overflow-hidden bg-title"
-    >
+    <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden bg-title">
       {/* Cópia desfocada: preenche as sobras ao redor do vídeo inteiro. */}
       <video
         ref={desfocado}
@@ -125,15 +83,12 @@ export function FundoVideo({
         tabIndex={-1}
         className="absolute inset-0 h-full w-full scale-110 object-cover opacity-90 blur-2xl brightness-90"
       />
-      {/* Computador: enquadramento sob medida. Celular em pé: inteiro no alto. */}
+      {/* Computador: tela cheia (ancorado no topo). Celular em pé: inteiro no alto. */}
       <video
         ref={principal}
         {...atributos}
         src={src}
-        style={enquadramento ?? undefined}
-        className={`absolute brightness-110 contrast-110 saturate-125 ${
-          enquadramento ? "object-fill" : "inset-0 h-full w-full object-contain object-top"
-        }`}
+        className="absolute inset-0 h-full w-full object-contain object-top brightness-110 contrast-110 saturate-125 [@media(min-aspect-ratio:16/9)]:object-cover"
       />
       <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/5 to-black/25" />
     </div>
