@@ -16,18 +16,25 @@ import { useEffect, useRef, type RefObject } from "react";
 // - Imagem mais viva: brilho, contraste e saturação levemente aumentados no
 //   vídeo principal (não muda a resolução, só a aparência). Película bem leve,
 //   porque o cartão de login já tem o próprio fundo escuro translúcido.
-// - Corte do final: o arquivo termina com uma tela amarela (~11,1 s até o fim)
-//   que não usamos; o vídeo volta ao início em `fim` segundos. Para cortar o
-//   arquivo de verdade: ffmpeg -i fundo-login.mp4 -t 10.8 -c copy saida.mp4
+// - Arquivo: public/login/fundo-login-v2.mp4 — trecho de 4 s a 14 s do vídeo
+//   institucional, 1920x1080, ~11 s, sem som, comprimido para ~4 MB:
+//   ffmpeg -i entrada.mp4 -an -c:v libx264 -preset slow -crf 28 -pix_fmt yuv420p
+//          -movflags +faststart fundo-login-v2.mp4
+//   (Ao trocar o vídeo, use um nome novo para o navegador não mostrar o antigo
+//   guardado em cache.)
+// - `fim` (opcional): segundo em que o vídeo volta ao início, para pular um
+//   final indesejado sem editar o arquivo. Sem `fim`, roda inteiro em loop.
 // O pai precisa ter `relative isolate` para o vídeo ficar atrás do conteúdo.
 
-// Volta o vídeo ao início antes de `fim`. requestVideoFrameCallback confere a
-// cada quadro (preciso); onde não existe, timeupdate (~4x/s) com folga de 0,3 s.
-function useCorte(ref: RefObject<HTMLVideoElement | null>, fim: number) {
+// Garante que o vídeo toque e, se houver `fim`, volta ao início nesse ponto.
+// requestVideoFrameCallback confere a cada quadro (preciso); onde não existe,
+// timeupdate (~4x/s).
+function useCorte(ref: RefObject<HTMLVideoElement | null>, fim?: number) {
   useEffect(() => {
     const v = ref.current;
     if (!v) return;
     v.play().catch(() => {});
+    if (fim == null) return; // sem corte: o loop do próprio vídeo resolve
     const conferir = () => {
       if (v.currentTime >= fim) v.currentTime = 0;
     };
@@ -55,8 +62,8 @@ const atributos = {
 } as const;
 
 export function FundoVideo({
-  src = "/login/fundo-login.mp4",
-  fim = 10.8, // segundos — antes da tela amarela (começa em ~11,1 s)
+  src = "/login/fundo-login-v2.mp4",
+  fim,
 }: {
   src?: string;
   fim?: number;
