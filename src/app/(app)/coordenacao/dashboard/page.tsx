@@ -2,51 +2,57 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
   AlertTriangle,
+  Archive,
   CalendarCheck,
+  CalendarX,
   Clock,
+  FileText,
   FolderOpen,
+  ListX,
+  PauseCircle,
   Send,
+  UserCog,
   Users,
 } from "lucide-react";
 import { getCurrentProfile } from "@/lib/auth";
-import { obterDashboardCoordenacao } from "@/lib/dashboard";
+import { DIAS_PARADA, obterPainelCoordenacao, type TurmaAlerta } from "@/lib/dashboard";
 import type { Cobertura } from "@/lib/calendario";
-import { formatarData } from "@/lib/datas";
+import { formatarData, formatarDataHora, formatarDiaDoInstante } from "@/lib/datas";
 import { buttonVariants } from "@/components/ui/button";
 import { SectionCard } from "@/components/ui/section-card";
 import { StatCard } from "@/components/ui/stat-card";
 import { PageNote } from "@/components/ui/info-field";
 
-const DIAS_ALERTA = 14; // dias corridos sem registro → alerta (onda 2 usa dias letivos)
+// Dashboard da Coordenação — tela única (antes: "Painel" + "Dashboard").
+// Indicadores, o que precisa de ação, últimos envios, pontos de atenção que se
+// repetem, atividade por semana, turmas e um resumo de acessos/excluídos.
+// Somente leitura e sem ranking de professores.
 
 export default async function DashboardCoordenacaoPage() {
   const profile = await getCurrentProfile();
   if (!profile) redirect("/login");
   if (profile.role !== "COORDENACAO") redirect("/dashboard");
 
-  const { consolidado, turmas, registrosPorSemana } =
-    await obterDashboardCoordenacao();
-
+  const painel = await obterPainelCoordenacao();
+  const { consolidado, turmas, registrosPorSemana, alertas, ultimosEnvios, pontosFrequentes } =
+    painel;
   const maxSemana = Math.max(1, ...registrosPorSemana.map((s) => s.total));
+  const ultimoEnvio = ultimosEnvios[0]?.enviadoEm ?? null;
+  const totalAlertas =
+    alertas.aulasSemRegistro.length +
+    alertas.paradas.length +
+    alertas.semCalendario.length +
+    alertas.semCapacidades.length;
 
   return (
-    <main className="mx-auto w-full max-w-5xl space-y-5 p-4 sm:p-6">
+    <main className="mx-auto w-full max-w-6xl space-y-5 p-4 sm:p-6">
+      {/* 1. Indicadores */}
       <SectionCard
-        title="Dashboard de acompanhamento"
-        description="Visão de todas as turmas — se o SkillMap está sendo alimentado e em que etapa está cada registro. Sem ranking de professores."
+        title="Dashboard"
+        description="Acompanhamento de todas as turmas: se o SkillMap está sendo alimentado, o que já chegou à Coordenação e o que precisa de atenção. Sem ranking de professores."
       >
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-          <StatCard
-            icon={<Users className="size-5" />}
-            label="Turmas"
-            value={consolidado.totalTurmas}
-          />
-          <StatCard
-            icon={<AlertTriangle className="size-5" />}
-            label="Turmas sem registro"
-            value={consolidado.turmasSemRegistro}
-            color={consolidado.turmasSemRegistro > 0 ? "warning" : "success"}
-          />
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+          <StatCard icon={<Users className="size-5" />} label="Turmas" value={consolidado.totalTurmas} />
           <StatCard
             icon={<Send className="size-5" />}
             label="Registros recebidos"
@@ -54,21 +60,9 @@ export default async function DashboardCoordenacaoPage() {
             color="success"
           />
           <StatCard
-            icon={<Clock className="size-5" />}
-            label="Tempo médio até o envio"
-            value={
-              consolidado.tempoMedioEnvioDias != null
-                ? `${consolidado.tempoMedioEnvioDias} d`
-                : "—"
-            }
-            color="neutral"
-          />
-          <StatCard
             icon={<CalendarCheck className="size-5" />}
             label="Cobertura do calendário"
-            value={
-              consolidado.coberturaGeral != null ? `${consolidado.coberturaGeral}%` : "—"
-            }
+            value={consolidado.coberturaGeral != null ? `${consolidado.coberturaGeral}%` : "—"}
             color={
               consolidado.coberturaGeral == null
                 ? "neutral"
@@ -76,6 +70,20 @@ export default async function DashboardCoordenacaoPage() {
                   ? "warning"
                   : "success"
             }
+          />
+          <StatCard
+            icon={<Clock className="size-5" />}
+            label="Tempo médio até o envio"
+            value={
+              consolidado.tempoMedioEnvioDias != null ? `${consolidado.tempoMedioEnvioDias} d` : "—"
+            }
+            color="neutral"
+          />
+          <StatCard
+            icon={<FileText className="size-5" />}
+            label="Último envio"
+            value={ultimoEnvio ? formatarDiaDoInstante(ultimoEnvio) : "—"}
+            color="neutral"
           />
         </div>
         <p className="mt-3 text-xs text-muted-foreground">
@@ -85,12 +93,114 @@ export default async function DashboardCoordenacaoPage() {
                 consolidado.turmasComCalendario === 1
                   ? "na única turma com calendário"
                   : `nas ${consolidado.turmasComCalendario} turmas com calendário`
-              }. ${consolidado.aulasSemRegistro} ${
-                consolidado.aulasSemRegistro === 1 ? "aula está" : "aulas estão"
-              } sem registro.`}
+              }.`}
         </p>
       </SectionCard>
 
+      {/* 2. O que precisa de ação */}
+      <SectionCard
+        title="Precisa de atenção"
+        description={
+          totalAlertas === 0
+            ? undefined
+            : "Turmas que pedem alguma ação. Clique para abrir a turma."
+        }
+      >
+        {totalAlertas === 0 ? (
+          <p className="rounded-lg bg-success-soft px-4 py-3 text-sm font-medium text-success">
+            Nenhum alerta: todas as turmas estão com calendário, capacidades e registros em dia.
+          </p>
+        ) : (
+          <div className="grid gap-3 md:grid-cols-2">
+            <GrupoAlerta
+              icone={<ListX className="size-4" />}
+              titulo="Aulas sem registro"
+              itens={alertas.aulasSemRegistro}
+              tom="warning"
+            />
+            <GrupoAlerta
+              icone={<PauseCircle className="size-4" />}
+              titulo={`Paradas há mais de ${DIAS_PARADA} dias`}
+              itens={alertas.paradas}
+              tom="warning"
+            />
+            <GrupoAlerta
+              icone={<AlertTriangle className="size-4" />}
+              titulo="Sem capacidades cadastradas"
+              itens={alertas.semCapacidades}
+              tom="warning"
+            />
+            <GrupoAlerta
+              icone={<CalendarX className="size-4" />}
+              titulo="Sem calendário"
+              itens={alertas.semCalendario}
+              tom="neutral"
+            />
+          </div>
+        )}
+      </SectionCard>
+
+      {/* 3. Últimos envios + pontos de atenção */}
+      <div className="grid gap-5 lg:grid-cols-2">
+        <SectionCard title="Últimos registros recebidos">
+          {ultimosEnvios.length === 0 ? (
+            <Vazio>Ainda não há registros enviados à Coordenação.</Vazio>
+          ) : (
+            <ul className="divide-y rounded-lg border">
+              {ultimosEnvios.map((r) => (
+                <li key={r.id}>
+                  <Link
+                    href={`/coordenacao/turmas/${r.turmaId}/registros/${r.id}`}
+                    className="flex items-start justify-between gap-3 px-4 py-3 transition-colors hover:bg-muted"
+                  >
+                    <span className="min-w-0">
+                      <span className="block font-medium">
+                        {r.turmaNome}{" "}
+                        <span className="font-normal text-muted-foreground">
+                          · aula de {formatarData(r.data)}
+                        </span>
+                      </span>
+                      <span className="block truncate text-xs text-muted-foreground">
+                        {r.professorNome}
+                        {r.tema && ` · ${r.tema}`}
+                      </span>
+                    </span>
+                    <span className="shrink-0 text-xs whitespace-nowrap text-muted-foreground tabular-nums">
+                      {r.enviadoEm ? formatarDataHora(r.enviadoEm) : "—"}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </SectionCard>
+
+        <SectionCard
+          title="Pontos de atenção mais frequentes"
+          description="Nas análises validadas dos registros enviados, de todas as turmas."
+        >
+          {pontosFrequentes.length === 0 ? (
+            <Vazio>Nenhum ponto de atenção registrado ainda.</Vazio>
+          ) : (
+            <ol className="divide-y rounded-lg border">
+              {pontosFrequentes.map((p, i) => (
+                <li key={i} className="flex items-start gap-3 px-4 py-3">
+                  <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-brand-soft text-xs font-extrabold text-primary-hover">
+                    {i + 1}
+                  </span>
+                  <span className="flex-1 text-sm">{p.texto}</span>
+                  <span className="shrink-0 text-xs whitespace-nowrap text-muted-foreground">
+                    {p.n} {p.n === 1 ? "registro" : "registros"}
+                    {p.turmas > 1 && ` · ${p.turmas} turmas`}
+                  </span>
+                </li>
+              ))}
+            </ol>
+          )}
+        </SectionCard>
+      </div>
+
+      {/* 4. Registros por semana */}
       <SectionCard
         title="Registros por semana"
         description="Total de registros diários feitos nas últimas 8 semanas (todas as turmas)."
@@ -99,155 +209,189 @@ export default async function DashboardCoordenacaoPage() {
           {registrosPorSemana.map((s) => {
             const altura = Math.round((s.total / maxSemana) * 120);
             return (
-              <div
-                key={s.inicio.getTime()}
-                className="flex flex-1 flex-col items-center justify-end gap-1.5"
-              >
-                <span className="text-xs font-semibold tabular-nums text-title">
-                  {s.total}
-                </span>
+              <div key={s.inicio.getTime()} className="flex flex-1 flex-col items-center justify-end gap-1.5">
+                <span className="text-xs font-semibold tabular-nums text-title">{s.total}</span>
                 <div
                   className="w-full max-w-10 rounded-t bg-primary"
                   style={{ height: Math.max(3, altura) }}
                   aria-hidden="true"
                 />
-                <span className="text-[11px] tabular-nums text-muted-foreground">
-                  {s.rotulo}
-                </span>
+                <span className="text-[11px] tabular-nums text-muted-foreground">{s.rotulo}</span>
               </div>
             );
           })}
         </div>
       </SectionCard>
 
-      <SectionCard
-        title="Turmas"
-        description="Funil da análise e atividade recente por turma."
-      >
+      {/* 5. Turmas */}
+      <SectionCard title="Turmas" description="Registros, funil da análise, cobertura e atividade por turma.">
         {turmas.length === 0 ? (
-          <p className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
-            Nenhuma turma cadastrada ainda.
-          </p>
+          <Vazio>Nenhuma turma cadastrada ainda.</Vazio>
         ) : (
           <div className="overflow-x-auto rounded-lg border">
             <table className="w-full text-sm">
               <thead className="bg-surface-strong text-left text-title">
                 <tr>
                   <th className="px-4 py-2.5 font-semibold">Turma</th>
-                  <th className="hidden px-4 py-2.5 font-semibold md:table-cell">
-                    Professor
-                  </th>
-                  <th className="px-4 py-2.5 text-center font-semibold">
-                    Registros
-                  </th>
+                  <th className="hidden px-4 py-2.5 font-semibold md:table-cell">Professor</th>
+                  <th className="px-4 py-2.5 text-center font-semibold">Registros</th>
                   <th className="hidden px-4 py-2.5 font-semibold lg:table-cell">
                     Funil (sem · IA · validada · enviada)
                   </th>
                   <th className="px-4 py-2.5 font-semibold">Cobertura</th>
-                  <th className="hidden px-4 py-2.5 font-semibold sm:table-cell">
-                    Atividade
-                  </th>
+                  <th className="hidden px-4 py-2.5 font-semibold sm:table-cell">Último envio</th>
                   <th className="w-px px-4 py-2.5 font-semibold">Ação</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {turmas.map((t) => {
-                  const parada =
-                    t.diasDesdeUltimoRegistro == null ||
-                    t.diasDesdeUltimoRegistro > DIAS_ALERTA;
-                  return (
-                    <tr key={t.id}>
-                      <td className="px-4 py-3">
-                        <p className="font-medium">{t.nome}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {t.cursoNome}
-                        </p>
-                      </td>
-                      <td className="hidden px-4 py-3 md:table-cell">
-                        {t.professorNome}
-                      </td>
-                      <td className="px-4 py-3 text-center tabular-nums">
-                        {t.totalRegistros}
-                      </td>
-                      <td className="hidden px-4 py-3 lg:table-cell">
-                        <Funil funil={t.funil} />
-                      </td>
-                      <td className="px-4 py-3">
-                        <CoberturaCelula cobertura={t.cobertura} />
-                      </td>
-                      <td className="hidden px-4 py-3 sm:table-cell">
-                        {t.ultimoRegistro == null ? (
-                          <span className="text-xs font-medium text-warning">
-                            Sem registros
-                          </span>
-                        ) : (
-                          <span
-                            className={`text-xs font-medium ${parada ? "text-warning" : "text-muted-foreground"}`}
-                          >
-                            {parada ? "Parada há " : "Último: "}
-                            {t.diasDesdeUltimoRegistro === 0
-                              ? "hoje"
-                              : `${t.diasDesdeUltimoRegistro} d`}
-                            {!parada && ` (${formatarData(t.ultimoRegistro)})`}
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-4 py-2">
-                        <Link
-                          href={`/coordenacao/turmas/${t.id}`}
-                          className={buttonVariants({
-                            variant: "outline-primary",
-                            size: "sm",
-                          })}
-                        >
-                          <FolderOpen /> Abrir
-                        </Link>
-                      </td>
-                    </tr>
-                  );
-                })}
+                {turmas.map((t) => (
+                  <tr key={t.id}>
+                    <td className="px-4 py-3">
+                      <p className="font-medium">{t.nome}</p>
+                      <p className="text-xs text-muted-foreground">{t.cursoNome}</p>
+                    </td>
+                    <td className="hidden px-4 py-3 md:table-cell">{t.professorNome}</td>
+                    <td className="px-4 py-3 text-center tabular-nums">
+                      {t.totalRegistros}
+                      <span className="block text-xs text-muted-foreground">{t.enviados} enviados</span>
+                    </td>
+                    <td className="hidden px-4 py-3 lg:table-cell">
+                      <Funil funil={t.funil} />
+                    </td>
+                    <td className="px-4 py-3">
+                      <CoberturaCelula cobertura={t.cobertura} />
+                    </td>
+                    <td className="hidden px-4 py-3 text-xs whitespace-nowrap text-muted-foreground tabular-nums sm:table-cell">
+                      {t.ultimoEnvio ? formatarDataHora(t.ultimoEnvio) : "—"}
+                    </td>
+                    <td className="px-4 py-2">
+                      <Link
+                        href={`/coordenacao/turmas/${t.id}`}
+                        className={buttonVariants({ variant: "outline-primary", size: "sm" })}
+                      >
+                        <FolderOpen /> Abrir
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
         )}
       </SectionCard>
 
+      {/* 6. Acessos e excluídos */}
+      <div className="grid gap-5 md:grid-cols-2">
+        <SectionCard
+          title="Acessos"
+          action={
+            <Link href="/coordenacao/usuarios" className={buttonVariants({ variant: "outline-primary", size: "sm" })}>
+              <UserCog /> Usuários
+            </Link>
+          }
+        >
+          <div className="grid grid-cols-3 gap-3 text-center">
+            <Numero valor={painel.acessos.ativos} rotulo="professores ativos" />
+            <Numero
+              valor={painel.acessos.trocarSenha}
+              rotulo="aguardando troca de senha"
+              destaque={painel.acessos.trocarSenha > 0}
+            />
+            <Numero valor={painel.acessos.desativados} rotulo="desativados" />
+          </div>
+          <p className="mt-3 text-xs text-muted-foreground">
+            {painel.acessos.coordenacao}{" "}
+            {painel.acessos.coordenacao === 1 ? "acesso ativo de Coordenação" : "acessos ativos de Coordenação"}.
+          </p>
+        </SectionCard>
+
+        <SectionCard
+          title="Excluídos"
+          action={
+            <Link href="/coordenacao/excluidos" className={buttonVariants({ variant: "outline-primary", size: "sm" })}>
+              <Archive /> Ver excluídos
+            </Link>
+          }
+        >
+          <div className="grid grid-cols-2 gap-3 text-center">
+            <Numero valor={painel.excluidos.turmas} rotulo="turmas excluídas" />
+            <Numero valor={painel.excluidos.registros} rotulo="registros excluídos" />
+          </div>
+          <p className="mt-3 text-xs text-muted-foreground">
+            Excluídos ficam guardados e podem ser restaurados.
+          </p>
+        </SectionCard>
+      </div>
+
       <PageNote>
-        Indicadores de acompanhamento, sem ranking de professores. A cobertura compara
-        as aulas do calendário que já aconteceram com os registros feitos; turmas sem
-        calendário aparecem como &quot;sem calendário&quot;.
+        Indicadores de acompanhamento, sem ranking de professores. Só registros enviados
+        contam como recebidos; a cobertura compara as aulas do calendário que já aconteceram
+        com os registros feitos.
       </PageNote>
     </main>
   );
 }
 
-function Funil({
-  funil,
+function GrupoAlerta({
+  icone,
+  titulo,
+  itens,
+  tom,
 }: {
-  funil: { sem: number; gerada: number; validada: number; enviada: number };
+  icone: React.ReactNode;
+  titulo: string;
+  itens: TurmaAlerta[];
+  tom: "warning" | "neutral";
 }) {
-  const itens = [
-    { n: funil.sem, cor: "bg-muted-foreground", titulo: "Sem análise" },
-    { n: funil.gerada, cor: "bg-warning", titulo: "Gerada pela IA" },
-    { n: funil.validada, cor: "bg-success", titulo: "Validada" },
-    { n: funil.enviada, cor: "bg-primary", titulo: "Enviada" },
-  ];
+  if (itens.length === 0) return null;
+  const cor = tom === "warning" ? "border-warning/30 bg-warning-soft" : "border-border bg-muted";
+  const texto = tom === "warning" ? "text-warning" : "text-foreground";
   return (
-    <div className="flex items-center gap-3 text-xs tabular-nums">
-      {itens.map((i) => (
-        <span key={i.titulo} className="flex items-center gap-1.5" title={i.titulo}>
-          <span className={`inline-block size-2.5 rounded-sm ${i.cor}`} aria-hidden="true" />
-          {i.n}
-        </span>
-      ))}
+    <div className={`rounded-lg border p-3 ${cor}`}>
+      <p className={`mb-2 flex items-center gap-2 text-sm font-semibold ${texto}`}>
+        {icone} {titulo} ({itens.length})
+      </p>
+      <ul className="space-y-1">
+        {itens.slice(0, 5).map((t) => (
+          <li key={t.id}>
+            <Link
+              href={`/coordenacao/turmas/${t.id}`}
+              className="flex justify-between gap-3 rounded px-2 py-1 text-sm hover:bg-card"
+            >
+              <span className="truncate font-medium">{t.nome}</span>
+              <span className="shrink-0 text-xs text-muted-foreground">{t.detalhe}</span>
+            </Link>
+          </li>
+        ))}
+        {itens.length > 5 && (
+          <li className="px-2 text-xs text-muted-foreground">+{itens.length - 5} turmas</li>
+        )}
+      </ul>
     </div>
   );
 }
 
+function Numero({ valor, rotulo, destaque }: { valor: number; rotulo: string; destaque?: boolean }) {
+  return (
+    <div className="rounded-lg bg-muted px-2 py-3">
+      <p className={`text-2xl font-extrabold tabular-nums ${destaque ? "text-warning" : "text-title"}`}>
+        {valor}
+      </p>
+      <p className="text-xs text-muted-foreground">{rotulo}</p>
+    </div>
+  );
+}
+
+function Vazio({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+      {children}
+    </p>
+  );
+}
+
 function CoberturaCelula({ cobertura }: { cobertura: Cobertura | null }) {
-  if (!cobertura) {
-    return <span className="text-xs text-muted-foreground">sem calendário</span>;
-  }
+  if (!cobertura) return <span className="text-xs text-muted-foreground">sem calendário</span>;
   if (cobertura.ocorridas === 0) {
     return (
       <span className="text-xs text-muted-foreground">
@@ -264,11 +408,26 @@ function CoberturaCelula({ cobertura }: { cobertura: Cobertura | null }) {
       <p className="tabular-nums text-muted-foreground">
         {cobertura.enviadas} enviadas · {cobertura.previstas} previstas
       </p>
-      {pendentes > 0 && (
-        <p className="font-medium text-warning">
-          {pendentes} sem registro
-        </p>
-      )}
+      {pendentes > 0 && <p className="font-medium text-warning">{pendentes} sem registro</p>}
+    </div>
+  );
+}
+
+function Funil({ funil }: { funil: { sem: number; gerada: number; validada: number; enviada: number } }) {
+  const itens = [
+    { n: funil.sem, cor: "bg-muted-foreground", titulo: "Sem análise" },
+    { n: funil.gerada, cor: "bg-warning", titulo: "Gerada pela IA" },
+    { n: funil.validada, cor: "bg-success", titulo: "Validada" },
+    { n: funil.enviada, cor: "bg-primary", titulo: "Enviada" },
+  ];
+  return (
+    <div className="flex items-center gap-3 text-xs tabular-nums">
+      {itens.map((i) => (
+        <span key={i.titulo} className="flex items-center gap-1.5" title={i.titulo}>
+          <span className={`inline-block size-2.5 rounded-sm ${i.cor}`} aria-hidden="true" />
+          {i.n}
+        </span>
+      ))}
     </div>
   );
 }

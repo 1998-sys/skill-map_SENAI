@@ -102,13 +102,13 @@ export default async function CoordenacaoTurmaPage({
   return (
     <main className="mx-auto w-full max-w-5xl space-y-5 p-4 sm:p-6">
       <Link
-        href="/coordenacao"
+        href="/coordenacao/dashboard"
         className="text-sm text-muted-foreground hover:underline"
       >
-        ← Painel da Coordenação
+        ← Dashboard
       </Link>
 
-      <SectionCard title="Painel de Acompanhamento da Coordenação">
+      <SectionCard title="Acompanhamento da turma">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard
             icon={<FileText className="size-5" />}

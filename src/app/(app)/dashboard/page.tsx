@@ -36,10 +36,10 @@ export default async function DashboardPage() {
         {role === "COORDENACAO" && (
           <AtalhoCard
             icon={<ClipboardList className="size-5" />}
-            titulo="Coordenação"
-            texto="Veja o acompanhamento consolidado das turmas, calculado apenas sobre os registros enviados pelos professores."
-            href="/coordenacao"
-            acao="Painel da Coordenação"
+            titulo="Dashboard"
+            texto="Acompanhe todas as turmas: registros recebidos, cobertura do calendário, alertas do que precisa de atenção e pontos de atenção que se repetem."
+            href="/coordenacao/dashboard"
+            acao="Abrir o Dashboard"
           />
         )}
       </div>
