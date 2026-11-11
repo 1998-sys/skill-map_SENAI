@@ -3,7 +3,8 @@
 > **Escopo:** a **Coordenação** gerencia os acessos: cria usuários, gera senha
 > temporária e desativa/reativa. O professor não cria nem exclui usuários.
 > **Versão simples (sem e-mail):** nada depende de envio de e-mail por enquanto.
-> **Situação:** U1 a U6 implementadas na branch `feat/usuarios-coordenacao`; faltam os testes de ponta a ponta com contas reais (U7).
+> **Situação:** U1 a U7 no ar. **U8 — "Esqueci minha senha" por e-mail** implementada
+> na branch `feat/reset-senha-email`.
 
 ## Decisões
 
@@ -11,7 +12,7 @@
 |---|---|
 | Criar acesso | A Coordenação cadastra **nome, e-mail e papel**; o sistema gera uma **senha temporária**, mostrada uma única vez, que a Coordenação repassa ao professor. |
 | Primeiro acesso | Com a senha temporária, o professor é levado direto para **criar uma senha nova** antes de usar o sistema. |
-| Esqueci minha senha | O link no login orienta a **procurar a Coordenação**, que gera uma nova senha temporária. |
+| Esqueci minha senha | **Por e-mail** (U8): o usuário informa o e-mail e recebe um link para criar a senha nova. Plano B: a Coordenação gera uma senha temporária. |
 | "Excluir" usuário | **Desativar o acesso**: não consegue mais entrar, mas o nome continua nas turmas e registros (rastreabilidade). Pode ser reativado. |
 
 ## Etapas
@@ -80,13 +81,26 @@
 - A marca de "trocar senha" fica em `app_metadata`, que o próprio usuário não
   consegue alterar.
 
-## Para depois (versão com e-mail)
+### U8 — "Esqueci minha senha" por e-mail
 
-- "Esqueci minha senha" por e-mail e convite por e-mail. Exige configurar **SMTP
-  próprio** no Supabase: o envio padrão só entrega para e-mails da equipe do
-  projeto e tem limite de poucos e-mails por hora. Opções: Microsoft 365
-  (`smtp.office365.com`, porta 587, com SMTP AUTH liberado pela TI) ou um serviço
-  de e-mail transacional (Brevo, Resend…).
+- [x] **Supabase (painel):** SMTP próprio Gmail (`smtp.gmail.com:587`, remetente
+  `skillmap.senai@gmail.com`, nome "SkillMap SENAI", limite de 30 e-mails/hora);
+  URL Configuration com Site URL `https://skill-map-senai.vercel.app` e Redirect
+  URLs `…/auth/confirm` (produção e `http://localhost:3000`); template "Reset
+  Password" no padrão SSR (com `token_hash`, funciona em outro navegador/celular):
+  `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/definir-senha`
+- [x] `/esqueci-senha`: formulário de e-mail → action `solicitarReset`
+  (`resetPasswordForEmail`). Sempre a mesma mensagem, exista ou não o e-mail;
+  limite de envio → "Muitos pedidos agora…". Plano B (Coordenação) continua citado.
+- [x] `/auth/confirm`: `verifyOtp({ token_hash, type: "recovery" })` abre a sessão e
+  leva para `next` (só caminhos internos; senão `/definir-senha`). Link vencido ou
+  usado → `/login?erro=link-invalido`, que mostra o aviso.
+- [x] `/definir-senha` com texto que serve para senha temporária e para o e-mail.
+
+## Para depois
+
+- Convite de usuário por e-mail (a rota `/auth/confirm` pode aceitar `type=invite`).
+- Trocar o Gmail pelo SMTP do Microsoft 365 do SENAI (só muda o painel do Supabase).
 - Entrar com a conta Microsoft (login único do Outlook/Microsoft 365).
 - Trocar o papel de um usuário existente e transferir turmas de um professor
   desativado.
