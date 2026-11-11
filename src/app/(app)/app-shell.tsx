@@ -70,8 +70,7 @@ const NAV: {
   tambem?: string[];
 }[] = [
   { href: "/dashboard", label: "Início", Icon: IconHome },
-  { href: "/turmas", label: "Turmas", Icon: IconUsers },
-  { href: "/coordenacao/dashboard", label: "Dashboard", Icon: IconDash, role: "COORDENACAO" },
+  // Coordenação: Acompanhamento logo no início, antes do Dashboard.
   {
     href: "/coordenacao/acompanhamento",
     label: "Acompanhamento",
@@ -79,6 +78,8 @@ const NAV: {
     role: "COORDENACAO",
     tambem: ["/coordenacao/turmas"],
   },
+  { href: "/coordenacao/dashboard", label: "Dashboard", Icon: IconDash, role: "COORDENACAO" },
+  { href: "/turmas", label: "Turmas", Icon: IconUsers },
   { href: "/coordenacao/excluidos", label: "Excluídos", Icon: IconArchive, role: "COORDENACAO" },
   { href: "/coordenacao/usuarios", label: "Usuários", Icon: IconUserKey, role: "COORDENACAO" },
 ];
