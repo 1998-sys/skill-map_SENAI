@@ -74,6 +74,11 @@ export async function solicitarReset(
   if (error?.code === "over_email_send_rate_limit" || error?.status === 429) {
     return { error: "Muitos pedidos agora. Tente de novo em alguns minutos." };
   }
-  // Qualquer outro erro também responde "ok" (não expõe se o e-mail existe).
+  // Qualquer outro erro também responde "ok" (não expõe se o e-mail existe),
+  // mas fica registrado no log do servidor (Vercel → Logs) para diagnóstico —
+  // ex.: falha de envio no SMTP. O e-mail não vai para o log.
+  if (error) {
+    console.error("[esqueci-senha] Supabase recusou o envio:", error.status, error.code, error.message);
+  }
   return { ok: true };
 }
