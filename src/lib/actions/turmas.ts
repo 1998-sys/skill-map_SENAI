@@ -7,7 +7,12 @@ import { buscarTurma } from "@/lib/db/consultas";
 import { getCurrentProfile } from "@/lib/auth";
 import { lerCalendario } from "@/lib/calendario-form";
 
-export type FormState = { error?: string };
+export type FormState = {
+  error?: string;
+  // Em caso de erro, devolve o que foi digitado para o formulário não apagar
+  // (o React limpa os campos depois de enviar).
+  valores?: { curso: string; turma: string; periodo: string; capacidades: string };
+};
 
 // Quebra o texto colado em capacidades individuais (uma por linha não vazia).
 function parseCapacidades(texto: string): string[] {
@@ -55,17 +60,24 @@ export async function createTurma(
   const periodo = String(formData.get("periodo") ?? "").trim() || null;
   const cargaRaw = String(formData.get("cargaHoraria") ?? "").trim();
   const cargaHoraria = cargaRaw ? Number.parseInt(cargaRaw, 10) : null;
-  const capacidades = parseCapacidades(String(formData.get("capacidades") ?? ""));
+  const textoCapacidades = String(formData.get("capacidades") ?? "");
+  const capacidades = parseCapacidades(textoCapacidades);
+  const valores = {
+    curso: cursoNome,
+    turma: turmaNome,
+    periodo: periodo ?? "",
+    capacidades: textoCapacidades,
+  };
 
   if (!cursoNome || !turmaNome) {
-    return { error: "Informe ao menos o nome do curso e da turma." };
+    return { error: "Informe ao menos o nome do curso e da turma.", valores };
   }
   if (cargaRaw && Number.isNaN(cargaHoraria)) {
-    return { error: "Carga horária deve ser um número." };
+    return { error: "Carga horária deve ser um número.", valores };
   }
   // Calendário é opcional (cartão "Calendário da turma").
   const calendario = lerCalendario(formData);
-  if (!calendario.ok) return { error: calendario.error };
+  if (!calendario.ok) return { error: calendario.error, valores };
 
   // O Prisma fazia tudo numa transação ("nested create"). Na Data API são
   // três inserts; se um falhar, desfazemos os anteriores.
@@ -111,6 +123,7 @@ export async function createTurma(
     await db().from("cursos").delete().eq("id", cursoId);
     return {
       error: e instanceof Error ? e.message : "Não foi possível criar a turma.",
+      valores,
     };
   }
 

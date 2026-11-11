@@ -46,7 +46,7 @@
   resumo, cobertura), sem dependência de banco.
 - [x] **C2 — Editor:** componente de calendário com os 4 campos, meses clicáveis,
   legenda e resumo × carga horária.
-- [x] **C3 — Telas:** Nova turma (opcional) e tela da turma (cartão com **Salvar
+- [x] **C3 — Telas:** Nova turma (obrigatório, dentro de "Dados da Turma") e tela da turma (cartão com **Salvar
   calendário**).
 - [x] **C4 — Professor:** "Aulas sem registro" + **Registrar** com a data preenchida.
 - [x] **C5 — Dashboard:** coluna de cobertura por turma e totais.
