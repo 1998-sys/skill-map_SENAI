@@ -12,13 +12,26 @@ const STATUS_OPCOES = [
   { value: "ENVIADO", label: "Enviado" },
 ] as const;
 
-export function Filtros({ status, q }: { status: string; q: string }) {
+const campoData =
+  "h-10 rounded-lg border border-input bg-card px-3 text-sm outline-none focus-visible:ring-[3px] focus-visible:ring-ring/25";
+
+export function Filtros({
+  status,
+  q,
+  de,
+  ate,
+}: {
+  status: string;
+  q: string;
+  de: string;
+  ate: string;
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [pending, startTransition] = useTransition();
   const [busca, setBusca] = useState(q);
 
-  function aplicar(next: { status?: string; q?: string }) {
+  function aplicar(next: { status?: string; q?: string; de?: string; ate?: string }) {
     const params = new URLSearchParams(searchParams.toString());
     for (const [chave, valor] of Object.entries(next)) {
       if (valor) params.set(chave, valor);
@@ -29,7 +42,7 @@ export function Filtros({ status, q }: { status: string; q: string }) {
     });
   }
 
-  const temFiltro = Boolean(status || q);
+  const temFiltro = Boolean(status || q || de || ate);
 
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
@@ -50,6 +63,38 @@ export function Filtros({ status, q }: { status: string; q: string }) {
             </option>
           ))}
         </select>
+      </div>
+
+      {/* Período: dia da aula, de/até (um dos dois basta). */}
+      <div className="flex gap-2">
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="de" className="text-sm text-muted-foreground">
+            De
+          </label>
+          <input
+            id="de"
+            type="date"
+            value={de}
+            max={ate || undefined}
+            disabled={pending}
+            onChange={(e) => aplicar({ de: e.target.value })}
+            className={campoData}
+          />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="ate" className="text-sm text-muted-foreground">
+            Até
+          </label>
+          <input
+            id="ate"
+            type="date"
+            value={ate}
+            min={de || undefined}
+            disabled={pending}
+            onChange={(e) => aplicar({ ate: e.target.value })}
+            className={campoData}
+          />
+        </div>
       </div>
 
       <form
@@ -95,7 +140,7 @@ export function Filtros({ status, q }: { status: string; q: string }) {
           disabled={pending}
           onClick={() => {
             setBusca("");
-            aplicar({ status: "", q: "" });
+            aplicar({ status: "", q: "", de: "", ate: "" });
           }}
         >
           Limpar

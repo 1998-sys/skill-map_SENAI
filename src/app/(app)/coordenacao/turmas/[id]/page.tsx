@@ -1,15 +1,13 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/auth";
-import {
-  buscarTurma,
-  listarRegistrosComUltimaAnalise,
-} from "@/lib/db/consultas";
+import { montarAcompanhamento } from "@/lib/acompanhamento";
 import {
   CalendarDays,
   FileText,
   FolderOpen,
   Lightbulb,
+  Printer,
   TriangleAlert,
 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
@@ -19,7 +17,6 @@ import { InfoField, PageNote } from "@/components/ui/info-field";
 import { ResumoIA } from "./resumo-ia";
 import { BotaoConfirmar } from "@/components/botao-confirmar";
 import { arquivarTurma } from "@/lib/actions/arquivamento";
-import type { ConteudoConsolidado } from "@/lib/ia/resumo";
 import {
   formatarData,
   formatarDataHora,
@@ -39,65 +36,18 @@ export default async function CoordenacaoTurmaPage({
   if (!profile) redirect("/login");
   if (profile.role !== "COORDENACAO") redirect("/dashboard");
 
-  const dados = await buscarTurma(id);
+  const dados = await montarAcompanhamento(id);
   if (!dados) notFound();
-
-  // Só registros ENVIADOS, cada um com a última análise VALIDADA.
-  const registros = await listarRegistrosComUltimaAnalise(id, {
-    status: "ENVIADO",
-    tipoAnalise: "VALIDADA",
-  });
-  const turma = { ...dados, registros };
-
-  const enviados = turma.registros;
-
-  // Último envio (max enviadoEm).
-  const ultimoEnvio = enviados.reduce<Date | null>((max, r) => {
-    if (!r.enviadoEm) return max;
-    return !max || r.enviadoEm > max ? r.enviadoEm : max;
-  }, null);
-
-  // Consolidação: agrega os campos da última Analise VALIDADA de cada enviado.
-  const pontosPositivos: string[] = [];
-  const pontosAtencao: string[] = [];
-  const sugestoes: string[] = [];
-  for (const r of enviados) {
-    const a = r.ultimaAnalise;
-    if (!a) continue;
-    pontosPositivos.push(...a.pontosPositivos);
-    pontosAtencao.push(...a.pontosAtencao);
-    sugestoes.push(...a.sugestoes);
-  }
-
-  // Para o resumo com IA: cada registro enviado (com a última análise validada),
-  // em ordem cronológica, para a IA apontar a evolução da turma.
-  const conteudo: ConteudoConsolidado = {
-    turmaNome: turma.nome,
-    cursoNome: turma.curso.nome,
-    totalEnviados: enviados.length,
-    registros: [...enviados]
-      .sort((x, y) => x.data.getTime() - y.data.getTime())
-      .flatMap((r) => {
-        const a = r.ultimaAnalise;
-        if (!a) return [];
-        return [
-          {
-            data: formatarData(r.data),
-            tema: r.tema,
-            capacidades: a.capacidades.map((c) => c.texto),
-            pontosPositivos: a.pontosPositivos,
-            pontosAtencao: a.pontosAtencao,
-            sugestoes: a.sugestoes,
-            observacoes: a.observacoesAdicionais,
-          },
-        ];
-      }),
-  };
-
-  // Só para exibição: agrupa itens repetidos (mesmo texto) e conta em quantos
-  // registros aparecem, do mais frequente para o menos.
-  const atencaoAgrupada = agrupar(pontosAtencao);
-  const sugestoesAgrupadas = agrupar(sugestoes);
+  const {
+    turma,
+    enviados,
+    ultimoEnvio,
+    pontosPositivos,
+    atencaoAgrupada,
+    sugestoesAgrupadas,
+    conteudo,
+    resumoSalvo,
+  } = dados;
 
   return (
     <main className="mx-auto w-full max-w-5xl space-y-5 p-4 sm:p-6">
@@ -108,7 +58,18 @@ export default async function CoordenacaoTurmaPage({
         ← Acompanhamento
       </Link>
 
-      <SectionCard title="Acompanhamento da turma">
+      <SectionCard
+        title="Acompanhamento da turma"
+        action={
+          <Link
+            href={`/imprimir/turma/${turma.id}`}
+            target="_blank"
+            className={buttonVariants({ variant: "outline-primary", size: "lg", className: "px-4" })}
+          >
+            <Printer /> Imprimir / PDF
+          </Link>
+        }
+      >
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard
             icon={<FileText className="size-5" />}
@@ -198,7 +159,7 @@ export default async function CoordenacaoTurmaPage({
         )}
       </SectionCard>
 
-      <ResumoIA conteudo={conteudo} />
+      <ResumoIA turmaId={turma.id} conteudo={conteudo} salvo={resumoSalvo} />
 
       <SectionCard title="Registros enviados">
         {enviados.length === 0 ? (
@@ -261,17 +222,6 @@ export default async function CoordenacaoTurmaPage({
   );
 }
 
-function agrupar(itens: string[]) {
-  const mapa = new Map<string, { texto: string; n: number }>();
-  for (const item of itens) {
-    const chave = item.trim().toLowerCase();
-    if (!chave) continue;
-    const atual = mapa.get(chave);
-    if (atual) atual.n += 1;
-    else mapa.set(chave, { texto: item.trim(), n: 1 });
-  }
-  return [...mapa.values()].sort((a, b) => b.n - a.n);
-}
 
 function Vazio({ children }: { children: React.ReactNode }) {
   return (
