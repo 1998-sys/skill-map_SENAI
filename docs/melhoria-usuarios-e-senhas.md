@@ -100,7 +100,14 @@
 ## Para depois
 
 - Convite de usuário por e-mail (a rota `/auth/confirm` pode aceitar `type=invite`).
-- Trocar o Gmail pelo SMTP do Microsoft 365 do SENAI (só muda o painel do Supabase).
+- **Entrega de e-mail (pendente, teste de 10/11/2026):** o Gmail envia, mas a mensagem cai no
+  **Spam** no Gmail e **não chega** nos endereços `@sp.senai.br` (nem Lixo Eletrônico nem Quarentena;
+  o Microsoft 365 do SENAI barra antes). Opções, só no painel do Supabase:
+  1. TI libera o remetente `skillmap.senai@gmail.com` (verificar no Message Trace);
+  2. conta do SENAI com SMTP AUTH liberado (`smtp.office365.com:587`) — entrega garantida;
+  3. serviço transacional (Brevo, grátis 300/dia) — melhora no Gmail, sem garantia no SENAI.
+  Outlook.com gratuito não serve: exige OAuth2 e o Supabase só aceita usuário e senha.
+  Enquanto isso, o plano B (senha temporária pela Coordenação) continua valendo.
 - Entrar com a conta Microsoft (login único do Outlook/Microsoft 365).
 - Trocar o papel de um usuário existente e transferir turmas de um professor
   desativado.

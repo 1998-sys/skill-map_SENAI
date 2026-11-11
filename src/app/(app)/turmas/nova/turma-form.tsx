@@ -11,6 +11,8 @@ import { SectionCard } from "@/components/ui/section-card";
 import { Save } from "lucide-react";
 import { ImportarPdf } from "@/components/importar-pdf";
 import { CalendarioTurma } from "@/components/calendario-turma";
+import { BuscaCurso } from "@/components/busca-curso";
+import { capacidadesDoCurso, type CursoCatalogo } from "@/lib/catalogo-cursos";
 
 const labelCls = "font-normal text-muted-foreground";
 const inputCls = "h-[42px] text-[15px]";
@@ -46,6 +48,24 @@ export function TurmaForm() {
     caixa.focus();
   }
 
+  // Curso escolhido no catálogo: preenche carga horária e capacidades do Plano
+  // de Curso. Se já houver capacidades digitadas, pergunta antes de trocar.
+  function receberDoCatalogo(curso: CursoCatalogo) {
+    setCarga(String(curso.cargaHoraria));
+    const caixa = caixaCapacidades.current;
+    if (!caixa) return;
+    const novas = capacidadesDoCurso(curso).join("\n");
+    const atuais = caixa.value.trim();
+    if (atuais === novas) return;
+    if (
+      atuais &&
+      !window.confirm("Trocar as capacidades da caixa pelas do curso escolhido?")
+    ) {
+      return;
+    }
+    caixa.value = novas;
+  }
+
   return (
     <form action={formAction} className="space-y-5">
       <SectionCard
@@ -55,7 +75,7 @@ export function TurmaForm() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-[2fr_1.4fr_1fr_1fr]">
           <div className="space-y-1.5 sm:col-span-2 lg:col-span-1">
             <Label htmlFor="curso" className={labelCls}>Curso</Label>
-            <Input id="curso" name="curso" required placeholder="Ex.: Técnico em Eletroeletrônica" className={inputCls} defaultValue={state.valores?.curso} />
+            <BuscaCurso id="curso" name="curso" className={inputCls} defaultValue={state.valores?.curso} onEscolher={receberDoCatalogo} />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="turma" className={labelCls}>Turma</Label>
@@ -80,7 +100,7 @@ export function TurmaForm() {
 
       <SectionCard
         title={<label htmlFor="capacidades">Capacidades do Curso</label>}
-        description="Importe do PDF do Plano de Curso ou cole abaixo as capacidades — uma por linha. Você poderá editar, adicionar ou remover depois."
+        description="Ao escolher um curso do catálogo, as capacidades do Plano de Curso entram sozinhas. Se o curso não estiver na lista, importe do PDF ou cole abaixo — uma por linha. Você poderá editar, adicionar ou remover depois."
       >
         <div className="mb-4">
           <ImportarPdf onConfirmar={receberDoPdf} />
