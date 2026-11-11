@@ -3,8 +3,8 @@
 > **Escopo:** a **Coordenação** gerencia os acessos: cria usuários, gera senha
 > temporária e desativa/reativa. O professor não cria nem exclui usuários.
 > **Versão simples (sem e-mail):** nada depende de envio de e-mail por enquanto.
-> **Situação:** U1 a U7 no ar. **U8 — "Esqueci minha senha" por e-mail** implementada
-> na branch `feat/reset-senha-email`.
+> **Situação:** U1 a U7 no ar. **U8 (por e-mail) foi retirada em 11/11/2026**: a
+> redefinição voltou a ser manual, pela Coordenação (senha temporária).
 
 ## Decisões
 
@@ -12,7 +12,7 @@
 |---|---|
 | Criar acesso | A Coordenação cadastra **nome, e-mail e papel**; o sistema gera uma **senha temporária**, mostrada uma única vez, que a Coordenação repassa ao professor. |
 | Primeiro acesso | Com a senha temporária, o professor é levado direto para **criar uma senha nova** antes de usar o sistema. |
-| Esqueci minha senha | **Por e-mail** (U8): o usuário informa o e-mail e recebe um link para criar a senha nova. Plano B: a Coordenação gera uma senha temporária. |
+| Esqueci minha senha | **Manual:** a página orienta a procurar a Coordenação, que gera uma senha temporária; no próximo login o sistema pede uma senha nova. |
 | "Excluir" usuário | **Desativar o acesso**: não consegue mais entrar, mas o nome continua nas turmas e registros (rastreabilidade). Pode ser reativado. |
 
 ## Etapas
@@ -81,7 +81,13 @@
 - A marca de "trocar senha" fica em `app_metadata`, que o próprio usuário não
   consegue alterar.
 
-### U8 — "Esqueci minha senha" por e-mail
+### U8 — "Esqueci minha senha" por e-mail (retirada)
+
+> Implementada e testada em 10/11/2026, mas **retirada em 11/11/2026**: o e-mail caía no
+> Spam do Gmail e não chegava aos endereços `@sp.senai.br`. O código saiu do sistema
+> (`/auth/confirm`, formulário e `solicitarReset`); o histórico fica no git (commit
+> `0ca3c65`). A configuração SMTP do painel do Supabase pode ser desligada. Registro do
+> que foi feito, caso volte:
 
 - [x] **Supabase (painel):** SMTP próprio Gmail (`smtp.gmail.com:587`, remetente
   `skillmap.senai@gmail.com`, nome "SkillMap SENAI", limite de 30 e-mails/hora);
@@ -99,15 +105,14 @@
 
 ## Para depois
 
-- Convite de usuário por e-mail (a rota `/auth/confirm` pode aceitar `type=invite`).
-- **Entrega de e-mail (pendente, teste de 10/11/2026):** o Gmail envia, mas a mensagem cai no
+- Redefinição e convite por e-mail, se um dia houver SMTP que entregue no SENAI.
+- **Entrega de e-mail (motivo da retirada, teste de 10/11/2026):** o Gmail envia, mas a mensagem cai no
   **Spam** no Gmail e **não chega** nos endereços `@sp.senai.br` (nem Lixo Eletrônico nem Quarentena;
   o Microsoft 365 do SENAI barra antes). Opções, só no painel do Supabase:
   1. TI libera o remetente `skillmap.senai@gmail.com` (verificar no Message Trace);
   2. conta do SENAI com SMTP AUTH liberado (`smtp.office365.com:587`) — entrega garantida;
   3. serviço transacional (Brevo, grátis 300/dia) — melhora no Gmail, sem garantia no SENAI.
   Outlook.com gratuito não serve: exige OAuth2 e o Supabase só aceita usuário e senha.
-  Enquanto isso, o plano B (senha temporária pela Coordenação) continua valendo.
 - Entrar com a conta Microsoft (login único do Outlook/Microsoft 365).
 - Trocar o papel de um usuário existente e transferir turmas de um professor
   desativado.

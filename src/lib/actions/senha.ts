@@ -51,34 +51,3 @@ export async function definirSenha(
 
   redirect("/dashboard");
 }
-
-// ─── Esqueci minha senha (por e-mail) ───────────────────────────────────────
-
-export type ResetState = { error?: string; ok?: boolean };
-
-// Pede ao Supabase o e-mail de redefinição. O link vem do template "Reset
-// Password" do painel (padrão SSR, com token_hash) e cai em /auth/confirm,
-// que abre a sessão e leva para /definir-senha.
-// Sempre responde "ok", exista ou não o e-mail: não revelamos quem tem conta.
-export async function solicitarReset(
-  _prev: ResetState,
-  formData: FormData,
-): Promise<ResetState> {
-  const email = String(formData.get("email") ?? "").trim().toLowerCase();
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return { error: "Informe um e-mail válido." };
-  }
-
-  const supabase = await createClient();
-  const { error } = await supabase.auth.resetPasswordForEmail(email);
-  if (error?.code === "over_email_send_rate_limit" || error?.status === 429) {
-    return { error: "Muitos pedidos agora. Tente de novo em alguns minutos." };
-  }
-  // Qualquer outro erro também responde "ok" (não expõe se o e-mail existe),
-  // mas fica registrado no log do servidor (Vercel → Logs) para diagnóstico —
-  // ex.: falha de envio no SMTP. O e-mail não vai para o log.
-  if (error) {
-    console.error("[esqueci-senha] Supabase recusou o envio:", error.status, error.code, error.message);
-  }
-  return { ok: true };
-}

@@ -52,10 +52,9 @@ Supabase (Auth + Postgres) · Prisma 6 · OpenAI (`gpt-5-nano`) · deploy Vercel
   desativa/reativa (ban no Auth). Senha temporária marca `app_metadata.trocar_senha`; o layout de
   `(app)` manda para `/definir-senha` (fora de `(app)` para não entrar em loop). Ações em
   `@/lib/actions/usuarios`; plano em `docs/melhoria-usuarios-e-senhas.md`.
-- **Esqueci minha senha (e-mail):** `/esqueci-senha` → `solicitarReset` (`@/lib/actions/senha`,
-  `resetPasswordForEmail`, sempre responde "ok") → e-mail do template "Reset Password" do Supabase
-  (SMTP Gmail, link com `token_hash`) → `GET /auth/confirm` (`verifyOtp`, `next` só interno) →
-  `/definir-senha`. Link inválido → `/login?erro=link-invalido`. Senha temporária continua (plano B).
+- **Esqueci minha senha = manual:** `/esqueci-senha` só orienta a procurar a Coordenação, que gera
+  senha temporária em Usuários. O fluxo por e-mail (SMTP) foi retirado em 11/11/2026 (não entregava
+  no SENAI); histórico no commit `0ca3c65`.
 - **Capacidades por PDF:** `@/components/importar-pdf` (botão "Importar do PDF" na Nova turma e
   no `capacidades-editor`) → Server Action `@/lib/actions/capacidades-pdf` (≤ 4 MB, confere
   `%PDF`) → `@/lib/ia/capacidades-pdf` (`unpdf` extrai o texto; só páginas com "Capacidades
