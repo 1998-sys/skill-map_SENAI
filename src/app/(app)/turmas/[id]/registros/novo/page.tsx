@@ -24,6 +24,7 @@ export default async function NovoRegistroPage({
 
   const turma = await buscarTurma(id);
   if (!turma || turma.professorId !== profile.id) notFound();
+  if (turma.finalizadaEm) redirect(`/turmas/${turma.id}`); // só consulta
 
   // "Registrar" nas aulas sem registro chega com ?data=AAAA-MM-DD.
   const dataInicial = ehDiaValido(dataParam) ? dataParam : diaISOEmBrasilia();

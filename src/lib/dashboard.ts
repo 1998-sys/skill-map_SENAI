@@ -33,6 +33,7 @@ export type TurmaDashboard = {
   funil: FunilRegistros;
   cobertura: Cobertura | null; // null = turma sem calendário
   totalCapacidades: number;
+  finalizadaEm: Date | null; // fim do curso (não gera alertas)
 };
 
 export type SemanaRegistros = {
@@ -74,6 +75,7 @@ export async function obterDashboardCoordenacao(): Promise<DashboardData> {
     id: string;
     nome: string;
     datasAula: string[] | null;
+    finalizadaEm: string | null;
     curso: { nome: string };
     professor: { nome: string };
     capacidades: { count: number }[];
@@ -88,7 +90,8 @@ export async function obterDashboardCoordenacao(): Promise<DashboardData> {
     await db()
       .from("turmas")
       .select(
-        "id, nome, datasAula:datas_aula, curso:cursos(nome), professor:profiles(nome), " +
+        "id, nome, datasAula:datas_aula, finalizadaEm:finalizada_em, " +
+          "curso:cursos(nome), professor:profiles(nome), " +
           "capacidades(count), " +
           "registros(data, status, enviadoEm:enviado_em, analises(tipo))",
       )
@@ -165,6 +168,7 @@ export async function obterDashboardCoordenacao(): Promise<DashboardData> {
       funil,
       cobertura: coberturas.get(t.id) ?? null,
       totalCapacidades: t.capacidades[0]?.count ?? 0,
+      finalizadaEm: lerInstante(t.finalizadaEm),
     };
   });
 
@@ -331,7 +335,8 @@ export async function obterPainelCoordenacao(): Promise<DashboardData & PainelEx
 
   return {
     ...base,
-    alertas: alertas(base.turmas),
+    // Turma finalizada não pede ação: fica fora dos alertas.
+    alertas: alertas(base.turmas.filter((t) => !t.finalizadaEm)),
     ultimosEnvios: linhasEnvio.slice(0, MAX_ENVIOS).map((r) => ({
       id: r.id,
       turmaId: r.turma.id,

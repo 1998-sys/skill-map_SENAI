@@ -27,7 +27,13 @@ function SubmitButton() {
   );
 }
 
-export function TurmaForm() {
+export function TurmaForm({
+  professores,
+  meuId,
+}: {
+  professores: { id: string; nome: string }[] | null; // só para a Coordenação
+  meuId: string;
+}) {
   const [state, formAction] = useActionState<FormState, FormData>(
     createTurma,
     {},
@@ -90,6 +96,28 @@ export function TurmaForm() {
             <Input id="cargaHoraria" name="cargaHoraria" type="number" min="0" placeholder="Ex.: 800" className={inputCls} value={carga} onChange={(e) => setCarga(e.target.value)} />
           </div>
         </div>
+
+        {professores && (
+          <div className="mt-4 space-y-1.5 sm:max-w-md">
+            <Label htmlFor="professorId" className={labelCls}>Professor responsável</Label>
+            <select
+              id="professorId"
+              name="professorId"
+              defaultValue={state.valores?.professorId || meuId}
+              className="h-[42px] w-full rounded-lg border border-input bg-card px-3 text-[15px] outline-none focus-visible:ring-[3px] focus-visible:ring-ring/25"
+            >
+              {professores.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.nome}
+                  {p.id === meuId ? " — eu" : ""}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-muted-foreground">
+              A turma aparece para o professor escolhido, que registra as aulas.
+            </p>
+          </div>
+        )}
 
         {/* Calendário (obrigatório): período, dias e horas de aula. Os feriados
             nacionais saem sozinhos; um clique no dia ajusta. */}

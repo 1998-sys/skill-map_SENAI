@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { CalendarPlus, FolderOpen, History, Plus } from "lucide-react";
+import { CalendarPlus, CircleCheck, FolderOpen, History, Plus } from "lucide-react";
 import { getCurrentProfile } from "@/lib/auth";
 import {
   buscarTurma,
@@ -11,7 +11,10 @@ import { buttonVariants } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { SectionCard } from "@/components/ui/section-card";
 import { InfoField, PageNote } from "@/components/ui/info-field";
-import { diaISOEmBrasilia, formatarData } from "@/lib/datas";
+import { diaISOEmBrasilia, formatarData, formatarDataHora } from "@/lib/datas";
+import { lerInstante } from "@/lib/db/cliente";
+import { BotaoConfirmar } from "@/components/botao-confirmar";
+import { finalizarTurma } from "@/lib/actions/turmas-gestao";
 import { calcularCobertura, rotuloCurto } from "@/lib/calendario";
 import { CapacidadesEditor } from "./capacidades-editor";
 import { CalendarioForm } from "./calendario-form";
@@ -48,12 +51,21 @@ export default async function TurmaDetalhePage({
       )
     : null;
   const MAX_PENDENTES = 12;
+  const finalizadaEm = lerInstante(turma.finalizadaEm);
 
   return (
     <main className="mx-auto w-full max-w-5xl space-y-5 p-4 sm:p-6">
       <Link href="/turmas" className="text-sm text-muted-foreground hover:underline">
         ← Minhas turmas
       </Link>
+
+      {finalizadaEm && (
+        <p className="flex items-center gap-2 rounded-lg border border-success/30 bg-success-soft px-4 py-3 text-sm font-medium text-success">
+          <CircleCheck className="size-4 shrink-0" />
+          Turma finalizada em {formatarDataHora(finalizadaEm)}. Ela fica só para consulta; para
+          reabrir, fale com a Coordenação.
+        </p>
+      )}
 
       <SectionCard title="Dados da Turma">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-[2fr_1.2fr_2fr_1fr_1fr]">
@@ -77,7 +89,7 @@ export default async function TurmaDetalhePage({
         }
       >
         {cobertura && (
-          <div className="mb-5 space-y-4">
+          <div className={finalizadaEm ? "space-y-4" : "mb-5 space-y-4"}>
             <div className="grid gap-3 sm:grid-cols-4">
               <Indicador rotulo="Aulas previstas" valor={cobertura.previstas} />
               <Indicador rotulo="Já aconteceram" valor={cobertura.ocorridas} />
@@ -89,7 +101,7 @@ export default async function TurmaDetalhePage({
               <Indicador rotulo="Enviadas à Coordenação" valor={cobertura.enviadas} />
             </div>
 
-            {cobertura.semRegistro.length > 0 ? (
+            {finalizadaEm ? null : cobertura.semRegistro.length > 0 ? (
               <div>
                 <p className="mb-2 text-sm font-semibold text-warning">
                   {cobertura.semRegistro.length === 1
@@ -125,6 +137,7 @@ export default async function TurmaDetalhePage({
           </div>
         )}
 
+        {!finalizadaEm && (
         <details open={!cobertura} className="group rounded-lg border">
           <summary className="cursor-pointer list-none px-4 py-3 text-sm font-semibold text-primary-active hover:bg-muted">
             {cobertura ? "Editar calendário" : "Montar calendário"}
@@ -143,10 +156,22 @@ export default async function TurmaDetalhePage({
             />
           </div>
         </details>
+        )}
       </SectionCard>
 
       <SectionCard>
-        <CapacidadesEditor turmaId={turma.id} capacidades={turma.capacidades} />
+        {finalizadaEm ? (
+          <>
+            <h2 className="mb-3 text-xl font-extrabold tracking-tight">Capacidades do Curso</h2>
+            <ol className="list-decimal space-y-1 pl-5 text-[15px]">
+              {turma.capacidades.map((c) => (
+                <li key={c.id}>{c.texto}</li>
+              ))}
+            </ol>
+          </>
+        ) : (
+          <CapacidadesEditor turmaId={turma.id} capacidades={turma.capacidades} />
+        )}
       </SectionCard>
 
       <SectionCard
@@ -159,12 +184,14 @@ export default async function TurmaDetalhePage({
             >
               <History /> Ver histórico
             </Link>
-            <Link
-              href={`/turmas/${turma.id}/registros/novo`}
-              className={buttonVariants({ size: "lg" })}
-            >
-              <Plus /> Novo registro de aula
-            </Link>
+            {!finalizadaEm && (
+              <Link
+                href={`/turmas/${turma.id}/registros/novo`}
+                className={buttonVariants({ size: "lg" })}
+              >
+                <Plus /> Novo registro de aula
+              </Link>
+            )}
           </div>
         }
       >
@@ -211,6 +238,22 @@ export default async function TurmaDetalhePage({
           </div>
         )}
       </SectionCard>
+
+      {!finalizadaEm && (
+        <SectionCard
+          title="Finalizar turma"
+          description="Ao terminar o curso, finalize a turma. Ela sai das turmas em andamento e fica só para consulta (sem novos registros). Só a Coordenação pode reabrir."
+        >
+          <BotaoConfirmar
+            acao={finalizarTurma.bind(null, turma.id)}
+            rotulo="Finalizar turma"
+            aviso={`A turma "${turma.nome}" será finalizada: não será mais possível registrar aulas, analisar ou enviar registros. O histórico continua disponível.`}
+            sucesso="Turma finalizada."
+            tipo="restaurar"
+            icone={<CircleCheck />}
+          />
+        </SectionCard>
+      )}
 
       <PageNote>
         As capacidades são cadastradas uma única vez pelo professor, com base no

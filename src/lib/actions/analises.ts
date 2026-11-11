@@ -76,6 +76,9 @@ export async function analisarRegistro(
 ): Promise<AnaliseActionState> {
   const registro = await carregarRegistroDoDono(registroId);
   if (!registro) return { error: "Registro inválido ou sem permissão." };
+  if (registro.turma.finalizadaEm) {
+    return { error: "Turma finalizada: só consulta. Para reabrir, fale com a Coordenação." };
+  }
 
   const capacidades = registro.capacidades;
   if (capacidades.length === 0) {
@@ -129,6 +132,9 @@ export async function salvarAnaliseValidada(input: {
 }): Promise<AnaliseActionState> {
   const registro = await carregarRegistroDoDono(input.registroId);
   if (!registro) return { error: "Registro inválido ou sem permissão." };
+  if (registro.turma.finalizadaEm) {
+    return { error: "Turma finalizada: só consulta. Para reabrir, fale com a Coordenação." };
+  }
 
   const validas = new Set(registro.capacidades.map((c) => c.id));
   const capacidadeIds = input.capacidadeIds.filter((id) => validas.has(id));

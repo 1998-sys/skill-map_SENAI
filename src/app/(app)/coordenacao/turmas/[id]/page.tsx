@@ -2,12 +2,18 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getCurrentProfile } from "@/lib/auth";
 import { montarAcompanhamento } from "@/lib/acompanhamento";
+import { listarResponsaveis } from "@/lib/db/usuarios";
+import { lerInstante } from "@/lib/db/cliente";
+import { finalizarTurma, reabrirTurma } from "@/lib/actions/turmas-gestao";
+import { RealocarProfessor } from "./realocar-professor";
 import {
   CalendarDays,
   FileText,
   FolderOpen,
+  CircleCheck,
   Lightbulb,
   Printer,
+  RotateCcw,
   TriangleAlert,
 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
@@ -36,7 +42,10 @@ export default async function CoordenacaoTurmaPage({
   if (!profile) redirect("/login");
   if (profile.role !== "COORDENACAO") redirect("/dashboard");
 
-  const dados = await montarAcompanhamento(id);
+  const [dados, responsaveis] = await Promise.all([
+    montarAcompanhamento(id),
+    listarResponsaveis(),
+  ]);
   if (!dados) notFound();
   const {
     turma,
@@ -48,6 +57,7 @@ export default async function CoordenacaoTurmaPage({
     conteudo,
     resumoSalvo,
   } = dados;
+  const finalizadaEm = lerInstante(turma.finalizadaEm);
 
   return (
     <main className="mx-auto w-full max-w-5xl space-y-5 p-4 sm:p-6">
@@ -57,6 +67,14 @@ export default async function CoordenacaoTurmaPage({
       >
         ← Acompanhamento
       </Link>
+
+      {finalizadaEm && (
+        <p className="flex items-center gap-2 rounded-lg border border-success/30 bg-success-soft px-4 py-3 text-sm font-medium text-success">
+          <CircleCheck className="size-4 shrink-0" />
+          Turma finalizada em {formatarDataHora(finalizadaEm)}. O professor não registra mais aulas
+          nela; a Coordenação pode reabrir em &quot;Gestão da turma&quot;.
+        </p>
+      )}
 
       <SectionCard
         title="Acompanhamento da turma"
@@ -202,16 +220,53 @@ export default async function CoordenacaoTurmaPage({
       </SectionCard>
 
       <SectionCard
-        title="Excluir turma"
-        description="Somente a Coordenação pode excluir. A turma fica guardada em Excluídos e pode ser restaurada."
+        title="Gestão da turma"
+        description="Somente a Coordenação: trocar o professor responsável, finalizar ou reabrir e excluir a turma."
       >
-        <BotaoConfirmar
+        <RealocarProfessor
+          turmaId={turma.id}
+          atualId={turma.professorId}
+          opcoes={responsaveis.map((r) => ({
+            id: r.id,
+            nome: r.nome,
+            coordenacao: r.role === "COORDENACAO",
+          }))}
+        />
+        <p className="mt-1.5 text-xs text-muted-foreground">
+          Registros, rascunhos e histórico vão junto. O novo professor passa a ver e editar a turma.
+        </p>
+
+        <div className="mt-5 flex flex-wrap gap-3 border-t pt-5">
+          {finalizadaEm ? (
+            <BotaoConfirmar
+              acao={reabrirTurma.bind(null, turma.id)}
+              rotulo="Reabrir turma"
+              aviso="A turma volta para as turmas em andamento e o professor pode registrar aulas de novo."
+              sucesso="Turma reaberta."
+              tipo="restaurar"
+              icone={<RotateCcw />}
+            />
+          ) : (
+            <BotaoConfirmar
+              acao={finalizarTurma.bind(null, turma.id)}
+              rotulo="Finalizar turma"
+              aviso="A turma sai das turmas em andamento e fica só para consulta (sem novos registros)."
+              sucesso="Turma finalizada."
+              tipo="restaurar"
+              icone={<CircleCheck />}
+            />
+          )}
+          <BotaoConfirmar
           acao={arquivarTurma.bind(null, turma.id)}
           rotulo="Excluir turma"
           aviso={`A turma "${turma.nome}" vai sair de todas as telas, inclusive das do professor, junto com todos os registros dela (enviados e rascunhos). Nada é apagado do banco.`}
           sucesso="Turma excluída. Ela pode ser restaurada em Excluídos."
           redirecionarPara="/coordenacao/acompanhamento"
         />
+        </div>
+        <p className="mt-2 text-xs text-muted-foreground">
+          Excluir: a turma fica guardada em Excluídos e pode ser restaurada.
+        </p>
       </SectionCard>
 
       <PageNote>

@@ -8,6 +8,8 @@ import { getCurrentProfile } from "@/lib/auth";
 
 export type EnvioState = { error?: string; ok?: boolean };
 
+const TURMA_FINALIZADA = "Turma finalizada: só consulta. Para reabrir, fale com a Coordenação.";
+
 // Envia o registro do dia à Coordenação. Só é permitido depois de haver uma
 // análise validada pelo professor. Registra data/hora do envio.
 export async function enviarParaCoordenacao(
@@ -17,9 +19,11 @@ export async function enviarParaCoordenacao(
   if (!profile) redirect("/login");
 
   const registro = await buscarRegistro(registroId);
-  if (!registro || registro.professorId !== profile.id) {
+  // Dono = professor atual da turma (a turma pode ter sido realocada).
+  if (!registro || registro.turma.professorId !== profile.id) {
     return { error: "Registro inválido ou sem permissão." };
   }
+  if (registro.turma.finalizadaEm) return { error: TURMA_FINALIZADA };
   if (registro.status === "ENVIADO") {
     return { error: "Este registro já foi enviado à Coordenação." };
   }
@@ -56,9 +60,10 @@ export async function reabrirRegistro(
   if (!profile) redirect("/login");
 
   const registro = await buscarRegistro(registroId);
-  if (!registro || registro.professorId !== profile.id) {
+  if (!registro || registro.turma.professorId !== profile.id) {
     return { error: "Registro inválido ou sem permissão." };
   }
+  if (registro.turma.finalizadaEm) return { error: TURMA_FINALIZADA };
 
   exigir(
     await db()

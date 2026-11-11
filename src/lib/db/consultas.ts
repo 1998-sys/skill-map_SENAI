@@ -34,6 +34,8 @@ export type Turma = {
   diasSemana: number[] | null;
   horasPorDia: number | null;
   datasAula: string[] | null;
+  // Turma finalizada (fim do curso): instante sem fuso — use lerInstante.
+  finalizadaEm: string | null;
 };
 
 export type Registro = {
@@ -68,7 +70,7 @@ export type RegistroComAnalise = Registro & { ultimaAnalise: Analise | null };
 const SEL_TURMA =
   "id, nome, periodo, cargaHoraria:carga_horaria, professorId:professor_id, " +
   "dataInicio:data_inicio, dataFim:data_fim, diasSemana:dias_semana, " +
-  "horasPorDia:horas_por_dia, datasAula:datas_aula, " +
+  "horasPorDia:horas_por_dia, datasAula:datas_aula, finalizadaEm:finalizada_em, " +
   "curso:cursos(nome), professor:profiles(nome)";
 
 const SEL_REGISTRO =
@@ -143,6 +145,7 @@ export async function listarTurmasDoProfessor(professorId: string) {
   type Linha = {
     id: string;
     nome: string;
+    finalizadaEm: string | null;
     curso: { nome: string };
     capacidades: { count: number }[];
     registros: { count: number }[];
@@ -150,7 +153,9 @@ export async function listarTurmasDoProfessor(professorId: string) {
   const linhas = exigir<Linha[]>(
     await db()
       .from("turmas")
-      .select("id, nome, curso:cursos(nome), capacidades(count), registros(count)")
+      .select(
+        "id, nome, finalizadaEm:finalizada_em, curso:cursos(nome), capacidades(count), registros(count)",
+      )
       .eq("professor_id", professorId)
       .is("excluido_em", null)
       .is("registros.excluido_em", null) // a contagem ignora os arquivados
@@ -160,6 +165,7 @@ export async function listarTurmasDoProfessor(professorId: string) {
     id: t.id,
     nome: t.nome,
     curso: t.curso,
+    finalizadaEm: lerInstante(t.finalizadaEm),
     totalCapacidades: t.capacidades[0]?.count ?? 0,
     totalRegistros: t.registros[0]?.count ?? 0,
   }));

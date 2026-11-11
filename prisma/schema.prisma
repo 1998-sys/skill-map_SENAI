@@ -76,6 +76,9 @@ model Turma {
   // Arquivamento pela Coordenação (exclusão lógica): some das telas, fica no banco.
   excluidoEm   DateTime? @map("excluido_em")
   excluidoPor  String?   @map("excluido_por") @db.Uuid // profiles.id de quem arquivou
+  // Fim do curso: o professor finaliza (só consulta, sem novos registros); a Coordenação reabre.
+  finalizadaEm  DateTime? @map("finalizada_em")
+  finalizadaPor String?   @map("finalizada_por") @db.Uuid // profiles.id de quem finalizou
 
   curso       Curso        @relation(fields: [cursoId], references: [id])
   professor   Profile      @relation("ProfessorTurmas", fields: [professorId], references: [id])
