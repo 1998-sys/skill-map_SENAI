@@ -62,6 +62,10 @@ Supabase (Auth + Postgres) · Prisma 6 · OpenAI (`gpt-5-nano`) · deploy Vercel
   Básicas/Técnicas/Socioemocionais" vão à IA; sem texto → envia o PDF). Nada é salvo sem a revisão
   do professor; o PDF não é guardado. `next.config.ts` sobe o `bodySizeLimit` das Server Actions
   para 5 MB. **`unpdf` fixado em 1.8.1.**
+- **Catálogo de cursos:** `@/lib/catalogo-cursos` (no código, sem tabela) guarda nome, carga
+  horária e capacidades (técnicas + socioemocionais) dos Planos de Curso. Na Nova turma, o campo
+  Curso é `@/components/busca-curso` (busca sem acento + lista); escolher um curso preenche carga e
+  capacidades (pergunta antes de trocar o que já foi digitado). Nome fora do catálogo continua valendo.
 - **Calendário da turma (Dashboard onda 2):** colunas `data_inicio`, `data_fim`, `dias_semana`,
   `horas_por_dia` e `datas_aula` (lista final, já com feriados e cliques) em `turmas`. Lógica pura
   em `@/lib/calendario` (datas como texto "AAAA-MM-DD", feriados nacionais pela Páscoa,
