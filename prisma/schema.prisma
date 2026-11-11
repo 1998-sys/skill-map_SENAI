@@ -81,8 +81,24 @@ model Turma {
   professor   Profile      @relation("ProfessorTurmas", fields: [professorId], references: [id])
   capacidades Capacidade[]
   registros   Registro[]
+  resumos     ResumoTurma[]
 
   @@map("turmas")
+}
+
+// Resumo da turma com IA gerado pela Coordenação (o último aparece na tela).
+model ResumoTurma {
+  id             String   @id @db.Uuid
+  turmaId        String   @map("turma_id") @db.Uuid
+  texto          String
+  totalRegistros Int      @map("total_registros") // registros enviados considerados
+  geradoPor      String?  @map("gerado_por") @db.Uuid // profiles.id
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  turma Turma @relation(fields: [turmaId], references: [id], onDelete: Cascade)
+
+  @@index([turmaId, createdAt])
+  @@map("resumos_turma")
 }
 
 model Capacidade {

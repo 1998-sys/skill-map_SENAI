@@ -386,3 +386,36 @@ export async function listarArquivados(): Promise<{
     })),
   };
 }
+
+// ─── Resumo da turma (IA) ───────────────────────────────────────────────────
+
+export type ResumoSalvo = {
+  texto: string;
+  totalRegistros: number; // registros enviados que o resumo considerou
+  criadoEm: Date;
+  autorNome: string | null;
+};
+
+// Último resumo com IA salvo da turma (ou null). Se a tabela ainda não existir
+// no banco (SQL não aplicado), devolve null em vez de quebrar a tela.
+export async function buscarUltimoResumo(turmaId: string): Promise<ResumoSalvo | null> {
+  const { data, error } = await db()
+    .from("resumos_turma")
+    .select("texto, total_registros, gerado_por, created_at")
+    .eq("turma_id", turmaId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) {
+    console.error("[resumo] não foi possível ler resumos_turma:", error.message);
+    return null;
+  }
+  if (!data) return null;
+  const autor = data.gerado_por ? await buscarProfile(data.gerado_por) : null;
+  return {
+    texto: data.texto,
+    totalRegistros: data.total_registros,
+    criadoEm: lerInstante(data.created_at),
+    autorNome: autor?.nome ?? null,
+  };
+}

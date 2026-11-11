@@ -66,7 +66,10 @@ Supabase (Auth + Postgres) · Prisma 6 · OpenAI (`gpt-5-nano`) · deploy Vercel
   (alertas, últimos envios, pontos frequentes, semanas, acessos/excluídos). `/coordenacao/acompanhamento`
   lista as turmas (cartões + busca sem acento) e leva ao resumo da turma `/coordenacao/turmas/[id]`
   (pontos, intervenções, resumo com IA). No menu, `tambem` faz `/coordenacao/turmas/…` acender
-  "Acompanhamento".
+  "Acompanhamento". Dados da turma em `@/lib/acompanhamento` (`montarAcompanhamento`, usado pela tela
+  e pela impressão `/imprimir/turma/[id]`, fora de `(app)`). O resumo com IA é salvo pela rota
+  `/api/coordenacao/resumo` ao terminar (tabela `resumos_turma`); a tela mostra o último.
+- **Histórico:** filtros status, período (`de`/`ate` na URL, dia da aula) e busca sem acento.
 - **Catálogo de cursos:** `@/lib/catalogo-cursos` (no código, sem tabela) guarda nome, carga
   horária e capacidades (técnicas + socioemocionais) dos Planos de Curso. Na Nova turma, o campo
   Curso é `@/components/busca-curso` (busca sem acento + lista); escolher um curso preenche carga e

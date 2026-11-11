@@ -11,7 +11,12 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { SectionCard } from "@/components/ui/section-card";
 import { PageNote } from "@/components/ui/info-field";
 import { formatarData, formatarDataHora } from "@/lib/datas";
+import { normalizarBusca } from "@/lib/catalogo-cursos";
 import { Filtros } from "./filtros";
+
+// Aceita só datas "AAAA-MM-DD" vindas da URL (filtro por período).
+const DIA = /^\d{4}-\d{2}-\d{2}$/;
+const lerDiaParam = (v?: string) => (v && DIA.test(v) ? v : "");
 
 function trecho(texto: string, max = 160) {
   const t = texto.trim().replace(/\s+/g, " ");
@@ -23,10 +28,10 @@ export default async function HistoricoPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ status?: string; q?: string }>;
+  searchParams: Promise<{ status?: string; q?: string; de?: string; ate?: string }>;
 }) {
   const { id } = await params;
-  const { status: statusParam, q: qParam } = await searchParams;
+  const { status: statusParam, q: qParam, de: deParam, ate: ateParam } = await searchParams;
 
   const profile = await getCurrentProfile();
   if (!profile) redirect("/login");
@@ -40,6 +45,10 @@ export default async function HistoricoPage({
       ? statusParam
       : undefined;
   const q = (qParam ?? "").trim();
+  // Período (dia da aula). Se vierem invertidos, troca.
+  let de = lerDiaParam(deParam);
+  let ate = lerDiaParam(ateParam);
+  if (de && ate && de > ate) [de, ate] = [ate, de];
 
   const registros = await listarRegistrosComUltimaAnalise(turma.id, { status });
 
@@ -64,15 +73,26 @@ export default async function HistoricoPage({
       ...(ultima?.sugestoes ?? []),
       ultima?.observacoesAdicionais ?? "",
     ]
-      .join("\n")
-      .toLowerCase();
+      .join("\n");
 
-    return { r, capacidades, sintese, haystack, temAnalise: Boolean(ultima) };
+    return {
+      r,
+      capacidades,
+      sintese,
+      haystack: normalizarBusca(haystack),
+      dia: r.data.toISOString().slice(0, 10), // dia da aula (coluna date, em UTC)
+      temAnalise: Boolean(ultima),
+    };
   });
 
-  const filtrados = q
-    ? itens.filter((it) => it.haystack.includes(q.toLowerCase()))
-    : itens;
+  // Busca sem acento, com todas as palavras (em qualquer ordem) + período.
+  const palavras = normalizarBusca(q).split(/\s+/).filter(Boolean);
+  const filtrados = itens.filter(
+    (it) =>
+      palavras.every((p) => it.haystack.includes(p)) &&
+      (!de || it.dia >= de) &&
+      (!ate || it.dia <= ate),
+  );
 
   // Abre a Análise quando já existe; senão, o Registro Diário (para analisar).
   const abrir = (registroId: string, temAnalise: boolean) =>
@@ -99,12 +119,12 @@ export default async function HistoricoPage({
           </Link>
         }
       >
-        <Filtros status={status ?? ""} q={q} />
+        <Filtros status={status ?? ""} q={q} de={de} ate={ate} />
 
         <p className="mt-4 text-xs text-muted-foreground">
           {filtrados.length}{" "}
           {filtrados.length === 1 ? "registro" : "registros"}
-          {(q || status) && " (filtrado)"}
+          {(q || status || de || ate) && " (filtrado)"}
         </p>
 
         {filtrados.length === 0 ? (
