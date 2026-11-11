@@ -62,6 +62,11 @@ Supabase (Auth + Postgres) · Prisma 6 · OpenAI (`gpt-5-nano`) · deploy Vercel
   Básicas/Técnicas/Socioemocionais" vão à IA; sem texto → envia o PDF). Nada é salvo sem a revisão
   do professor; o PDF não é guardado. `next.config.ts` sobe o `bodySizeLimit` das Server Actions
   para 5 MB. **`unpdf` fixado em 1.8.1.**
+- **Coordenação — Dashboard × Acompanhamento:** `/coordenacao/dashboard` só indicadores gerais
+  (alertas, últimos envios, pontos frequentes, semanas, acessos/excluídos). `/coordenacao/acompanhamento`
+  lista as turmas (cartões + busca sem acento) e leva ao resumo da turma `/coordenacao/turmas/[id]`
+  (pontos, intervenções, resumo com IA). No menu, `tambem` faz `/coordenacao/turmas/…` acender
+  "Acompanhamento".
 - **Catálogo de cursos:** `@/lib/catalogo-cursos` (no código, sem tabela) guarda nome, carga
   horária e capacidades (técnicas + socioemocionais) dos Planos de Curso. Na Nova turma, o campo
   Curso é `@/components/busca-curso` (busca sem acento + lista); escolher um curso preenche carga e

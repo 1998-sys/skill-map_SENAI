@@ -102,10 +102,10 @@ export default async function CoordenacaoTurmaPage({
   return (
     <main className="mx-auto w-full max-w-5xl space-y-5 p-4 sm:p-6">
       <Link
-        href="/coordenacao/dashboard"
+        href="/coordenacao/acompanhamento"
         className="text-sm text-muted-foreground hover:underline"
       >
-        ← Dashboard
+        ← Acompanhamento
       </Link>
 
       <SectionCard title="Acompanhamento da turma">
@@ -249,7 +249,7 @@ export default async function CoordenacaoTurmaPage({
           rotulo="Excluir turma"
           aviso={`A turma "${turma.nome}" vai sair de todas as telas, inclusive das do professor, junto com todos os registros dela (enviados e rascunhos). Nada é apagado do banco.`}
           sucesso="Turma excluída. Ela pode ser restaurada em Excluídos."
-          redirecionarPara="/coordenacao/dashboard"
+          redirecionarPara="/coordenacao/acompanhamento"
         />
       </SectionCard>
 

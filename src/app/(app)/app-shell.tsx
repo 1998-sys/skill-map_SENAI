@@ -52,10 +52,33 @@ function IconDash() {
   );
 }
 
-const NAV: { href: string; label: string; Icon: () => React.ReactElement; role?: Role }[] = [
+function IconClipboard() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+      <rect x="8" y="2" width="8" height="4" rx="1" /><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /><path d="M9 12h6" /><path d="M9 16h6" />
+    </svg>
+  );
+}
+
+// `tambem`: outras rotas que acendem o item (ex.: o resumo de uma turma da
+// Coordenação fica em /coordenacao/turmas/…, mas pertence ao Acompanhamento).
+const NAV: {
+  href: string;
+  label: string;
+  Icon: () => React.ReactElement;
+  role?: Role;
+  tambem?: string[];
+}[] = [
   { href: "/dashboard", label: "Início", Icon: IconHome },
   { href: "/turmas", label: "Turmas", Icon: IconUsers },
   { href: "/coordenacao/dashboard", label: "Dashboard", Icon: IconDash, role: "COORDENACAO" },
+  {
+    href: "/coordenacao/acompanhamento",
+    label: "Acompanhamento",
+    Icon: IconClipboard,
+    role: "COORDENACAO",
+    tambem: ["/coordenacao/turmas"],
+  },
   { href: "/coordenacao/excluidos", label: "Excluídos", Icon: IconArchive, role: "COORDENACAO" },
   { href: "/coordenacao/usuarios", label: "Usuários", Icon: IconUserKey, role: "COORDENACAO" },
 ];
@@ -119,7 +142,9 @@ export function AppShell({
   // Item ativo = href que casa com a rota e é o MAIS específico (ex.: em
   // /coordenacao/dashboard, "Dashboard" acende, não "Coordenação").
   const activeHref = items
-    .filter((i) => pathname === i.href || pathname.startsWith(i.href + "/"))
+    .filter((i) =>
+      [i.href, ...(i.tambem ?? [])].some((h) => pathname === h || pathname.startsWith(h + "/")),
+    )
     .reduce<string | null>(
       (best, i) => (!best || i.href.length > best.length ? i.href : best),
       null,
