@@ -6,8 +6,8 @@ import {
   CalendarCheck,
   CalendarX,
   Clock,
+  ClipboardList,
   FileText,
-  FolderOpen,
   ListX,
   PauseCircle,
   Send,
@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 import { getCurrentProfile } from "@/lib/auth";
 import { DIAS_PARADA, obterPainelCoordenacao, type TurmaAlerta } from "@/lib/dashboard";
-import type { Cobertura } from "@/lib/calendario";
 import { formatarData, formatarDataHora, formatarDiaDoInstante } from "@/lib/datas";
 import { buttonVariants } from "@/components/ui/button";
 import { SectionCard } from "@/components/ui/section-card";
@@ -25,7 +24,8 @@ import { PageNote } from "@/components/ui/info-field";
 
 // Dashboard da Coordenação — tela única (antes: "Painel" + "Dashboard").
 // Indicadores, o que precisa de ação, últimos envios, pontos de atenção que se
-// repetem, atividade por semana, turmas e um resumo de acessos/excluídos.
+// repetem, atividade por semana e um resumo de acessos/excluídos.
+// A lista de turmas com o resumo de cada uma fica em "Acompanhamento".
 // Somente leitura e sem ranking de professores.
 
 export default async function DashboardCoordenacaoPage() {
@@ -34,8 +34,7 @@ export default async function DashboardCoordenacaoPage() {
   if (profile.role !== "COORDENACAO") redirect("/dashboard");
 
   const painel = await obterPainelCoordenacao();
-  const { consolidado, turmas, registrosPorSemana, alertas, ultimosEnvios, pontosFrequentes } =
-    painel;
+  const { consolidado, registrosPorSemana, alertas, ultimosEnvios, pontosFrequentes } = painel;
   const maxSemana = Math.max(1, ...registrosPorSemana.map((s) => s.total));
   const ultimoEnvio = ultimosEnvios[0]?.enviadoEm ?? null;
   const totalAlertas =
@@ -49,7 +48,12 @@ export default async function DashboardCoordenacaoPage() {
       {/* 1. Indicadores */}
       <SectionCard
         title="Dashboard"
-        description="Acompanhamento de todas as turmas: se o SkillMap está sendo alimentado, o que já chegou à Coordenação e o que precisa de atenção. Sem ranking de professores."
+        description="Indicadores de todas as turmas: se o SkillMap está sendo alimentado, o que já chegou à Coordenação e o que precisa de atenção. Sem ranking de professores."
+        action={
+          <Link href="/coordenacao/acompanhamento" className={buttonVariants({ variant: "outline-primary", size: "sm" })}>
+            <ClipboardList /> Acompanhamento por turma
+          </Link>
+        }
       >
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           <StatCard icon={<Users className="size-5" />} label="Turmas" value={consolidado.totalTurmas} />
@@ -103,7 +107,7 @@ export default async function DashboardCoordenacaoPage() {
         description={
           totalAlertas === 0
             ? undefined
-            : "Turmas que pedem alguma ação. Clique para abrir a turma."
+            : "Turmas que pedem alguma ação. Clique para abrir o acompanhamento da turma."
         }
       >
         {totalAlertas === 0 ? (
@@ -223,66 +227,7 @@ export default async function DashboardCoordenacaoPage() {
         </div>
       </SectionCard>
 
-      {/* 5. Turmas */}
-      <SectionCard title="Turmas" description="Registros, funil da análise, cobertura e atividade por turma.">
-        {turmas.length === 0 ? (
-          <Vazio>Nenhuma turma cadastrada ainda.</Vazio>
-        ) : (
-          <div className="overflow-x-auto rounded-lg border">
-            <table className="w-full text-sm">
-              <thead className="bg-surface-strong text-left text-title">
-                <tr>
-                  <th className="px-4 py-2.5 font-semibold">Turma</th>
-                  <th className="hidden px-4 py-2.5 font-semibold md:table-cell">Professor</th>
-                  <th className="px-4 py-2.5 text-center font-semibold">Registros</th>
-                  <th className="hidden px-4 py-2.5 font-semibold lg:table-cell">
-                    Funil (sem · IA · validada · enviada)
-                  </th>
-                  <th className="px-4 py-2.5 font-semibold">Cobertura</th>
-                  <th className="hidden px-4 py-2.5 font-semibold sm:table-cell">Último envio</th>
-                  <th className="w-px px-4 py-2.5 font-semibold">Ação</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {turmas.map((t) => (
-                  <tr key={t.id}>
-                    <td className="px-4 py-3">
-                      <p className="font-medium">{t.nome}</p>
-                      <p className="text-xs text-muted-foreground">{t.cursoNome}</p>
-                    </td>
-                    <td className="hidden px-4 py-3 md:table-cell">{t.professorNome}</td>
-                    <td className="px-4 py-3 text-center tabular-nums">
-                      {t.totalRegistros}
-                      <span className="block text-xs text-muted-foreground">
-                        {t.enviados} {t.enviados === 1 ? "enviado" : "enviados"}
-                      </span>
-                    </td>
-                    <td className="hidden px-4 py-3 lg:table-cell">
-                      <Funil funil={t.funil} />
-                    </td>
-                    <td className="px-4 py-3">
-                      <CoberturaCelula cobertura={t.cobertura} />
-                    </td>
-                    <td className="hidden px-4 py-3 text-xs whitespace-nowrap text-muted-foreground tabular-nums sm:table-cell">
-                      {t.ultimoEnvio ? formatarDataHora(t.ultimoEnvio) : "—"}
-                    </td>
-                    <td className="px-4 py-2">
-                      <Link
-                        href={`/coordenacao/turmas/${t.id}`}
-                        className={buttonVariants({ variant: "outline-primary", size: "sm" })}
-                      >
-                        <FolderOpen /> Abrir
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </SectionCard>
-
-      {/* 6. Acessos e excluídos */}
+      {/* 5. Acessos e excluídos */}
       <div className="grid gap-5 md:grid-cols-2">
         <SectionCard
           title="Acessos"
@@ -392,44 +337,3 @@ function Vazio({ children }: { children: React.ReactNode }) {
   );
 }
 
-function CoberturaCelula({ cobertura }: { cobertura: Cobertura | null }) {
-  if (!cobertura) return <span className="text-xs text-muted-foreground">sem calendário</span>;
-  if (cobertura.ocorridas === 0) {
-    return (
-      <span className="text-xs text-muted-foreground">
-        {cobertura.previstas} aulas previstas · ainda não começou
-      </span>
-    );
-  }
-  const pendentes = cobertura.semRegistro.length;
-  return (
-    <div className="text-xs leading-relaxed">
-      <p className="font-semibold tabular-nums text-title">
-        {cobertura.registradas}/{cobertura.ocorridas} aulas ({cobertura.percentual}%)
-      </p>
-      <p className="tabular-nums text-muted-foreground">
-        {cobertura.enviadas} enviadas · {cobertura.previstas} previstas
-      </p>
-      {pendentes > 0 && <p className="font-medium text-warning">{pendentes} sem registro</p>}
-    </div>
-  );
-}
-
-function Funil({ funil }: { funil: { sem: number; gerada: number; validada: number; enviada: number } }) {
-  const itens = [
-    { n: funil.sem, cor: "bg-muted-foreground", titulo: "Sem análise" },
-    { n: funil.gerada, cor: "bg-warning", titulo: "Gerada pela IA" },
-    { n: funil.validada, cor: "bg-success", titulo: "Validada" },
-    { n: funil.enviada, cor: "bg-primary", titulo: "Enviada" },
-  ];
-  return (
-    <div className="flex items-center gap-3 text-xs tabular-nums">
-      {itens.map((i) => (
-        <span key={i.titulo} className="flex items-center gap-1.5" title={i.titulo}>
-          <span className={`inline-block size-2.5 rounded-sm ${i.cor}`} aria-hidden="true" />
-          {i.n}
-        </span>
-      ))}
-    </div>
-  );
-}
