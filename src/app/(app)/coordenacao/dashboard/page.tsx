@@ -253,7 +253,9 @@ export default async function DashboardCoordenacaoPage() {
                     <td className="hidden px-4 py-3 md:table-cell">{t.professorNome}</td>
                     <td className="px-4 py-3 text-center tabular-nums">
                       {t.totalRegistros}
-                      <span className="block text-xs text-muted-foreground">{t.enviados} enviados</span>
+                      <span className="block text-xs text-muted-foreground">
+                        {t.enviados} {t.enviados === 1 ? "enviado" : "enviados"}
+                      </span>
                     </td>
                     <td className="hidden px-4 py-3 lg:table-cell">
                       <Funil funil={t.funil} />
