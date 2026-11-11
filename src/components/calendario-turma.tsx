@@ -34,9 +34,11 @@ const campo =
 export function CalendarioTurma({
   inicial,
   cargaHoraria,
+  rotuloClasse = "text-sm font-semibold",
 }: {
   inicial?: CalendarioInicial;
   cargaHoraria?: number | null;
+  rotuloClasse?: string; // para combinar com os rótulos do formulário ao redor
 }) {
   const [inicio, setInicio] = useState(inicial?.inicio ?? "");
   const [fim, setFim] = useState(inicial?.fim ?? "");
@@ -98,10 +100,11 @@ export function CalendarioTurma({
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_2fr_0.8fr]">
         <div className="space-y-1.5">
-          <label htmlFor="cal-inicio" className="text-sm font-semibold">Início</label>
+          <label htmlFor="cal-inicio" className={rotuloClasse}>Início das aulas</label>
           <input
             id="cal-inicio"
             type="date"
+            required
             value={inicio}
             className={campo}
             onChange={(e) => {
@@ -111,10 +114,11 @@ export function CalendarioTurma({
           />
         </div>
         <div className="space-y-1.5">
-          <label htmlFor="cal-fim" className="text-sm font-semibold">Término</label>
+          <label htmlFor="cal-fim" className={rotuloClasse}>Término das aulas</label>
           <input
             id="cal-fim"
             type="date"
+            required
             value={fim}
             min={inicio || undefined}
             className={campo}
@@ -125,7 +129,7 @@ export function CalendarioTurma({
           />
         </div>
         <fieldset className="space-y-1.5">
-          <legend className="mb-1.5 text-sm font-semibold">Dias de aula</legend>
+          <legend className={`mb-1.5 ${rotuloClasse}`}>Dias de aula</legend>
           <div className="flex flex-wrap gap-1.5">
             {ORDEM_DIAS.map((d) => {
               const ativo = dias.includes(d);
@@ -148,10 +152,11 @@ export function CalendarioTurma({
           </div>
         </fieldset>
         <div className="space-y-1.5">
-          <label htmlFor="cal-horas" className="text-sm font-semibold">Horas por dia</label>
+          <label htmlFor="cal-horas" className={rotuloClasse}>Horas por dia</label>
           <input
             id="cal-horas"
             type="number"
+            required
             min="0.5"
             max="24"
             step="0.5"

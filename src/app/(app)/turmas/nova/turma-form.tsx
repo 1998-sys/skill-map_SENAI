@@ -50,33 +50,32 @@ export function TurmaForm() {
     <form action={formAction} className="space-y-5">
       <SectionCard
         title="Dados da Turma"
-        description="Configure a turma uma única vez e informe as capacidades que a IA vai usar."
+        description="Configure a turma uma única vez: dados, período e dias de aula. Os feriados nacionais saem sozinhos; clique em um dia do calendário para ajustar."
       >
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-[2fr_1.4fr_1fr_1fr]">
           <div className="space-y-1.5 sm:col-span-2 lg:col-span-1">
             <Label htmlFor="curso" className={labelCls}>Curso</Label>
-            <Input id="curso" name="curso" required placeholder="Ex.: Técnico em Eletroeletrônica" className={inputCls} />
+            <Input id="curso" name="curso" required placeholder="Ex.: Técnico em Eletroeletrônica" className={inputCls} defaultValue={state.valores?.curso} />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="turma" className={labelCls}>Turma</Label>
-            <Input id="turma" name="turma" required placeholder="Ex.: Turma A - Noturno" className={inputCls} />
+            <Input id="turma" name="turma" required placeholder="Ex.: Turma A - Noturno" className={inputCls} defaultValue={state.valores?.turma} />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="periodo" className={labelCls}>Período</Label>
-            <Input id="periodo" name="periodo" placeholder="Ex.: 2026/1" className={inputCls} />
+            <Input id="periodo" name="periodo" placeholder="Ex.: 2026/1" className={inputCls} defaultValue={state.valores?.periodo} />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="cargaHoraria" className={labelCls}>Carga horária (h)</Label>
             <Input id="cargaHoraria" name="cargaHoraria" type="number" min="0" placeholder="Ex.: 800" className={inputCls} value={carga} onChange={(e) => setCarga(e.target.value)} />
           </div>
         </div>
-      </SectionCard>
 
-      <SectionCard
-        title="Calendário da turma (opcional)"
-        description="Informe o período, os dias e as horas de aula. Os feriados nacionais saem sozinhos; clique em um dia para ajustar. Com o calendário, o SkillMap mostra as aulas sem registro."
-      >
-        <CalendarioTurma cargaHoraria={Number(carga) || null} />
+        {/* Calendário (obrigatório): período, dias e horas de aula. Os feriados
+            nacionais saem sozinhos; um clique no dia ajusta. */}
+        <div className="mt-5 border-t pt-5">
+          <CalendarioTurma cargaHoraria={Number(carga) || null} rotuloClasse={labelCls} />
+        </div>
       </SectionCard>
 
       <SectionCard
@@ -89,6 +88,7 @@ export function TurmaForm() {
         <Textarea
           ref={caixaCapacidades}
           id="capacidades"
+          defaultValue={state.valores?.capacidades}
           name="capacidades"
           rows={10}
           className="min-h-56 text-[15px] leading-relaxed"
