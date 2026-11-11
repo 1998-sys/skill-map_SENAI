@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ClipboardList, Search } from "lucide-react";
+import { CircleCheck, ClipboardList, Search } from "lucide-react";
 import { getCurrentProfile } from "@/lib/auth";
 import { obterDashboardCoordenacao, type TurmaDashboard } from "@/lib/dashboard";
 import { normalizarBusca } from "@/lib/catalogo-cursos";
-import { formatarDataHora } from "@/lib/datas";
+import { formatarDataHora, formatarDiaDoInstante } from "@/lib/datas";
 import { buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SectionCard } from "@/components/ui/section-card";
@@ -15,22 +15,39 @@ import { PageNote } from "@/components/ui/info-field";
 // positivos, intervenções sugeridas, resumo com IA e registros enviados.
 // Fica separado do Dashboard, que mostra só os indicadores gerais.
 
+type Situacao = "andamento" | "finalizadas" | "todas";
+const SITUACOES: { valor: Situacao; rotulo: string }[] = [
+  { valor: "andamento", rotulo: "Em andamento" },
+  { valor: "finalizadas", rotulo: "Finalizadas" },
+  { valor: "todas", rotulo: "Todas" },
+];
+
 export default async function AcompanhamentoPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; situacao?: string }>;
 }) {
   const profile = await getCurrentProfile();
   if (!profile) redirect("/login");
   if (profile.role !== "COORDENACAO") redirect("/dashboard");
 
-  const { q: qParam } = await searchParams;
+  const { q: qParam, situacao: situacaoParam } = await searchParams;
   const q = (qParam ?? "").trim();
+  const situacao: Situacao =
+    situacaoParam === "finalizadas" || situacaoParam === "todas" ? situacaoParam : "andamento";
   const { turmas } = await obterDashboardCoordenacao();
 
   // Busca sem acento por turma, curso ou professor (todas as palavras).
   const palavras = normalizarBusca(q).split(/\s+/).filter(Boolean);
+  const contagem = {
+    andamento: turmas.filter((t) => !t.finalizadaEm).length,
+    finalizadas: turmas.filter((t) => t.finalizadaEm).length,
+    todas: turmas.length,
+  };
   const filtradas = turmas
+    .filter((t) =>
+      situacao === "todas" ? true : situacao === "finalizadas" ? !!t.finalizadaEm : !t.finalizadaEm,
+    )
     .filter((t) => {
       if (palavras.length === 0) return true;
       const alvo = normalizarBusca(`${t.nome} ${t.cursoNome} ${t.professorNome}`);
@@ -45,7 +62,30 @@ export default async function AcompanhamentoPage({
         title="Acompanhamento"
         description="Escolha uma turma para ver o resumo do acompanhamento: pontos de atenção, avanços, intervenções sugeridas, resumo com IA e os registros enviados pelo professor."
       >
+        <nav aria-label="Situação das turmas" className="mb-4 flex flex-wrap gap-2">
+          {SITUACOES.map((s) => {
+            const params = new URLSearchParams();
+            if (s.valor !== "andamento") params.set("situacao", s.valor);
+            if (q) params.set("q", q);
+            const ativo = s.valor === situacao;
+            return (
+              <Link
+                key={s.valor}
+                href={`/coordenacao/acompanhamento${params.size ? `?${params}` : ""}`}
+                aria-current={ativo ? "page" : undefined}
+                className={buttonVariants({
+                  variant: ativo ? "default" : "outline-primary",
+                  size: "sm",
+                })}
+              >
+                {s.rotulo} ({contagem[s.valor]})
+              </Link>
+            );
+          })}
+        </nav>
+
         <form className="flex flex-col gap-2 sm:flex-row" role="search">
+          {situacao !== "andamento" && <input type="hidden" name="situacao" value={situacao} />}
           <div className="relative flex-1">
             <Search
               className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
@@ -63,7 +103,10 @@ export default async function AcompanhamentoPage({
             Buscar
           </button>
           {q && (
-            <Link href="/coordenacao/acompanhamento" className={buttonVariants({ variant: "ghost", size: "lg", className: "h-10" })}>
+            <Link
+              href={`/coordenacao/acompanhamento${situacao !== "andamento" ? `?situacao=${situacao}` : ""}`}
+              className={buttonVariants({ variant: "ghost", size: "lg", className: "h-10" })}
+            >
               Limpar
             </Link>
           )}
@@ -76,7 +119,13 @@ export default async function AcompanhamentoPage({
 
       {filtradas.length === 0 ? (
         <p className="rounded-lg border border-dashed bg-card p-8 text-center text-sm text-muted-foreground">
-          {turmas.length === 0 ? "Nenhuma turma cadastrada ainda." : "Nenhuma turma encontrada."}
+          {turmas.length === 0
+            ? "Nenhuma turma cadastrada ainda."
+            : q
+              ? "Nenhuma turma encontrada."
+              : situacao === "finalizadas"
+                ? "Nenhuma turma finalizada ainda."
+                : "Nenhuma turma em andamento."}
         </p>
       ) : (
         <ul className="grid gap-4 md:grid-cols-2">
@@ -105,6 +154,11 @@ function CartaoTurma({ turma: t }: { turma: TurmaDashboard }) {
         <p className="text-sm text-muted-foreground">{t.cursoNome}</p>
         <p className="text-xs text-muted-foreground">Prof. {t.professorNome}</p>
       </Link>
+      {t.finalizadaEm && (
+        <p className="mt-2 inline-flex w-fit items-center gap-1.5 rounded-full bg-success-soft px-2.5 py-0.5 text-xs font-semibold text-success">
+          <CircleCheck className="size-3.5" /> Finalizada em {formatarDiaDoInstante(t.finalizadaEm)}
+        </p>
+      )}
 
       <dl className="mt-3 grid grid-cols-3 gap-2 text-center">
         <Dado rotulo="enviados" valor={String(t.enviados)} destaque />
@@ -118,7 +172,7 @@ function CartaoTurma({ turma: t }: { turma: TurmaDashboard }) {
       <p className="mt-3 text-xs text-muted-foreground">
         Último envio: {t.ultimoEnvio ? formatarDataHora(t.ultimoEnvio) : "nenhum ainda"}
         {!cob && " · sem calendário"}
-        {pendentes > 0 && (
+        {pendentes > 0 && !t.finalizadaEm && (
           <span className="font-medium text-warning">
             {" "}
             · {pendentes} {pendentes === 1 ? "aula sem registro" : "aulas sem registro"}

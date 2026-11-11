@@ -6,12 +6,19 @@ import { agora, db, exigir, novoId } from "@/lib/db/cliente";
 import { buscarTurma } from "@/lib/db/consultas";
 import { getCurrentProfile } from "@/lib/auth";
 import { lerCalendario } from "@/lib/calendario-form";
+import { listarResponsaveis } from "@/lib/db/usuarios";
 
 export type FormState = {
   error?: string;
   // Em caso de erro, devolve o que foi digitado para o formulário não apagar
   // (o React limpa os campos depois de enviar).
-  valores?: { curso: string; turma: string; periodo: string; capacidades: string };
+  valores?: {
+    curso: string;
+    turma: string;
+    periodo: string;
+    capacidades: string;
+    professorId?: string;
+  };
 };
 
 // Quebra o texto colado em capacidades individuais (uma por linha não vazia).
@@ -44,6 +51,9 @@ async function requireTurmaOwner(turmaId: string) {
   if (!turma || turma.professorId !== profile.id) {
     throw new Error("Você não tem permissão para editar esta turma.");
   }
+  if (turma.finalizadaEm) {
+    throw new Error("Turma finalizada: só consulta. Para reabrir, fale com a Coordenação.");
+  }
   return profile;
 }
 
@@ -62,12 +72,24 @@ export async function createTurma(
   const cargaHoraria = cargaRaw ? Number.parseInt(cargaRaw, 10) : null;
   const textoCapacidades = String(formData.get("capacidades") ?? "");
   const capacidades = parseCapacidades(textoCapacidades);
+  // Professor responsável: o professor cria para si; a Coordenação pode
+  // escolher outro (campo "professorId", só aparece para ela).
+  const escolhido = String(formData.get("professorId") ?? "").trim();
   const valores = {
     curso: cursoNome,
     turma: turmaNome,
     periodo: periodo ?? "",
     capacidades: textoCapacidades,
+    professorId: escolhido,
   };
+  let professorId = profile.id;
+  if (profile.role === "COORDENACAO" && escolhido && escolhido !== profile.id) {
+    const alvo = (await listarResponsaveis()).find((u) => u.id === escolhido);
+    if (!alvo) {
+      return { error: "Escolha um professor com acesso ativo.", valores };
+    }
+    professorId = alvo.id;
+  }
 
   if (!cursoNome || !turmaNome) {
     return { error: "Informe ao menos o nome do curso e da turma.", valores };
@@ -98,7 +120,7 @@ export async function createTurma(
         periodo,
         carga_horaria: cargaHoraria,
         curso_id: cursoId,
-        professor_id: profile.id,
+        professor_id: professorId,
         updated_at: momento,
         ...calendario.colunas,
       }),
@@ -128,7 +150,9 @@ export async function createTurma(
   }
 
   revalidatePath("/turmas");
-  redirect(`/turmas/${turmaId}`);
+  // Turma criada pela Coordenação para outro professor: abre o acompanhamento
+  // (a tela da turma é do professor responsável).
+  redirect(professorId === profile.id ? `/turmas/${turmaId}` : `/coordenacao/turmas/${turmaId}`);
 }
 
 // Adiciona uma capacidade ao final da lista.

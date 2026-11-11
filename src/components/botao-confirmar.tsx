@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { isValidElement, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { RotateCcw, Trash2 } from "lucide-react";
@@ -25,12 +25,17 @@ export function BotaoConfirmar({
   sucesso: string;
   redirecionarPara?: string;
   tipo?: "excluir" | "restaurar";
-  icone?: React.ComponentType; // troca o ícone padrão (lixeira / restaurar)
+  // Troca o ícone padrão (lixeira / restaurar). De uma página do servidor,
+  // passe o elemento pronto (<CircleCheck />): componente não atravessa.
+  icone?: React.ComponentType | React.ReactElement;
 }) {
   const router = useRouter();
   const [confirmando, setConfirmando] = useState(false);
   const [pendente, startTransition] = useTransition();
-  const Icone = icone ?? (tipo === "excluir" ? Trash2 : RotateCcw);
+  const Padrao = tipo === "excluir" ? Trash2 : RotateCcw;
+  const iconeEl = isValidElement(icone) ? icone : null;
+  const Icone = (!iconeEl && (icone as React.ComponentType | undefined)) || Padrao;
+  const desenho = iconeEl ?? <Icone />;
 
   function executar() {
     startTransition(async () => {
@@ -53,7 +58,7 @@ export function BotaoConfirmar({
         variant={tipo === "excluir" ? "destructive" : "outline-primary"}
         onClick={() => setConfirmando(true)}
       >
-        <Icone /> {rotulo}
+        {desenho} {rotulo}
       </Button>
     );
   }
@@ -73,7 +78,7 @@ export function BotaoConfirmar({
           disabled={pendente}
           autoFocus
         >
-          <Icone /> {pendente ? "Aguarde..." : `Confirmar: ${rotulo.toLowerCase()}`}
+          {desenho} {pendente ? "Aguarde..." : `Confirmar: ${rotulo.toLowerCase()}`}
         </Button>
         <Button
           type="button"

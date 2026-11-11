@@ -69,6 +69,13 @@ Supabase (Auth + Postgres) · Prisma 6 · OpenAI (`gpt-5-nano`) · deploy Vercel
   "Acompanhamento". Dados da turma em `@/lib/acompanhamento` (`montarAcompanhamento`, usado pela tela
   e pela impressão `/imprimir/turma/[id]`, fora de `(app)`). O resumo com IA é salvo pela rota
   `/api/coordenacao/resumo` ao terminar (tabela `resumos_turma`); a tela mostra o último.
+- **Turma: responsável e finalização** (`@/lib/actions/turmas-gestao`): a Coordenação escolhe o
+  professor na Nova turma e realoca em "Gestão da turma" (`listarResponsaveis` = perfil + acesso
+  ativo). Dono de registro = **professor atual da turma** (`registro.turma.professorId`), não o
+  autor. Professor ou Coordenação finaliza (`finalizada_em`/`finalizada_por`); só a Coordenação
+  reabre. Turma finalizada = só consulta (actions recusam; alertas ignoram). Acompanhamento filtra
+  `?situacao=andamento|finalizadas|todas`. `BotaoConfirmar` aceita `icone` como elemento (`<X />`)
+  quando vem de página do servidor.
 - **Histórico:** filtros status, período (`de`/`ate` na URL, dia da aula) e busca sem acento.
 - **Catálogo de cursos:** `@/lib/catalogo-cursos` (no código, sem tabela) guarda nome, carga
   horária e capacidades (técnicas + socioemocionais) dos Planos de Curso. Na Nova turma, o campo

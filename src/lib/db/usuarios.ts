@@ -62,3 +62,18 @@ export async function listarUsuarios(): Promise<Usuario[]> {
     })
     .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
 }
+
+export type Responsavel = { id: string; nome: string; email: string; role: Role };
+
+// Quem pode ser professor responsável por uma turma: tem perfil e acesso ativo
+// (não desativado). Inclui a Coordenação, que também pode dar aula.
+export async function listarResponsaveis(): Promise<Responsavel[]> {
+  const [logins, perfis] = await Promise.all([
+    listarLogins(),
+    db().from("profiles").select("id, nome, email, role"),
+  ]);
+  const ativos = new Set(logins.filter((u) => !estaDesativado(u)).map((u) => u.id));
+  return exigir<Responsavel[]>(perfis)
+    .filter((p) => ativos.has(p.id))
+    .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
+}

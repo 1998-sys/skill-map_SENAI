@@ -8,6 +8,8 @@ import { getCurrentProfile } from "@/lib/auth";
 
 export type RegistroFormState = { error?: string; ok?: boolean };
 
+const TURMA_FINALIZADA = "Turma finalizada: só consulta. Para reabrir, fale com a Coordenação.";
+
 type CamposRegistro = {
   data: string; // "AAAA-MM-DD" (coluna `date` do banco)
   tema: string | null;
@@ -74,6 +76,7 @@ export async function createRegistro(
   if (!turma || turma.professorId !== profile.id) {
     return { error: "Turma inválida ou sem permissão." };
   }
+  if (turma.finalizadaEm) return { error: TURMA_FINALIZADA };
 
   const parsed = parseRegistro(formData);
   if (!parsed.ok) return { error: parsed.error };
@@ -107,9 +110,11 @@ export async function updateRegistro(
 
   const registroId = String(formData.get("registroId") ?? "");
   const registro = await buscarRegistro(registroId);
-  if (!registro || registro.professorId !== profile.id) {
+  // Dono = professor atual da turma (a turma pode ter sido realocada).
+  if (!registro || registro.turma.professorId !== profile.id) {
     return { error: "Registro inválido ou sem permissão." };
   }
+  if (registro.turma.finalizadaEm) return { error: TURMA_FINALIZADA };
   if (registro.status !== "RASCUNHO") {
     return { error: "Registro já enviado não pode ser editado." };
   }
