@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 // Card de métrica (ícone em círculo colorido + rótulo + valor), padrão SENAI:
-// tile branco com filete vermelho à esquerda. Usado no Painel da Coordenação.
+// tile branco com filete vermelho à esquerda. Usado no Dashboard da Coordenação.
 
 type StatColor = "brand" | "neutral" | "warning" | "success";
 
