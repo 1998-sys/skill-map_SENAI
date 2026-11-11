@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowRight, ClipboardList, Users } from "lucide-react";
+import { ArrowRight, ClipboardList, LayoutDashboard, Users } from "lucide-react";
 import { getCurrentUser, getCurrentProfile } from "@/lib/auth";
 import { buttonVariants } from "@/components/ui/button";
 import { PageNote } from "@/components/ui/info-field";
@@ -25,7 +25,7 @@ export default async function DashboardPage() {
         <p className="mt-1 text-sm text-muted-foreground">{ROLE_LABEL[role] ?? role}</p>
       </header>
 
-      <div className="grid gap-5 md:grid-cols-2">
+      <div className={`grid gap-5 md:grid-cols-2 ${role === "COORDENACAO" ? "lg:grid-cols-3" : ""}`}>
         <AtalhoCard
           icon={<Users className="size-5" />}
           titulo="Minhas turmas"
@@ -34,13 +34,22 @@ export default async function DashboardPage() {
           acao="Acessar turmas"
         />
         {role === "COORDENACAO" && (
-          <AtalhoCard
-            icon={<ClipboardList className="size-5" />}
-            titulo="Dashboard"
-            texto="Acompanhe todas as turmas: registros recebidos, cobertura do calendário, alertas do que precisa de atenção e pontos de atenção que se repetem."
-            href="/coordenacao/dashboard"
-            acao="Abrir o Dashboard"
-          />
+          <>
+            <AtalhoCard
+              icon={<ClipboardList className="size-5" />}
+              titulo="Acompanhamento"
+              texto="Veja cada turma: pontos de atenção, avanços, intervenções sugeridas, resumo com IA e os registros enviados pelo professor."
+              href="/coordenacao/acompanhamento"
+              acao="Abrir o Acompanhamento"
+            />
+            <AtalhoCard
+              icon={<LayoutDashboard className="size-5" />}
+              titulo="Dashboard"
+              texto="Indicadores de todas as turmas: registros recebidos, cobertura do calendário, alertas do que precisa de atenção e pontos que se repetem."
+              href="/coordenacao/dashboard"
+              acao="Abrir o Dashboard"
+            />
+          </>
         )}
       </div>
 
