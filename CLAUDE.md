@@ -47,11 +47,15 @@ Supabase (Auth + Postgres) · Prisma 6 · OpenAI (`gpt-5-nano`) · deploy Vercel
   tabelas embutidas, ex.: `.is("registros.excluido_em", null)`). Ações em
   `@/lib/actions/arquivamento` checam o papel no servidor; restaurar em `/coordenacao/excluidos`.
   Arquivar a turma arquiva seus registros com o mesmo instante (assim a restauração os traz de volta).
-- **Usuários (só Coordenação, sem e-mail):** `/coordenacao/usuarios` cria usuário com senha
+- **Usuários (só Coordenação):** `/coordenacao/usuarios` cria usuário com senha
   temporária (`auth.admin.createUser` + upsert em `profiles`), gera nova senha temporária e
   desativa/reativa (ban no Auth). Senha temporária marca `app_metadata.trocar_senha`; o layout de
   `(app)` manda para `/definir-senha` (fora de `(app)` para não entrar em loop). Ações em
   `@/lib/actions/usuarios`; plano em `docs/melhoria-usuarios-e-senhas.md`.
+- **Esqueci minha senha (e-mail):** `/esqueci-senha` → `solicitarReset` (`@/lib/actions/senha`,
+  `resetPasswordForEmail`, sempre responde "ok") → e-mail do template "Reset Password" do Supabase
+  (SMTP Gmail, link com `token_hash`) → `GET /auth/confirm` (`verifyOtp`, `next` só interno) →
+  `/definir-senha`. Link inválido → `/login?erro=link-invalido`. Senha temporária continua (plano B).
 - **Capacidades por PDF:** `@/components/importar-pdf` (botão "Importar do PDF" na Nova turma e
   no `capacidades-editor`) → Server Action `@/lib/actions/capacidades-pdf` (≤ 4 MB, confere
   `%PDF`) → `@/lib/ia/capacidades-pdf` (`unpdf` extrai o texto; só páginas com "Capacidades

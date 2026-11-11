@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { FundoVideo } from "@/components/fundo-video";
+import { AvisoLinkInvalido } from "./aviso-link";
 
 // Cartão "vidro fosco" sobre o vídeo de fundo: escuro translúcido, texto
 // claro e o vermelho SENAI nos destaques — combina com o vídeo em vez de
@@ -62,6 +63,11 @@ export default function LoginPage() {
               Entre para acessar o acompanhamento pedagógico.
             </p>
           </div>
+
+          {/* Suspense: useSearchParams numa página estática precisa dele. */}
+          <Suspense fallback={null}>
+            <AvisoLinkInvalido />
+          </Suspense>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">

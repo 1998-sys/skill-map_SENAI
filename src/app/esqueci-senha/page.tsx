@@ -1,25 +1,27 @@
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { CartaoAcesso } from "@/components/cartao-acesso";
+import { FormularioReset } from "./formulario";
 
 export const metadata = { title: "Esqueci minha senha · SkillMap" };
 
-// Versão sem e-mail: quem gera a senha temporária é a Coordenação.
+// "Esqueci minha senha" por e-mail: o usuário informa o e-mail e recebe um link
+// (template do Supabase, SMTP próprio) que leva a /auth/confirm → /definir-senha.
+// Plano B continua: a Coordenação gera uma senha temporária em Usuários.
 // (Página pública: liberada no middleware.)
 export default function EsqueciSenhaPage() {
   return (
     <CartaoAcesso
       titulo="Esqueci minha senha"
-      descricao="A redefinição de senha é feita pela Coordenação do curso."
+      descricao="Informe o e-mail de acesso. Vamos enviar um link para você criar uma senha nova."
     >
-      <ol className="list-decimal space-y-2 pl-5 text-sm">
-        <li>Procure a Coordenação e informe o seu e-mail de acesso.</li>
-        <li>A Coordenação gera uma <strong>senha temporária</strong> para você.</li>
-        <li>Entre com ela: o SkillMap vai pedir para você criar uma senha nova.</li>
-      </ol>
+      <FormularioReset />
+      <p className="mt-4 text-center text-xs text-muted-foreground">
+        Não recebeu? Procure a Coordenação para gerar uma senha temporária.
+      </p>
       <Link
         href="/login"
-        className={buttonVariants({ size: "lg", className: "mt-6 h-10 w-full" })}
+        className={buttonVariants({ variant: "outline-primary", size: "lg", className: "mt-4 h-10 w-full" })}
       >
         Voltar ao login
       </Link>

@@ -16,11 +16,11 @@ export default async function DefinirSenhaPage() {
 
   return (
     <CartaoAcesso
-      titulo={obrigatoria ? "Crie sua senha" : "Trocar senha"}
+      titulo={obrigatoria ? "Crie sua senha" : "Criar senha nova"}
       descricao={
         obrigatoria
           ? "Você entrou com uma senha temporária. Crie uma senha só sua para continuar."
-          : `Defina uma nova senha para ${user.email}.`
+          : `Defina uma senha nova para ${user.email}. Ela passa a valer no próximo login.`
       }
     >
       <FormularioSenha />
