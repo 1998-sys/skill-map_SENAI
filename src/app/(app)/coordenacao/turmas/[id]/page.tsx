@@ -85,7 +85,7 @@ export default async function CoordenacaoTurmaPage({
             target="_blank"
             className={buttonVariants({ variant: "outline-primary", size: "lg", className: "px-4" })}
           >
-            <Printer /> Imprimir / PDF
+            <Printer /> Relatório consolidado
           </Link>
         }
       >
