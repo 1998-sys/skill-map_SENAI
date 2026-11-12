@@ -20,14 +20,41 @@ const SITUACAO: Record<SituacaoUsuario, { rotulo: string; classe: string }> = {
   DESATIVADO: { rotulo: "Desativado", classe: "bg-muted text-muted-foreground" },
 };
 
+// Filtro da lista: por padrão só quem tem acesso (ativos + aguardando troca
+// de senha); os desativados ficam numa aba própria.
+type Filtro = "ativos" | "desativados" | "todos";
+const FILTROS: { valor: Filtro; rotulo: string }[] = [
+  { valor: "ativos", rotulo: "Ativos" },
+  { valor: "desativados", rotulo: "Desativados" },
+  { valor: "todos", rotulo: "Todos" },
+];
+
 // Gestão de acessos: só a Coordenação cria usuários, gera senha temporária e
 // desativa/reativa. (As ações conferem o papel de novo no servidor.)
-export default async function UsuariosPage() {
+export default async function UsuariosPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ situacao?: string }>;
+}) {
   const profile = await getCurrentProfile();
   if (!profile) redirect("/login");
   if (profile.role !== "COORDENACAO") redirect("/dashboard");
 
-  const usuarios = await listarUsuarios();
+  const { situacao: situacaoParam } = await searchParams;
+  const filtro: Filtro =
+    situacaoParam === "desativados" || situacaoParam === "todos" ? situacaoParam : "ativos";
+
+  const todos = await listarUsuarios();
+  const desativado = (u: { situacao: SituacaoUsuario }) => u.situacao === "DESATIVADO";
+  const contagem = {
+    ativos: todos.filter((u) => !desativado(u)).length,
+    desativados: todos.filter(desativado).length,
+    todos: todos.length,
+  };
+  const usuarios =
+    filtro === "todos"
+      ? todos
+      : todos.filter((u) => (filtro === "desativados" ? desativado(u) : !desativado(u)));
 
   return (
     <main className="mx-auto w-full max-w-5xl space-y-5 p-4 sm:p-6">
@@ -40,8 +67,29 @@ export default async function UsuariosPage() {
 
       <SectionCard
         title="Usuários"
-        description={`${usuarios.length} ${usuarios.length === 1 ? "usuário" : "usuários"} com acesso ao SkillMap.`}
+        description={`${contagem.ativos} ${contagem.ativos === 1 ? "usuário" : "usuários"} com acesso ao SkillMap.`}
       >
+        <nav aria-label="Situação dos usuários" className="mb-4 flex flex-wrap gap-2">
+          {FILTROS.map((f) => {
+            const ativo = f.valor === filtro;
+            return (
+              <Link
+                key={f.valor}
+                href={f.valor === "ativos" ? "/coordenacao/usuarios" : `/coordenacao/usuarios?situacao=${f.valor}`}
+                aria-current={ativo ? "page" : undefined}
+                className={buttonVariants({ variant: ativo ? "default" : "outline-primary", size: "sm" })}
+              >
+                {f.rotulo} ({contagem[f.valor]})
+              </Link>
+            );
+          })}
+        </nav>
+
+        {usuarios.length === 0 ? (
+          <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+            {filtro === "desativados" ? "Nenhum usuário desativado." : "Nenhum usuário nesta lista."}
+          </p>
+        ) : (
         <ul className="divide-y rounded-lg border">
           {usuarios.map((u) => {
             const situacao = SITUACAO[u.situacao];
@@ -81,6 +129,7 @@ export default async function UsuariosPage() {
             );
           })}
         </ul>
+        )}
       </SectionCard>
 
       <PageNote>
