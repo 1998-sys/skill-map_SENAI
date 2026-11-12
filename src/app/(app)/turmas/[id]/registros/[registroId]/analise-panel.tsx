@@ -77,19 +77,22 @@ export function AnalisePanel({
   capacidades,
   analise,
   status,
+  turmaFinalizada = false,
   gerarAoAbrir = false,
 }: {
   registroId: string;
   capacidades: Capacidade[];
   analise: AnaliseData | null;
   status: "RASCUNHO" | "ENVIADO";
+  /** Turma finalizada: só consulta (sem analisar, editar, enviar ou reabrir). */
+  turmaFinalizada?: boolean;
   /** Veio do "Analisar com IA" do Registro Diário: gera a análise ao abrir. */
   gerarAoAbrir?: boolean;
 }) {
   const router = useRouter();
   const pathname = usePathname();
   const [pending, startTransition] = useTransition();
-  const readOnly = status === "ENVIADO";
+  const readOnly = status === "ENVIADO" || turmaFinalizada;
   // Leitura por padrão (como na referência); "Editar" abre os campos.
   const [editando, setEditando] = useState(false);
 
@@ -236,7 +239,12 @@ export function AnalisePanel({
         title="Análise Pedagógica da Turma"
         description="A IA vai relacionar este relato às capacidades da turma e sugerir pontos de atenção e ações para a próxima aula."
       >
-        <div className="flex justify-end">
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          {turmaFinalizada && (
+            <p className="mr-auto text-sm text-muted-foreground">
+              Turma finalizada: este registro ficou sem análise.
+            </p>
+          )}
           <Button
             size="lg"
             className="px-4"
@@ -374,7 +382,12 @@ export function AnalisePanel({
         )}
       </div>
 
-      {escrevendo ? null : readOnly ? (
+      {escrevendo ? null : turmaFinalizada ? (
+        <p className="mt-2 border-t pt-4 text-sm text-muted-foreground">
+          Turma finalizada: a análise fica só para consulta. Para reabrir a turma, fale com a
+          Coordenação.
+        </p>
+      ) : readOnly ? (
         <div className="mt-2 flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-muted-foreground">
             Esta análise foi enviada à Coordenação. Para corrigir, reabra o

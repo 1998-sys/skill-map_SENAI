@@ -44,7 +44,8 @@ export type SemanaRegistros = {
 
 export type DashboardData = {
   consolidado: {
-    totalTurmas: number;
+    totalTurmas: number; // em andamento
+    turmasFinalizadas: number; // fora dos indicadores
     turmasComRegistro: number;
     turmasSemRegistro: number;
     totalRegistros: number;
@@ -143,7 +144,7 @@ export async function obterDashboardCoordenacao(): Promise<DashboardData> {
         const dias = Math.round(
           (diaUTC(r.enviadoEm).getTime() - diaUTC(r.data).getTime()) / MS_DIA,
         );
-        if (dias >= 0) temposEnvio.push(dias);
+        if (dias >= 0 && !t.finalizadaEm) temposEnvio.push(dias);
       }
 
       // registros por semana
@@ -188,8 +189,11 @@ export async function obterDashboardCoordenacao(): Promise<DashboardData> {
     });
   }
 
-  const totalRegistros = turmasDash.reduce((s, t) => s + t.totalRegistros, 0);
-  const totalEnviados = turmasDash.reduce((s, t) => s + t.enviados, 0);
+  // Indicadores gerais: só as turmas em andamento (as finalizadas ficam no
+  // Acompanhamento, filtro "Finalizadas").
+  const ativas = turmasDash.filter((t) => !t.finalizadaEm);
+  const totalRegistros = ativas.reduce((s, t) => s + t.totalRegistros, 0);
+  const totalEnviados = ativas.reduce((s, t) => s + t.enviados, 0);
   const tempoMedioEnvioDias =
     temposEnvio.length > 0
       ? Math.round(
@@ -199,13 +203,14 @@ export async function obterDashboardCoordenacao(): Promise<DashboardData> {
 
   return {
     consolidado: {
-      totalTurmas: turmasDash.length,
-      turmasComRegistro: turmasDash.filter((t) => t.totalRegistros > 0).length,
-      turmasSemRegistro: turmasDash.filter((t) => t.totalRegistros === 0).length,
+      totalTurmas: ativas.length,
+      turmasFinalizadas: turmasDash.length - ativas.length,
+      turmasComRegistro: ativas.filter((t) => t.totalRegistros > 0).length,
+      turmasSemRegistro: ativas.filter((t) => t.totalRegistros === 0).length,
       totalRegistros,
       totalEnviados,
       tempoMedioEnvioDias,
-      ...consolidarCobertura(turmasDash),
+      ...consolidarCobertura(ativas),
     },
     turmas: turmasDash,
     registrosPorSemana,

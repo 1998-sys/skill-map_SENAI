@@ -56,7 +56,7 @@ export default async function DashboardCoordenacaoPage() {
         }
       >
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-          <StatCard icon={<Users className="size-5" />} label="Turmas" value={consolidado.totalTurmas} />
+          <StatCard icon={<Users className="size-5" />} label="Turmas em andamento" value={consolidado.totalTurmas} />
           <StatCard
             icon={<Send className="size-5" />}
             label="Registros recebidos"
@@ -91,6 +91,10 @@ export default async function DashboardCoordenacaoPage() {
           />
         </div>
         <p className="mt-3 text-xs text-muted-foreground">
+          {consolidado.turmasFinalizadas > 0 &&
+            `Os indicadores contam só as turmas em andamento (${consolidado.turmasFinalizadas} ${
+              consolidado.turmasFinalizadas === 1 ? "finalizada fica" : "finalizadas ficam"
+            } de fora). `}
           {consolidado.turmasComCalendario === 0
             ? "Nenhuma turma tem calendário ainda. O professor monta o calendário na tela da turma."
             : `Cobertura = aulas que já aconteceram com registro, ${

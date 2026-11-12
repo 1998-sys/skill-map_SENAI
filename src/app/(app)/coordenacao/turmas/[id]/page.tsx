@@ -6,6 +6,7 @@ import { listarResponsaveis } from "@/lib/db/usuarios";
 import { lerInstante } from "@/lib/db/cliente";
 import { finalizarTurma, reabrirTurma } from "@/lib/actions/turmas-gestao";
 import { RealocarProfessor } from "./realocar-professor";
+import { EditarDadosTurma } from "@/components/editar-dados-turma";
 import {
   CalendarDays,
   FileText,
@@ -235,6 +236,18 @@ export default async function CoordenacaoTurmaPage({
         <p className="mt-1.5 text-xs text-muted-foreground">
           Registros, rascunhos e histórico vão junto. O novo professor passa a ver e editar a turma.
         </p>
+
+        <div className="mt-5 border-t pt-5">
+          <EditarDadosTurma
+            turmaId={turma.id}
+            inicial={{
+              curso: turma.curso.nome,
+              turma: turma.nome,
+              periodo: turma.periodo ?? "",
+              cargaHoraria: turma.cargaHoraria != null ? String(turma.cargaHoraria) : "",
+            }}
+          />
+        </div>
 
         <div className="mt-5 flex flex-wrap gap-3 border-t pt-5">
           {finalizadaEm ? (

@@ -89,3 +89,69 @@ export async function realocarTurma(
   atualizarTelas(turmaId);
   return { ok: true };
 }
+
+// Corrige os dados básicos da turma (curso, nome, período, carga horária).
+// Pode: o professor responsável (enquanto a turma não está finalizada) e a
+// Coordenação. O curso é uma linha própria da turma: muda só o nome dele.
+export type DadosTurmaState = GestaoState & {
+  valores?: { curso: string; turma: string; periodo: string; cargaHoraria: string };
+};
+
+export async function atualizarDadosTurma(
+  _prev: DadosTurmaState,
+  formData: FormData,
+): Promise<DadosTurmaState> {
+  const profile = await getCurrentProfile();
+  if (!profile) redirect("/login");
+
+  const turmaId = String(formData.get("turmaId") ?? "");
+  const valores = {
+    curso: String(formData.get("curso") ?? "").trim(),
+    turma: String(formData.get("turma") ?? "").trim(),
+    periodo: String(formData.get("periodo") ?? "").trim(),
+    cargaHoraria: String(formData.get("cargaHoraria") ?? "").trim(),
+  };
+
+  const turma = await buscarTurma(turmaId);
+  if (!turma) return { error: "Turma não encontrada.", valores };
+  const coordenacao = profile.role === "COORDENACAO";
+  if (!coordenacao && turma.professorId !== profile.id) {
+    return { error: "Você não tem permissão para editar esta turma.", valores };
+  }
+  if (!coordenacao && turma.finalizadaEm) {
+    return { error: "Turma finalizada: só consulta. Para reabrir, fale com a Coordenação.", valores };
+  }
+  if (!valores.curso || !valores.turma) {
+    return { error: "Informe o nome do curso e da turma.", valores };
+  }
+  const carga = valores.cargaHoraria ? Number(valores.cargaHoraria) : null;
+  if (carga != null && (!Number.isInteger(carga) || carga < 0)) {
+    return { error: "Carga horária deve ser um número inteiro.", valores };
+  }
+
+  const linha = exigir<{ curso_id: string } | null>(
+    await db().from("turmas").select("curso_id").eq("id", turmaId).maybeSingle(),
+  );
+  if (!linha) return { error: "Turma não encontrada.", valores };
+
+  const momento = agora();
+  exigir(
+    await db()
+      .from("cursos")
+      .update({ nome: valores.curso, updated_at: momento })
+      .eq("id", linha.curso_id),
+  );
+  exigir(
+    await db()
+      .from("turmas")
+      .update({
+        nome: valores.turma,
+        periodo: valores.periodo || null,
+        carga_horaria: carga,
+        updated_at: momento,
+      })
+      .eq("id", turmaId),
+  );
+  atualizarTelas(turmaId);
+  return { ok: true };
+}

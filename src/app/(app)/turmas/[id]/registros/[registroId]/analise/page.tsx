@@ -105,7 +105,8 @@ export default async function AnalisePage({
         capacidades={capacidadesTurma}
         analise={analise}
         status={registro.status}
-        gerarAoAbrir={gerar === "1"}
+        turmaFinalizada={Boolean(registro.turma.finalizadaEm)}
+        gerarAoAbrir={gerar === "1" && !registro.turma.finalizadaEm}
       />
 
       <PageNote>
