@@ -4,7 +4,7 @@ import { montarAcompanhamento } from "@/lib/acompanhamento";
 import { formatarData, formatarDataHora } from "@/lib/datas";
 import { BotaoImprimir } from "./botao-imprimir";
 
-export const metadata = { title: "Acompanhamento da turma · SkillMap" };
+export const metadata = { title: "Relatório consolidado da turma · SkillMap" };
 
 // Versão para impressão do acompanhamento da turma (Coordenação): base
 // documental para reuniões pedagógicas. Fica fora do grupo (app) para sair
@@ -42,7 +42,7 @@ export default async function ImprimirTurmaPage({
 
         <header className="border-b-2 border-primary pb-4">
           <p className="text-xs font-bold tracking-wide text-primary uppercase">SENAI SkillMap</p>
-          <h1 className="text-2xl font-extrabold">Acompanhamento da turma</h1>
+          <h1 className="text-2xl font-extrabold">Relatório consolidado da turma</h1>
           <p className="mt-1 text-xs text-muted-foreground">
             Emitido em {formatarDataHora(new Date())} por {profile.nome} · baseado só nos registros
             enviados e validados pelo professor.
