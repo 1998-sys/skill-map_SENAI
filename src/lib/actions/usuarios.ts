@@ -163,3 +163,37 @@ export async function reativarUsuario(userId: string): Promise<UsuarioState> {
   revalidar();
   return { ok: true };
 }
+
+// ─── Editar nome e papel ────────────────────────────────────────────────────
+
+// A Coordenação corrige o nome e troca o papel (Professor ↔ Coordenação).
+// Ninguém troca o próprio papel: assim sempre sobra ao menos uma Coordenação.
+export async function editarUsuario(
+  userId: string,
+  dados: { nome: string; role: Role },
+): Promise<UsuarioState> {
+  const profile = await exigirCoordenacao();
+  if (!profile) return SEM_PERMISSAO;
+
+  const nome = dados.nome.trim();
+  if (nome.length < 2) return { error: "Informe o nome." };
+  if (dados.role !== "PROFESSOR" && dados.role !== "COORDENACAO") {
+    return { error: "Papel inválido." };
+  }
+  if (userId === profile.id && dados.role !== profile.role) {
+    return { error: "Você não pode trocar o seu próprio papel. Peça a outra pessoa da Coordenação." };
+  }
+
+  const atualizados = exigir<{ id: string }[]>(
+    await db()
+      .from("profiles")
+      .update({ nome, role: dados.role, updated_at: agora() })
+      .eq("id", userId)
+      .select("id"),
+  );
+  if (atualizados.length === 0) return { error: "Usuário não encontrado." };
+
+  revalidar();
+  revalidatePath("/", "layout"); // o nome aparece no topo e nas turmas
+  return { ok: true };
+}

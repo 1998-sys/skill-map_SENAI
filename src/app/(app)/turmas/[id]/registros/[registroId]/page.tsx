@@ -88,7 +88,7 @@ export default async function RegistroPage({
           textoObservacoes: registro.textoObservacoes ?? "",
         }}
         submitLabel="Salvar alterações"
-        readOnly={!isRascunho}
+        readOnly={!isRascunho || Boolean(registro.turma.finalizadaEm)}
         temAnalise={temAnalise}
       />
 

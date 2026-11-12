@@ -8,6 +8,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { SectionCard } from "@/components/ui/section-card";
 import { PageNote } from "@/components/ui/info-field";
 import { AcoesUsuario, NovoUsuario } from "./componentes";
+import { EditarUsuario } from "./editar-usuario";
 
 export const metadata = { title: "Usuários · SkillMap" };
 
@@ -114,6 +115,7 @@ export default async function UsuariosPage({
                     {u.role === "COORDENACAO" ? "Coordenação" : "Professor"} · Último acesso:{" "}
                     {u.ultimoAcesso ? formatarDataHora(u.ultimoAcesso) : "nunca entrou"}
                   </p>
+                  <EditarUsuario id={u.id} nome={u.nome} role={u.role} souEu={souEu} />
                 </div>
                 {souEu ? (
                   <Link

@@ -16,6 +16,7 @@ import { lerInstante } from "@/lib/db/cliente";
 import { BotaoConfirmar } from "@/components/botao-confirmar";
 import { finalizarTurma } from "@/lib/actions/turmas-gestao";
 import { excluirRascunho } from "@/lib/actions/registros";
+import { EditarDadosTurma } from "@/components/editar-dados-turma";
 import { calcularCobertura, rotuloCurto } from "@/lib/calendario";
 import { CapacidadesEditor } from "./capacidades-editor";
 import { CalendarioForm } from "./calendario-form";
@@ -79,6 +80,19 @@ export default async function TurmaDetalhePage({
             value={turma.cargaHoraria != null ? `${turma.cargaHoraria}h` : null}
           />
         </div>
+        {!finalizadaEm && (
+          <div className="mt-4">
+            <EditarDadosTurma
+              turmaId={turma.id}
+              inicial={{
+                curso: turma.curso.nome,
+                turma: turma.nome,
+                periodo: turma.periodo ?? "",
+                cargaHoraria: turma.cargaHoraria != null ? String(turma.cargaHoraria) : "",
+              }}
+            />
+          </div>
+        )}
       </SectionCard>
 
       <SectionCard

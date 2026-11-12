@@ -206,7 +206,7 @@ export default async function HistoricoPage({
             {/* Mobile: cartões */}
             <ul className="mt-3 space-y-3 lg:hidden">
               {filtrados.map(({ r, capacidades, sintese, temAnalise }) => (
-                <li key={r.id}>
+                <li key={r.id} className="space-y-2">
                   <Link
                     href={abrir(r.id, temAnalise)}
                     className="block rounded-lg border p-4 transition hover:bg-accent"
@@ -230,6 +230,14 @@ export default async function HistoricoPage({
                       <p className="mt-2 text-sm text-muted-foreground">{sintese}</p>
                     )}
                   </Link>
+                  {r.status === "RASCUNHO" && !r.enviadoEm && !turma.finalizadaEm && (
+                    <BotaoConfirmar
+                      acao={excluirRascunho.bind(null, r.id)}
+                      rotulo="Excluir rascunho"
+                      aviso="O rascunho e a análise da IA dele serão apagados de vez. Esta ação não pode ser desfeita."
+                      sucesso="Rascunho excluído."
+                    />
+                  )}
                 </li>
               ))}
             </ul>
