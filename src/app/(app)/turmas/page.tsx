@@ -8,6 +8,8 @@ import { FolderOpen, Plus } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { SectionCard } from "@/components/ui/section-card";
 import { formatarDiaDoInstante } from "@/lib/datas";
+import { BotaoConfirmar } from "@/components/botao-confirmar";
+import { arquivarTurma } from "@/lib/actions/arquivamento";
 
 export default async function TurmasPage() {
   const profile = await getCurrentProfile();
@@ -16,6 +18,16 @@ export default async function TurmasPage() {
   const todas = await listarTurmasDoProfessor(profile.id);
   const turmas = todas.filter((t) => !t.finalizadaEm);
   const finalizadas = todas.filter((t) => t.finalizadaEm);
+  // Só a Coordenação exclui (arquiva) turmas; a ação confere de novo no servidor.
+  const podeExcluir = profile.role === "COORDENACAO";
+  const excluir = (t: { id: string; nome: string }) => (
+    <BotaoConfirmar
+      acao={arquivarTurma.bind(null, t.id)}
+      rotulo="Excluir"
+      aviso={`A turma "${t.nome}" vai sair de todas as telas, junto com os registros dela. Nada é apagado do banco: dá para restaurar em Excluídos.`}
+      sucesso="Turma excluída. Ela pode ser restaurada em Excluídos."
+    />
+  );
 
   return (
     <main className="mx-auto w-full max-w-5xl space-y-5 p-4 sm:p-6">
@@ -71,12 +83,15 @@ export default async function TurmasPage() {
                       {turma.totalRegistros}
                     </td>
                     <td className="px-4 py-2">
-                      <Link
-                        href={`/turmas/${turma.id}`}
-                        className={buttonVariants({ variant: "outline-primary" })}
-                      >
-                        <FolderOpen /> Abrir
-                      </Link>
+                      <div className="flex flex-wrap justify-end gap-2">
+                        <Link
+                          href={`/turmas/${turma.id}`}
+                          className={buttonVariants({ variant: "outline-primary" })}
+                        >
+                          <FolderOpen /> Abrir
+                        </Link>
+                        {podeExcluir && excluir(turma)}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -93,10 +108,10 @@ export default async function TurmasPage() {
         >
           <ul className="divide-y rounded-lg border">
             {finalizadas.map((t) => (
-              <li key={t.id}>
+              <li key={t.id} className="flex flex-wrap items-center gap-2 pr-3">
                 <Link
                   href={`/turmas/${t.id}`}
-                  className="flex items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-muted"
+                  className="flex min-w-0 flex-1 items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-muted"
                 >
                   <span className="min-w-0">
                     <span className="block font-medium">{t.nome}</span>
@@ -107,6 +122,7 @@ export default async function TurmasPage() {
                     finalizada em {t.finalizadaEm ? formatarDiaDoInstante(t.finalizadaEm) : "—"}
                   </span>
                 </Link>
+                {podeExcluir && excluir(t)}
               </li>
             ))}
           </ul>
