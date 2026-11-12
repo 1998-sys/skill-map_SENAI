@@ -13,6 +13,8 @@ import { PageNote } from "@/components/ui/info-field";
 import { formatarData, formatarDataHora } from "@/lib/datas";
 import { normalizarBusca } from "@/lib/catalogo-cursos";
 import { Filtros } from "./filtros";
+import { BotaoConfirmar } from "@/components/botao-confirmar";
+import { excluirRascunho } from "@/lib/actions/registros";
 
 // Aceita só datas "AAAA-MM-DD" vindas da URL (filtro por período).
 const DIA = /^\d{4}-\d{2}-\d{2}$/;
@@ -178,12 +180,22 @@ export default async function HistoricoPage({
                         )}
                       </td>
                       <td className="px-4 py-3">
-                        <Link
-                          href={abrir(r.id, temAnalise)}
-                          className={buttonVariants({ variant: "outline-primary" })}
-                        >
-                          <FolderOpen /> Abrir
-                        </Link>
+                        <div className="flex flex-col items-end gap-2">
+                          <Link
+                            href={abrir(r.id, temAnalise)}
+                            className={buttonVariants({ variant: "outline-primary" })}
+                          >
+                            <FolderOpen /> Abrir
+                          </Link>
+                          {r.status === "RASCUNHO" && !r.enviadoEm && !turma.finalizadaEm && (
+                            <BotaoConfirmar
+                              acao={excluirRascunho.bind(null, r.id)}
+                              rotulo="Excluir"
+                              aviso="O rascunho e a análise da IA dele serão apagados de vez. Esta ação não pode ser desfeita."
+                              sucesso="Rascunho excluído."
+                            />
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}

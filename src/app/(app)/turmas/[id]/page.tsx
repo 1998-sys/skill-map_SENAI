@@ -15,6 +15,7 @@ import { diaISOEmBrasilia, formatarData, formatarDataHora } from "@/lib/datas";
 import { lerInstante } from "@/lib/db/cliente";
 import { BotaoConfirmar } from "@/components/botao-confirmar";
 import { finalizarTurma } from "@/lib/actions/turmas-gestao";
+import { excluirRascunho } from "@/lib/actions/registros";
 import { calcularCobertura, rotuloCurto } from "@/lib/calendario";
 import { CapacidadesEditor } from "./capacidades-editor";
 import { CalendarioForm } from "./calendario-form";
@@ -224,12 +225,23 @@ export default async function TurmaDetalhePage({
                       <StatusBadge status={r.status} short />
                     </td>
                     <td className="px-4 py-2">
-                      <Link
-                        href={`/turmas/${turma.id}/registros/${r.id}`}
-                        className={buttonVariants({ variant: "outline-primary" })}
-                      >
-                        <FolderOpen /> Abrir
-                      </Link>
+                      <div className="flex flex-wrap justify-end gap-2">
+                        <Link
+                          href={`/turmas/${turma.id}/registros/${r.id}`}
+                          className={buttonVariants({ variant: "outline-primary" })}
+                        >
+                          <FolderOpen /> Abrir
+                        </Link>
+                        {/* Rascunho nunca enviado: o professor pode excluir. */}
+                        {r.status === "RASCUNHO" && !r.enviadoEm && !finalizadaEm && (
+                          <BotaoConfirmar
+                            acao={excluirRascunho.bind(null, r.id)}
+                            rotulo="Excluir"
+                            aviso="O rascunho e a análise da IA dele serão apagados de vez. Esta ação não pode ser desfeita."
+                            sucesso="Rascunho excluído."
+                          />
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
