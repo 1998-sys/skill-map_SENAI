@@ -6,7 +6,9 @@ import {
   buscarRegistro,
   contarAnalises,
 } from "@/lib/db/consultas";
-import { updateRegistro } from "@/lib/actions/registros";
+import { excluirRascunho, updateRegistro } from "@/lib/actions/registros";
+import { BotaoConfirmar } from "@/components/botao-confirmar";
+import { SectionCard } from "@/components/ui/section-card";
 import { RegistroForm } from "../registro-form";
 import { buttonVariants } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -89,6 +91,21 @@ export default async function RegistroPage({
         readOnly={!isRascunho}
         temAnalise={temAnalise}
       />
+
+      {isRascunho && !registro.enviadoEm && !registro.turma.finalizadaEm && (
+        <SectionCard
+          title="Excluir rascunho"
+          description="Este registro ainda não foi enviado à Coordenação. Se não for usar, você pode excluí-lo."
+        >
+          <BotaoConfirmar
+            acao={excluirRascunho.bind(null, registro.id)}
+            rotulo="Excluir rascunho"
+            aviso="O rascunho e a análise da IA dele serão apagados de vez. Esta ação não pode ser desfeita."
+            sucesso="Rascunho excluído."
+            redirecionarPara={`/turmas/${registro.turma.id}`}
+          />
+        </SectionCard>
+      )}
 
       <PageNote>
         O professor registra apenas o que observou na aula; a IA cruza essas

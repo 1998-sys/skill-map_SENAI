@@ -135,3 +135,38 @@ export async function updateRegistro(
   if (destino) redirect(destino);
   return { ok: true };
 }
+
+// O professor exclui um RASCUNHO seu (nunca enviado). Apaga de vez o registro
+// e as análises dele (ON DELETE CASCADE) — rascunho não chegou à Coordenação,
+// então não há histórico a preservar. Registro que já foi enviado alguma vez
+// (mesmo reaberto para correção) não pode ser excluído: rastreabilidade.
+export async function excluirRascunho(registroId: string): Promise<RegistroFormState> {
+  const profile = await getCurrentProfile();
+  if (!profile) redirect("/login");
+
+  const registro = await buscarRegistro(registroId);
+  if (!registro || registro.turma.professorId !== profile.id) {
+    return { error: "Registro inválido ou sem permissão." };
+  }
+  if (registro.turma.finalizadaEm) return { error: TURMA_FINALIZADA };
+  if (registro.status !== "RASCUNHO") {
+    return { error: "Só rascunhos podem ser excluídos." };
+  }
+  if (registro.enviadoEm) {
+    return {
+      error: "Este registro já foi enviado à Coordenação antes e não pode ser excluído.",
+    };
+  }
+
+  exigir(
+    await db()
+      .from("registros")
+      .delete()
+      .eq("id", registroId)
+      .eq("status", "RASCUNHO")
+      .is("enviado_em", null),
+  );
+
+  revalidatePath(`/turmas/${registro.turmaId}`, "layout");
+  return { ok: true };
+}
