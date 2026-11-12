@@ -4,20 +4,44 @@ import { getCurrentProfile } from "@/lib/auth";
 import {
   listarTurmasDoProfessor,
 } from "@/lib/db/consultas";
-import { FolderOpen, Plus } from "lucide-react";
+import { CircleCheck, FolderOpen, Plus } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { SectionCard } from "@/components/ui/section-card";
 import { formatarDiaDoInstante } from "@/lib/datas";
 import { BotaoConfirmar } from "@/components/botao-confirmar";
 import { arquivarTurma } from "@/lib/actions/arquivamento";
 
-export default async function TurmasPage() {
+// Filtro da lista: por padrão só as turmas em andamento; as finalizadas
+// (cursos encerrados, só consulta) ficam numa aba própria.
+type Situacao = "andamento" | "finalizadas" | "todas";
+const SITUACOES: { valor: Situacao; rotulo: string }[] = [
+  { valor: "andamento", rotulo: "Em andamento" },
+  { valor: "finalizadas", rotulo: "Finalizadas" },
+  { valor: "todas", rotulo: "Todas" },
+];
+
+export default async function TurmasPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ situacao?: string }>;
+}) {
   const profile = await getCurrentProfile();
   if (!profile) redirect("/login");
 
+  const { situacao: situacaoParam } = await searchParams;
+  const situacao: Situacao =
+    situacaoParam === "finalizadas" || situacaoParam === "todas" ? situacaoParam : "andamento";
+
   const todas = await listarTurmasDoProfessor(profile.id);
-  const turmas = todas.filter((t) => !t.finalizadaEm);
-  const finalizadas = todas.filter((t) => t.finalizadaEm);
+  const contagem = {
+    andamento: todas.filter((t) => !t.finalizadaEm).length,
+    finalizadas: todas.filter((t) => t.finalizadaEm).length,
+    todas: todas.length,
+  };
+  const turmas = todas.filter((t) =>
+    situacao === "todas" ? true : situacao === "finalizadas" ? !!t.finalizadaEm : !t.finalizadaEm,
+  );
+
   // Só a Coordenação exclui (arquiva) turmas; a ação confere de novo no servidor.
   const podeExcluir = profile.role === "COORDENACAO";
   const excluir = (t: { id: string; nome: string }) => (
@@ -40,19 +64,39 @@ export default async function TurmasPage() {
           </Link>
         }
       >
+        <nav aria-label="Situação das turmas" className="mb-4 flex flex-wrap gap-2">
+          {SITUACOES.map((s) => {
+            const ativo = s.valor === situacao;
+            return (
+              <Link
+                key={s.valor}
+                href={s.valor === "andamento" ? "/turmas" : `/turmas?situacao=${s.valor}`}
+                aria-current={ativo ? "page" : undefined}
+                className={buttonVariants({ variant: ativo ? "default" : "outline-primary", size: "sm" })}
+              >
+                {s.rotulo} ({contagem[s.valor]})
+              </Link>
+            );
+          })}
+        </nav>
+
         {turmas.length === 0 ? (
           <div className="rounded-lg border border-dashed p-10 text-center">
             <p className="text-sm text-muted-foreground">
-              {finalizadas.length > 0
-                ? "Nenhuma turma em andamento."
-                : "Você ainda não cadastrou nenhuma turma."}
+              {todas.length === 0
+                ? "Você ainda não cadastrou nenhuma turma."
+                : situacao === "finalizadas"
+                  ? "Nenhuma turma finalizada ainda. Ao terminar um curso, finalize a turma na tela dela."
+                  : "Nenhuma turma em andamento."}
             </p>
-            <Link
-              href="/turmas/nova"
-              className={buttonVariants({ size: "lg", className: "mt-4" })}
-            >
-              <Plus /> {finalizadas.length > 0 ? "Nova turma" : "Cadastrar primeira turma"}
-            </Link>
+            {situacao !== "finalizadas" && (
+              <Link
+                href="/turmas/nova"
+                className={buttonVariants({ size: "lg", className: "mt-4" })}
+              >
+                <Plus /> {todas.length > 0 ? "Nova turma" : "Cadastrar primeira turma"}
+              </Link>
+            )}
           </div>
         ) : (
           <div className="overflow-hidden rounded-lg border">
@@ -75,6 +119,12 @@ export default async function TurmasPage() {
                     <td className="px-4 py-3">
                       <p className="font-medium">{turma.nome}</p>
                       <p className="text-xs text-muted-foreground">{turma.curso.nome}</p>
+                      {turma.finalizadaEm && (
+                        <p className="mt-1.5 inline-flex items-center gap-1.5 rounded-full bg-success-soft px-2.5 py-0.5 text-xs font-semibold text-success">
+                          <CircleCheck className="size-3.5" /> Finalizada em{" "}
+                          {formatarDiaDoInstante(turma.finalizadaEm)}
+                        </p>
+                      )}
                     </td>
                     <td className="hidden px-4 py-3 tabular-nums sm:table-cell">
                       {turma.totalCapacidades}
@@ -88,7 +138,7 @@ export default async function TurmasPage() {
                           href={`/turmas/${turma.id}`}
                           className={buttonVariants({ variant: "outline-primary" })}
                         >
-                          <FolderOpen /> Abrir
+                          <FolderOpen /> {turma.finalizadaEm ? "Consultar" : "Abrir"}
                         </Link>
                         {podeExcluir && excluir(turma)}
                       </div>
@@ -100,34 +150,6 @@ export default async function TurmasPage() {
           </div>
         )}
       </SectionCard>
-
-      {finalizadas.length > 0 && (
-        <SectionCard
-          title="Turmas finalizadas"
-          description="Cursos encerrados: ficam só para consulta do histórico."
-        >
-          <ul className="divide-y rounded-lg border">
-            {finalizadas.map((t) => (
-              <li key={t.id} className="flex flex-wrap items-center gap-2 pr-3">
-                <Link
-                  href={`/turmas/${t.id}`}
-                  className="flex min-w-0 flex-1 items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-muted"
-                >
-                  <span className="min-w-0">
-                    <span className="block font-medium">{t.nome}</span>
-                    <span className="block text-xs text-muted-foreground">{t.curso.nome}</span>
-                  </span>
-                  <span className="shrink-0 text-xs text-muted-foreground">
-                    {t.totalRegistros} {t.totalRegistros === 1 ? "registro" : "registros"} ·
-                    finalizada em {t.finalizadaEm ? formatarDiaDoInstante(t.finalizadaEm) : "—"}
-                  </span>
-                </Link>
-                {podeExcluir && excluir(t)}
-              </li>
-            ))}
-          </ul>
-        </SectionCard>
-      )}
     </main>
   );
 }
